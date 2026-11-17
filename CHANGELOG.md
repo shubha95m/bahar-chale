@@ -2,6 +2,23 @@
 
 All notable changes to the Bahar Chale project will be documented in this file.
 
+## [0.2.0] - 2026-11-17
+### Added
+- **Milestone 2 (Ride Management):**
+  - Implemented `CreateRidePage` with category switching (Private Vehicle Car/Bike vs General Travel), seat counters, date/time pickers, and contribution amount inputs.
+  - Implemented `RidesRepository` with normalized city matching, pagination, and local SQLite caching.
+  - Implemented `MyTravelPage` with dual tabs for offered rides and submitted requests with real-time status badges.
+- **Milestone 3 (Ride Matching & Request Workflow):**
+  - Implemented `SearchRidesPage` with city-to-city matching, travel date filtering, and responsive result cards.
+  - Implemented `RideDetailsPage` showing route summary, provider info, seats remaining, and incoming requests.
+  - Atomic seat allocation and request approval calling Supabase RPC `accept_ride_request`.
+  - Rejection and cancellation workflows for ride requests.
+- **Google Maps Integration:**
+  - Integrated zero-cost Google Maps deep linking (`MapLauncher`) for route navigation on Android and Web.
+- **Automated Tests:**
+  - Added unit test suites for `Ride`, `RideRequest`, and `SearchParams` normalization.
+  - Added widget tests for `CreateRidePage` and `SearchRidesPage`.
+
 ## [0.1.0] - 2026-11-17
 ### Added
 - Initialized Bahar Chale project with Flutter (Android & Web) architecture.
