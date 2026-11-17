@@ -144,6 +144,58 @@ class LoginPage extends ConsumerWidget {
                             ],
                           ),
                   ),
+                  const SizedBox(height: 24),
+
+                  // Local Preview / Demo Mode Bypass Divider
+                  Row(
+                    children: [
+                      const Expanded(child: Divider(color: Color(0xFFCBD5E1))),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                        child: Text(
+                          'या स्थानीय परीक्षण (Demo Mode)',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ),
+                      const Expanded(child: Divider(color: Color(0xFFCBD5E1))),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Demo Driver Bypass
+                  ElevatedButton.icon(
+                    onPressed: isLoading
+                        ? null
+                        : () => ref.read(authControllerProvider.notifier).signInAsDemoUser(asDriver: true),
+                    icon: const Icon(Icons.flash_on_rounded, color: Colors.white),
+                    label: const Text(
+                      'डेमो मोड: चालक (Driver) के रूप में प्रवेश',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryGreen,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Demo Rider Bypass
+                  OutlinedButton.icon(
+                    onPressed: isLoading
+                        ? null
+                        : () => ref.read(authControllerProvider.notifier).signInAsDemoUser(asDriver: false),
+                    icon: const Icon(Icons.person_search_rounded, color: AppTheme.accentAmber),
+                    label: const Text(
+                      'डेमो मोड: यात्री (Rider) के रूप में प्रवेश',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.accentAmber),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppTheme.accentAmber, width: 1.5),
+                    ),
+                  ),
                 ],
               ),
             ),

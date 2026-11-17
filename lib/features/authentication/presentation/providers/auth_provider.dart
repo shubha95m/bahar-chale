@@ -57,6 +57,20 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
     }
   }
 
+  Future<void> signInAsDemoUser({bool asDriver = true}) async {
+    state = const AsyncValue.loading();
+    try {
+      final email = asDriver ? 'demo@baharchale.local' : 'rider@baharchale.local';
+      await SupabaseConfig.client.auth.signInWithPassword(
+        email: email,
+        password: 'demo123456',
+      );
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
   Future<void> signOut() async {
     state = const AsyncValue.loading();
     try {
