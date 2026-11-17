@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -23,35 +24,59 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         // Web Google OAuth via Supabase PKCE
         await SupabaseConfig.client.auth.signInWithOAuth(
           OAuthProvider.google,
-          redirectTo: kIsWeb ? null : 'com.baharchale://login-callback',
         );
       } else {
-        // Native Android Google Sign-In
-        final googleSignIn = GoogleSignIn(
-          scopes: ['email', 'profile'],
-        );
+        // Native Mobile Flow with Automatic Browser OAuth Fallback
+        bool nativeSuccess = false;
+        try {
+          final webClientId = dotenv.env['GOOGLE_WEB_CLIENT_ID'];
+          final googleSignIn = GoogleSignIn(
+            serverClientId: (webClientId != null && webClientId.isNotEmpty) ? webClientId : null,
+            scopes: ['email', 'profile'],
+          );
 
-        final googleUser = await googleSignIn.signIn();
-        if (googleUser == null) {
-          state = const AsyncValue.data(null);
-          return;
+          final googleUser = await googleSignIn.signIn();
+          if (googleUser == null) {
+            // User dismissed dialog
+            state = const AsyncValue.data(null);
+            return;
+          }
+
+          final googleAuth = await googleUser.authentication;
+          final idToken = googleAuth.idToken;
+          final accessToken = googleAuth.accessToken;
+
+          if (idToken != null) {
+            await SupabaseConfig.client.auth.signInWithIdToken(
+              provider: OAuthProvider.google,
+              idToken: idToken,
+              accessToken: accessToken,
+            );
+            nativeSuccess = true;
+          }
+        } catch (nativeError) {
+          debugPrint('Native Google Sign-In not ready ($nativeError). Falling back to OAuth...');
         }
 
-        final googleAuth = await googleUser.authentication;
-        final idToken = googleAuth.idToken;
-        final accessToken = googleAuth.accessToken;
-
-        if (idToken == null) {
-          throw Exception('Google Sign-In failed: No ID Token retrieved.');
+        if (!nativeSuccess) {
+          // Deep link callback on Android
+          await SupabaseConfig.client.auth.signInWithOAuth(
+            OAuthProvider.google,
+            redirectTo: 'io.supabase.baharchale://login-callback',
+            authScreenLaunchMode: LaunchMode.externalApplication,
+          );
         }
-
-        await SupabaseConfig.client.auth.signInWithIdToken(
-          provider: OAuthProvider.google,
-          idToken: idToken,
-          accessToken: accessToken,
-        );
       }
       state = const AsyncValue.data(null);
+    } on AuthException catch (e) {
+      if (e.message.contains('provider is not enabled') || e.code == 'validation_failed') {
+        state = AsyncValue.error(
+          'Supabase में Google Sign-In अभी चालू नहीं है। डैशबोर्ड (Auth > Providers > Google) में Client ID जोड़ें, या नीचे दिए गए डेमो मोड से जारी रखें।',
+          StackTrace.current,
+        );
+      } else {
+        state = AsyncValue.error(e.message, StackTrace.current);
+      }
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }

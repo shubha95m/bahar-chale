@@ -15,10 +15,20 @@ class LoginPage extends ConsumerWidget {
     ref.listen<AsyncValue<void>>(authControllerProvider, (previous, next) {
       next.whenOrNull(
         error: (err, _) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${AppStrings.errorAuthFailed}: ${err.toString()}'),
-              backgroundColor: Colors.red.shade700,
+              content: Text(
+                err.toString().replaceFirst('Exception: ', ''),
+                style: const TextStyle(fontSize: 14),
+              ),
+              backgroundColor: Colors.red.shade800,
+              duration: const Duration(seconds: 5),
+              action: SnackBarAction(
+                label: 'ठीक है',
+                textColor: Colors.white,
+                onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
+              ),
             ),
           );
         },
