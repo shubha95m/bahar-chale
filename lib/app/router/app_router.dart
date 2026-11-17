@@ -1,8 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/agreement/presentation/pages/agreement_page.dart';
 import '../../features/authentication/presentation/pages/login_page.dart';
 import '../../features/authentication/presentation/providers/auth_provider.dart';
+import '../../features/chat/presentation/pages/chat_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/rides/presentation/pages/create_ride_page.dart';
 import '../../features/rides/presentation/pages/my_travel_page.dart';
 import '../../features/rides/presentation/pages/ride_details_page.dart';
@@ -46,6 +49,27 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/my-travel',
         name: 'my-travel',
         builder: (context, state) => const MyTravelPage(),
+      ),
+      GoRoute(
+        path: '/agreement/:id',
+        name: 'agreement',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return AgreementPage(requestId: id);
+        },
+      ),
+      GoRoute(
+        path: '/chat/:id',
+        name: 'chat',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return ChatPage(requestId: id);
+        },
+      ),
+      GoRoute(
+        path: '/profile',
+        name: 'profile',
+        builder: (context, state) => const ProfilePage(),
       ),
     ],
     redirect: (context, state) {

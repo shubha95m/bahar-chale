@@ -145,34 +145,85 @@ class MyTravelPage extends ConsumerWidget {
                         statusText = 'लंबित (Pending)';
                     }
 
+                    final isAccepted = status == 'accepted';
+
                     return Card(
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        title: Text(
-                          '$origin → $dest',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
-                        subtitle: Column(
+                      child: Padding(
+                        padding: const EdgeInsets.all(14.0),
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '$origin → $dest',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: statusColor.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    statusText,
+                                    style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 12),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
                             Text(
                               'मांगी गई सीटें: ${req['seats_requested']}',
                               style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'स्थिति: $statusText',
-                              style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 13),
-                            ),
+                            if (isAccepted) ...[
+                              const Divider(height: 20),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppTheme.primaryGreen,
+                                        minimumSize: const Size.fromHeight(36),
+                                      ),
+                                      icon: const Icon(Icons.handshake_outlined, size: 16),
+                                      label: const Text('यात्रा समन्वय (Agreement)', style: TextStyle(fontSize: 12)),
+                                      onPressed: () => context.push('/agreement/${req['id']}'),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      style: OutlinedButton.styleFrom(
+                                        minimumSize: const Size.fromHeight(36),
+                                      ),
+                                      icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
+                                      label: const Text('बातचीत (Chat)', style: TextStyle(fontSize: 12)),
+                                      onPressed: () => context.push('/chat/${req['id']}'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ] else ...[
+                              const SizedBox(height: 6),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton(
+                                  onPressed: () {
+                                    if (rideMap?['id'] != null) {
+                                      context.push('/ride/${rideMap!['id']}');
+                                    }
+                                  },
+                                  child: const Text('सवारी विवरण देखें →', style: TextStyle(fontSize: 12)),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
-                        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
-                        onTap: () {
-                          if (rideMap?['id'] != null) {
-                            context.push('/ride/${rideMap!['id']}');
-                          }
-                        },
                       ),
                     );
                   },

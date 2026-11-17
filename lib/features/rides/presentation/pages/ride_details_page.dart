@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_strings.dart';
@@ -391,16 +392,31 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                                       ],
                                       if (isAccepted) ...[
                                         const SizedBox(height: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: Colors.green.shade50,
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: const Text(
-                                            '✓ स्वीकृत यात्रा - यात्रा समन्वय सक्रिय है',
-                                            style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12),
-                                          ),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: ElevatedButton.icon(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: AppTheme.primaryGreen,
+                                                  minimumSize: const Size.fromHeight(34),
+                                                ),
+                                                icon: const Icon(Icons.handshake_outlined, size: 16),
+                                                label: const Text('यात्रा समन्वय', style: TextStyle(fontSize: 12)),
+                                                onPressed: () => context.push('/agreement/${req.id}'),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: OutlinedButton.icon(
+                                                style: OutlinedButton.styleFrom(
+                                                  minimumSize: const Size.fromHeight(34),
+                                                ),
+                                                icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
+                                                label: const Text('बातचीत (Chat)', style: TextStyle(fontSize: 12)),
+                                                onPressed: () => context.push('/chat/${req.id}'),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ],

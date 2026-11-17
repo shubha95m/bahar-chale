@@ -2,6 +2,29 @@
 
 All notable changes to the Bahar Chale project will be documented in this file.
 
+## [0.3.0] - 2026-11-17
+### Added
+- **Milestone 4 (Mutual Agreements & Verification):**
+  - Created `RideAgreement` entity and `AgreementRepository`.
+  - Implemented `AgreementPage` (`/agreement/:id`) with real-time mutual acceptance UI.
+  - Deployed and verified Supabase Postgres RPC `confirm_agreement` with auto-transition to `confirmed` status when both driver and rider have accepted.
+  - Linked agreement verification flow directly into `RideDetailsPage` and `MyTravelPage`.
+- **Milestone 5 (Real-time Messaging & Home Experience):**
+  - Created `ChatMessage` entity and `ChatRepository` powered by Supabase Realtime Channel subscriptions.
+  - Implemented `ChatPage` (`/chat/:id`) with message bubbles, time formatting, and live message broadcasting.
+  - Upgraded `HomePage` with live dynamic feeds:
+    - Upcoming journeys card with one-click agreement / chat shortcuts.
+    - Pending requests banner for drivers with instant accept/reject shortcuts.
+    - Recently posted community rides list.
+  - Implemented `ProfilePage` (`/profile`) with live role toggling (Driver ↔ Rider), active security badges, and clean session logout.
+- **Local Sandbox & SPA Routing:**
+  - Added dedicated 1-click bypass login buttons on `LoginPage` for instant local testing of Driver and Rider personas.
+  - Resolved GoTrue token null-scan issue in Supabase Auth.
+  - Created `scripts/serve_spa.py` with full Single Page Application fallback routing on port 8085.
+- **Automated Tests:**
+  - Added unit test suites for `RideAgreement` and `ChatMessage`.
+  - Verified 11/11 automated tests passing with zero analyzer warnings.
+
 ## [0.2.0] - 2026-11-17
 ### Added
 - **Milestone 2 (Ride Management):**

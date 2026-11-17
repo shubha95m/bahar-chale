@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/localization/app_strings.dart';
+import 'package:intl/intl.dart';
 import '../../../../app/theme/app_theme.dart';
+import '../../../../core/localization/app_strings.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
+import '../providers/home_provider.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -22,6 +24,10 @@ class _HomePageState extends ConsumerState<HomePage> {
         user?.userMetadata?['name'] ??
         user?.email?.split('@').first ??
         'यात्री';
+
+    final upcomingJourneysAsync = user != null ? ref.watch(homeUpcomingJourneysProvider(user.id)) : null;
+    final pendingCountAsync = user != null ? ref.watch(homePendingRequestsCountProvider(user.id)) : null;
+    final recentRidesAsync = ref.watch(recentRidesFeedProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -143,7 +149,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                   icon: Icons.search_rounded,
                   color: AppTheme.primaryGreen,
                   onTap: () {
-                    // Navigate to ride discovery / search
                     context.push('/search-rides');
                   },
                 ),
@@ -157,11 +162,83 @@ class _HomePageState extends ConsumerState<HomePage> {
                   icon: Icons.add_circle_outline_rounded,
                   color: AppTheme.accentAmber,
                   onTap: () {
-                    // Navigate to ride creation
                     context.push('/create-ride');
                   },
                 ),
                 const SizedBox(height: 32),
+
+                // Pending Requests Section
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      AppStrings.pendingRequests,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textDark,
+                      ),
+                    ),
+                    if (pendingCountAsync != null)
+                      pendingCountAsync.when(
+                        data: (count) => count > 0
+                            ? TextButton(
+                                onPressed: () => context.push('/my-travel'),
+                                child: Text('$count नए अनुरोध देखें →', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              )
+                            : const SizedBox.shrink(),
+                        loading: () => const SizedBox.shrink(),
+                        error: (_, __) => const SizedBox.shrink(),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (pendingCountAsync != null)
+                  pendingCountAsync.when(
+                    data: (count) {
+                      if (count == 0) {
+                        return _buildEmptyPlaceholder(
+                          icon: Icons.inbox_outlined,
+                          message: AppStrings.noPendingRequests,
+                        );
+                      }
+                      return InkWell(
+                        onTap: () => context.push('/my-travel'),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade50,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: Colors.amber.shade300),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.notifications_active_rounded, color: Colors.amber.shade800, size: 26),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Text(
+                                  'आपके पास $count लंबित सवारी अनुरोध हैं। विवरण देखने और स्वीकार करने के लिए यहाँ टैप करें।',
+                                  style: TextStyle(color: Colors.amber.shade900, fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                              const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.amber),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (_, __) => _buildEmptyPlaceholder(
+                      icon: Icons.inbox_outlined,
+                      message: AppStrings.noPendingRequests,
+                    ),
+                  )
+                else
+                  _buildEmptyPlaceholder(
+                    icon: Icons.inbox_outlined,
+                    message: AppStrings.noPendingRequests,
+                  ),
+                const SizedBox(height: 28),
 
                 // Upcoming Journeys Section
                 const Text(
@@ -173,25 +250,109 @@ class _HomePageState extends ConsumerState<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                _buildEmptyPlaceholder(
-                  icon: Icons.calendar_today_outlined,
-                  message: AppStrings.noUpcomingJourneys,
-                ),
+                if (upcomingJourneysAsync != null)
+                  upcomingJourneysAsync.when(
+                    data: (journeys) {
+                      if (journeys.isEmpty) {
+                        return _buildEmptyPlaceholder(
+                          icon: Icons.calendar_today_outlined,
+                          message: AppStrings.noUpcomingJourneys,
+                        );
+                      }
+                      return Column(
+                        children: journeys.map((ride) {
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            child: ListTile(
+                              leading: const CircleAvatar(
+                                backgroundColor: AppTheme.surfaceLight,
+                                child: Icon(Icons.commute_rounded, color: AppTheme.primaryGreen),
+                              ),
+                              title: Text(ride.routeDisplay, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              subtitle: Text(
+                                '${DateFormat('dd MMM yyyy').format(ride.travelDate)} • ${ride.travelTime ?? 'लचीला समय'}',
+                              ),
+                              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                              onTap: () => context.push('/ride/${ride.id}'),
+                            ),
+                          );
+                        }).toList(),
+                      );
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (_, __) => _buildEmptyPlaceholder(
+                      icon: Icons.calendar_today_outlined,
+                      message: AppStrings.noUpcomingJourneys,
+                    ),
+                  )
+                else
+                  _buildEmptyPlaceholder(
+                    icon: Icons.calendar_today_outlined,
+                    message: AppStrings.noUpcomingJourneys,
+                  ),
                 const SizedBox(height: 28),
 
-                // Pending Requests Section
-                const Text(
-                  AppStrings.pendingRequests,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.textDark,
-                  ),
+                // Recently Published Rides Feed Section
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      AppStrings.recentRides,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textDark,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => context.push('/search-rides'),
+                      child: const Text('सभी देखें →', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                _buildEmptyPlaceholder(
-                  icon: Icons.inbox_outlined,
-                  message: AppStrings.noPendingRequests,
+                const SizedBox(height: 10),
+                recentRidesAsync.when(
+                  data: (recentRides) {
+                    if (recentRides.isEmpty) {
+                      return _buildEmptyPlaceholder(
+                        icon: Icons.commute_outlined,
+                        message: 'अभी कोई सवारी प्रकाशित नहीं की गई है। पहली सवारी प्रकाशित करें!',
+                      );
+                    }
+                    return Column(
+                      children: recentRides.map((ride) {
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: AppTheme.primaryGreen.withOpacity(0.1),
+                              child: Text(
+                                ride.ownerName?.isNotEmpty == true ? ride.ownerName![0].toUpperCase() : 'य',
+                                style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            title: Text(ride.routeDisplay, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Text(
+                              '${DateFormat('dd MMM').format(ride.travelDate)} • ${ride.availableSeats} सीट उपलब्ध',
+                              style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                            ),
+                            trailing: ride.contributionAmount != null
+                                ? Text(
+                                    '₹${ride.contributionAmount!.toStringAsFixed(0)}',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.accentAmber, fontSize: 15),
+                                  )
+                                : const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                            onTap: () => context.push('/ride/${ride.id}'),
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (err, _) => _buildEmptyPlaceholder(
+                    icon: Icons.commute_outlined,
+                    message: 'सवारियां लोड नहीं हो सकीं।',
+                  ),
                 ),
               ],
             ),
