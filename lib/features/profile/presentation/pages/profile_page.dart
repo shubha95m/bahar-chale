@@ -82,7 +82,7 @@ class ProfilePage extends ConsumerWidget {
                           backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
                           child: avatarUrl == null
                               ? Text(
-                                  name.isNotEmpty ? name[0].toUpperCase() : 'य',
+                                  name.isNotEmpty ? name[0].toUpperCase() : (s.isHindi ? 'य' : 'U'),
                                   style: const TextStyle(fontSize: 26, color: AppTheme.primaryGreen, fontWeight: FontWeight.bold),
                                 )
                               : null,
@@ -157,24 +157,24 @@ class ProfilePage extends ConsumerWidget {
                           ),
                         ),
                         const Divider(height: 1),
-                        const ListTile(
-                          leading: Icon(Icons.security_rounded, color: AppTheme.primaryGreen),
-                          title: Text('डेटा गोपनीयता व सुरक्षा'),
-                          subtitle: Text('100% RLS एन्क्रिप्टेड क्लाउड डेटाबेस'),
-                          trailing: Icon(Icons.check_circle_rounded, color: Colors.green, size: 20),
+                        ListTile(
+                          leading: const Icon(Icons.security_rounded, color: AppTheme.primaryGreen),
+                          title: Text(s.isHindi ? 'डेटा गोपनीयता व सुरक्षा' : 'Data Privacy & Security'),
+                          subtitle: Text(s.isHindi ? '100% RLS एन्क्रिप्टेड क्लाउड डेटाबेस' : '100% RLS Encrypted Cloud Database'),
+                          trailing: const Icon(Icons.check_circle_rounded, color: Colors.green, size: 20),
                         ),
                         const Divider(height: 1),
-                        const ListTile(
-                          leading: Icon(Icons.volunteer_activism_rounded, color: AppTheme.primaryGreen),
-                          title: Text('शून्य लागत सामुदायिक यात्रा'),
-                          subtitle: Text('गैर-व्यावसायिक आपसी सहायता प्लेटफॉर्म'),
-                          trailing: Icon(Icons.favorite_rounded, color: Colors.redAccent, size: 20),
+                        ListTile(
+                          leading: const Icon(Icons.volunteer_activism_rounded, color: AppTheme.primaryGreen),
+                          title: Text(s.isHindi ? 'शून्य लागत सामुदायिक यात्रा' : 'Zero Cost Community Travel'),
+                          subtitle: Text(s.isHindi ? 'गैर-व्यावसायिक आपसी सहायता प्लेटफॉर्म' : 'Non-commercial mutual assistance platform'),
+                          trailing: const Icon(Icons.favorite_rounded, color: Colors.redAccent, size: 20),
                         ),
                         const Divider(height: 1),
-                        const ListTile(
-                          leading: Icon(Icons.info_outline_rounded, color: AppTheme.primaryGreen),
-                          title: Text('संस्करण (Version)'),
-                          trailing: Text('v1.0.0 (Production)', style: TextStyle(color: AppTheme.textMuted)),
+                        ListTile(
+                          leading: const Icon(Icons.info_outline_rounded, color: AppTheme.primaryGreen),
+                          title: Text(s.isHindi ? 'संस्करण (Version)' : 'Version'),
+                          trailing: const Text('v1.0.0 (Production)', style: TextStyle(color: AppTheme.textMuted)),
                         ),
                       ],
                     ),

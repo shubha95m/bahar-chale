@@ -128,7 +128,7 @@ class PassengerRequestsRepository {
       'is_time_flexible': passengerRequest.isTimeFlexible,
       'total_seats': totalSeats,
       'available_seats': totalSeats,
-      'notes': 'सहयात्री के अनुरोध पर प्रस्तुत सवारी',
+      'notes': 'Offered for passenger request / सहयात्री के अनुरोध पर प्रस्तुत सवारी',
       'status': 'open',
     }).select('id').single();
 
@@ -160,8 +160,8 @@ class PassengerRequestsRepository {
         'recipient_id': passengerRequest.requesterId,
         'notification_type': 'ride_offer',
         'reference_id': rideRequestId,
-        'title': 'नया सवारी प्रस्ताव (New Ride Offer)',
-        'body': 'एक चालक ने आपके ${passengerRequest.originCity} ➔ ${passengerRequest.destinationCity} अनुरोध हेतु सवारी प्रस्तुत की है। बातचीत या सहमति देखें।',
+        'title': 'New Ride Offer / नया सवारी प्रस्ताव',
+        'body': 'A driver offered a ride for your ${passengerRequest.originCity} ➔ ${passengerRequest.destinationCity} request. Tap to view and chat. (एक चालक ने सवारी प्रस्तुत की है।)',
       });
     } catch (_) {}
 

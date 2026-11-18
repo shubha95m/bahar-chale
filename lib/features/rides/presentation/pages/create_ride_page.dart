@@ -102,7 +102,11 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
 
     final user = ref.read(currentUserProvider);
     if (user == null) {
-      AppSnackBar.show(context, message: 'कृपया पहले साइन इन करें।', isError: true);
+      AppSnackBar.show(
+        context,
+        message: ref.read(stringsProvider).isHindi ? 'कृपया पहले साइन इन करें।' : 'Please sign in first.',
+        isError: true,
+      );
       return;
     }
 
@@ -141,19 +145,25 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
 
     final created = await ref.read(createRideNotifierProvider.notifier).submitRide(ride);
     if (created != null && mounted) {
-      AppSnackBar.show(context, message: 'सवारी सफलतापूर्वक प्रकाशित की गई!', isSuccess: true);
+      final s = ref.read(stringsProvider);
+      AppSnackBar.show(
+        context,
+        message: s.isHindi ? 'सवारी सफलतापूर्वक प्रकाशित की गई!' : 'Ride published successfully!',
+        isSuccess: true,
+      );
       context.pop();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final s = ref.watch(stringsProvider);
     final createRideState = ref.watch(createRideNotifierProvider);
     final isLoading = createRideState.isLoading;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('सवारी प्रकाशित करें'),
+        title: Text(s.createRidePageTitle),
         actions: const [
           LanguageSwitcherButton(),
           SizedBox(width: 8),
@@ -182,7 +192,9 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                       children: [
                         Expanded(
                           child: ChoiceChip(
-                            label: const Center(child: Text('निजी वाहन (कार/बाइक)')),
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
+                            label: Center(child: Text(s.isHindi ? 'निजी वाहन (कार/बाइक)' : 'Personal Vehicle (Car/Bike)')),
                             selected: _rideCategory == 'private_vehicle',
                             selectedColor: AppTheme.primaryGreen,
                             labelStyle: TextStyle(
@@ -197,7 +209,9 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: ChoiceChip(
-                            label: const Center(child: Text('सामान्य यात्रा')),
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
+                            label: Center(child: Text(s.isHindi ? 'सामान्य यात्रा' : 'General Travel')),
                             selected: _rideCategory == 'general_travel',
                             selectedColor: AppTheme.primaryGreen,
                             labelStyle: TextStyle(
@@ -216,9 +230,9 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
 
                   // Vehicle type selector if private vehicle
                   if (_rideCategory == 'private_vehicle') ...[
-                    const Text(
-                      'वाहन का प्रकार चुनें:',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textDark),
+                    Text(
+                      s.vehicleTypeLabel,
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textDark),
                     ),
                     const SizedBox(height: 8),
                     Row(
@@ -250,14 +264,14 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'कार (Car)',
+                                    s.vehicleCarLabel,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13,
                                       color: _vehicleType == 'car' ? AppTheme.primaryGreen : AppTheme.textDark,
                                     ),
                                   ),
-                                  const Text('1-7 सीटें', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+                                  Text(s.isHindi ? '1-8 सीटें' : '1-8 seats', style: const TextStyle(fontSize: 11, color: AppTheme.textMuted)),
                                 ],
                               ),
                             ),
@@ -291,14 +305,14 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'बाइक (Bike)',
+                                    s.vehicleBikeLabel,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13,
                                       color: _vehicleType == 'bike' ? AppTheme.primaryGreen : AppTheme.textDark,
                                     ),
                                   ),
-                                  const Text('1-2 सीटें', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+                                  Text(s.isHindi ? '1-3 सीटें' : '1-3 seats', style: const TextStyle(fontSize: 11, color: AppTheme.textMuted)),
                                 ],
                               ),
                             ),
@@ -332,14 +346,14 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'अन्य / साझा',
+                                    s.vehicleOtherLabel,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13,
                                       color: _vehicleType == 'other' ? AppTheme.primaryGreen : AppTheme.textDark,
                                     ),
                                   ),
-                                  const Text('1-6 सीटें', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+                                  Text(s.isHindi ? '1-12 सीटें' : '1-12 seats', style: const TextStyle(fontSize: 11, color: AppTheme.textMuted)),
                                 ],
                               ),
                             ),
@@ -353,24 +367,25 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                   // Origin City & Area
                   LocationAutocompleteField(
                     controller: _originCityController,
-                    labelText: '${AppStrings.originCity} *',
-                    hintText: 'शहर या इलाके का नाम (उदा. Pune, Hinjawadi)',
+                    labelText: s.originCityLabel,
+                    hintText: s.originCityHint,
                     prefixIcon: const Icon(Icons.location_on_outlined, color: AppTheme.primaryGreen),
-                    validator: (val) => val == null || val.trim().isEmpty ? 'कृपया प्रस्थान शहर दर्ज करें' : null,
-                    onSuggestionSelected: (s) {
-                      _originLat = s.latitude;
-                      _originLon = s.longitude;
-                      if (s.area != null && _originAreaController.text.trim().isEmpty) {
-                        _originAreaController.text = s.area!;
+                    validator: (val) => val == null || val.trim().isEmpty ? s.originCityRequired : null,
+                    onSuggestionSelected: (sugg) {
+                      _originLat = sugg.latitude;
+                      _originLon = sugg.longitude;
+                      if (sugg.area != null && _originAreaController.text.trim().isEmpty) {
+                        _originAreaController.text = sugg.area!;
                       }
                     },
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _originAreaController,
-                    decoration: const InputDecoration(
-                      labelText: AppStrings.originArea,
-                      prefixIcon: Icon(Icons.place_outlined, color: AppTheme.textMuted),
+                    decoration: InputDecoration(
+                      labelText: s.originAreaLabel,
+                      hintText: s.originAreaHint,
+                      prefixIcon: const Icon(Icons.place_outlined, color: AppTheme.textMuted),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -378,24 +393,25 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                   // Destination City & Area
                   LocationAutocompleteField(
                     controller: _destCityController,
-                    labelText: '${AppStrings.destinationCity} *',
-                    hintText: 'शहर या इलाके का नाम (उदा. Delhi, Airport)',
+                    labelText: s.destinationCityLabel,
+                    hintText: s.destinationCityHint,
                     prefixIcon: const Icon(Icons.flag_outlined, color: AppTheme.accentAmber),
-                    validator: (val) => val == null || val.trim().isEmpty ? 'कृपया गंतव्य शहर दर्ज करें' : null,
-                    onSuggestionSelected: (s) {
-                      _destLat = s.latitude;
-                      _destLon = s.longitude;
-                      if (s.area != null && _destAreaController.text.trim().isEmpty) {
-                        _destAreaController.text = s.area!;
+                    validator: (val) => val == null || val.trim().isEmpty ? s.destinationCityRequired : null,
+                    onSuggestionSelected: (sugg) {
+                      _destLat = sugg.latitude;
+                      _destLon = sugg.longitude;
+                      if (sugg.area != null && _destAreaController.text.trim().isEmpty) {
+                        _destAreaController.text = sugg.area!;
                       }
                     },
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _destAreaController,
-                    decoration: const InputDecoration(
-                      labelText: AppStrings.destinationArea,
-                      prefixIcon: Icon(Icons.place_outlined, color: AppTheme.textMuted),
+                    decoration: InputDecoration(
+                      labelText: s.destinationAreaLabel,
+                      hintText: s.destinationAreaHint,
+                      prefixIcon: const Icon(Icons.place_outlined, color: AppTheme.textMuted),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -419,7 +435,7 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                           onPressed: _pickTime,
                           icon: const Icon(Icons.access_time_rounded, size: 20),
                           label: Text(
-                            _travelTime != null ? _travelTime!.format(context) : 'समय (वैकल्पिक)',
+                            _travelTime != null ? _travelTime!.format(context) : s.travelTimeLabel,
                             style: const TextStyle(fontSize: 14),
                           ),
                         ),
@@ -430,7 +446,7 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
 
                   // Flexible time switch
                   SwitchListTile(
-                    title: const Text(AppStrings.flexibleTime, style: TextStyle(fontSize: 15)),
+                    title: Text(s.flexibleTimeLabel, style: const TextStyle(fontSize: 15)),
                     value: _isTimeFlexible,
                     activeColor: AppTheme.primaryGreen,
                     contentPadding: EdgeInsets.zero,
@@ -452,26 +468,37 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  AppStrings.totalSeats,
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  _rideCategory == 'general_travel'
-                                      ? 'अधिकतम 8 सह-यात्री'
-                                      : (_vehicleType == 'bike'
-                                          ? '🏍️ बाइक: डिफ़ॉल्ट 1 सीट (1-3 उपलब्ध)'
-                                          : (_vehicleType == 'car'
-                                              ? '🚗 कार: डिफ़ॉल्ट 4 सीटें (1-8 उपलब्ध)'
-                                              : '🚐 अन्य: डिफ़ॉल्ट 6 सीटें (1-12 उपलब्ध)')),
-                                  style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
-                                ),
-                              ],
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    s.totalSeatsLabel,
+                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    s.isHindi
+                                        ? (_rideCategory == 'general_travel'
+                                            ? 'अधिकतम 8 सह-यात्री'
+                                            : (_vehicleType == 'bike'
+                                                ? '🏍️ बाइक: डिफ़ॉल्ट 1 सीट (1-3 उपलब्ध)'
+                                                : (_vehicleType == 'car'
+                                                    ? '🚗 कार: डिफ़ॉल्ट 4 सीटें (1-8 उपलब्ध)'
+                                                    : '🚐 अन्य: डिफ़ॉल्ट 6 सीटें (1-12 उपलब्ध)')))
+                                        : (_rideCategory == 'general_travel'
+                                            ? 'Max 8 co-travelers'
+                                            : (_vehicleType == 'bike'
+                                                ? '🏍️ Bike: Default 1 seat (1-3 available)'
+                                                : (_vehicleType == 'car'
+                                                    ? '🚗 Car: Default 4 seats (1-8 available)'
+                                                    : '🚐 Other: Default 6 seats (1-12 available)'))),
+                                    style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                                  ),
+                                ],
+                              ),
                             ),
+                            const SizedBox(width: 8),
                             Row(
                               children: [
                                 IconButton(
@@ -507,8 +534,8 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                   TextFormField(
                     controller: _contributionController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: AppStrings.contributionAmount,
+                    decoration: InputDecoration(
+                      labelText: s.contributionAmountLabel,
                       prefixText: '₹ ',
                     ),
                   ),
@@ -518,8 +545,9 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                   TextFormField(
                     controller: _notesController,
                     maxLines: 2,
-                    decoration: const InputDecoration(
-                      labelText: AppStrings.notes,
+                    decoration: InputDecoration(
+                      labelText: s.notesLabel,
+                      hintText: s.notesHint,
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -533,7 +561,7 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                             height: 24,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
-                        : const Text('सवारी साझा करें', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                        : Text(s.publishRideButtonText, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/theme/app_theme.dart';
+import '../localization/app_strings.dart';
 import '../services/location_search_service.dart';
 import '../utilities/map_launcher.dart';
 
@@ -15,7 +17,8 @@ class IndianCity {
     required this.state,
   });
 
-  String get displayName => '$englishName ($hindiName)';
+  String get displayName => englishName;
+  String getDisplayName({bool isHindi = false}) => isHindi ? '$hindiName ($englishName)' : englishName;
 }
 
 /// Curated dictionary of top Indian cities across states for instant 0ms typo-free autocomplete
@@ -101,7 +104,7 @@ const List<IndianCity> kTopIndianCities = [
   IndianCity(englishName: 'Guwahati', hindiName: 'गुवाहाटी', state: 'Assam'),
 ];
 
-class LocationAutocompleteField extends StatefulWidget {
+class LocationAutocompleteField extends ConsumerStatefulWidget {
   final TextEditingController controller;
   final String labelText;
   final String? hintText;
@@ -122,10 +125,10 @@ class LocationAutocompleteField extends StatefulWidget {
   });
 
   @override
-  State<LocationAutocompleteField> createState() => _LocationAutocompleteFieldState();
+  ConsumerState<LocationAutocompleteField> createState() => _LocationAutocompleteFieldState();
 }
 
-class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
+class _LocationAutocompleteFieldState extends ConsumerState<LocationAutocompleteField> {
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
   List<LocationSuggestion> _suggestions = [];
@@ -159,6 +162,8 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
       return;
     }
 
+    final isHindi = ref.read(stringsProvider).isHindi;
+
     // 1. Instant local matching for zero-lag display
     final cleanLower = text.toLowerCase();
     final localMatches = kTopIndianCities
@@ -168,7 +173,7 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
             city.state.toLowerCase().contains(cleanLower))
         .take(5)
         .map((c) => LocationSuggestion(
-              title: c.displayName,
+              title: c.getDisplayName(isHindi: isHindi),
               subtitle: '${c.state}, India',
               primaryName: c.englishName,
               city: c.englishName,
@@ -192,7 +197,7 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
       if (currentQuery.length < 2) return;
 
       setState(() => _isLoading = true);
-      final places = await LocationSearchService.search(currentQuery);
+      final places = await LocationSearchService.search(currentQuery, isHindi: isHindi);
       if (!mounted || _isSelecting) return;
 
       setState(() {
@@ -317,9 +322,9 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'स्थान सुझाव (Live Suggestions)',
-                            style: TextStyle(fontSize: 10, color: AppTheme.textMuted),
+                          Text(
+                            ref.read(stringsProvider).locationSuggestionsTitle,
+                            style: const TextStyle(fontSize: 10, color: AppTheme.textMuted),
                           ),
                           TextButton.icon(
                             style: TextButton.styleFrom(
@@ -328,9 +333,9 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
                             icon: const Icon(Icons.map_outlined, size: 12, color: Colors.blueAccent),
-                            label: const Text(
-                              'Google Maps ↗',
-                              style: TextStyle(fontSize: 10.5, color: Colors.blueAccent, fontWeight: FontWeight.bold),
+                            label: Text(
+                              ref.read(stringsProvider).openInMapsText,
+                              style: const TextStyle(fontSize: 10.5, color: Colors.blueAccent, fontWeight: FontWeight.bold),
                             ),
                             onPressed: () {
                               final q = widget.controller.text.trim();
@@ -385,7 +390,7 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.map_outlined, size: 20, color: Colors.blueAccent),
-                      tooltip: 'Google Maps पर देखें (मुफ़्त)',
+                      tooltip: ref.watch(stringsProvider).viewInMapsTooltip,
                       onPressed: () {
                         final q = widget.controller.text.trim();
                         if (q.isNotEmpty) {

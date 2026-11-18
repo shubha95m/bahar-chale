@@ -11,16 +11,16 @@ class AppStrings {
   // --- Dynamic Localized Strings ---
 
   // App Identity
-  String get appTitle => isHindi ? 'बाहर चलें' : 'Bahar Chale';
+  String get appTitle => isHindi ? 'बाहर चलें (Bahar Chale)' : 'Bahar Chale';
   String get appTagline => isHindi ? 'सफर साथ में, आसान हर राह।' : 'Travel together, make every road easy.';
 
   // Navigation
-  String get navHomeText => isHindi ? 'होम' : 'Home';
-  String get navSearchText => isHindi ? 'सवारी खोजें' : 'Find Rides';
-  String get navMyTravelText => isHindi ? 'मेरी यात्राएं' : 'My Travel';
-  String get navMessagesText => isHindi ? 'संदेश' : 'Messages';
-  String get navProfileText => isHindi ? 'प्रोफ़ाइल' : 'Profile';
-  String get notificationsText => isHindi ? 'सूचनाएं' : 'Notifications';
+  String get navHomeText => isHindi ? 'होम (Home)' : 'Home';
+  String get navSearchText => isHindi ? 'सवारी खोजें (Find Rides)' : 'Find Rides';
+  String get navMyTravelText => isHindi ? 'मेरी यात्राएं (My Travel)' : 'My Travel';
+  String get navMessagesText => isHindi ? 'संदेश (Messages)' : 'Messages';
+  String get navProfileText => isHindi ? 'प्रोफ़ाइल (Profile)' : 'Profile';
+  String get notificationsText => isHindi ? 'सूचनाएं (Notifications)' : 'Notifications';
 
   // Primary Actions (Dual Cards)
   String get offerRideTitle => isHindi ? 'अपनी ड्राइविंग राइड शेयर करें' : 'Offer a Ride';
@@ -47,9 +47,9 @@ class AppStrings {
   String get noPendingRequestsText => isHindi ? 'कोई नया अनुरोध लंबित नहीं है।' : 'No pending requests.';
 
   // Travel Tabs
-  String get tabIncomingText => isHindi ? 'मिले अनुरोध' : 'Incoming Requests';
-  String get tabMyDrivesText => isHindi ? 'मेरी राइड्स' : 'My Drives';
-  String get tabMyRequestsText => isHindi ? 'भेजे अनुरोध' : 'My Requests';
+  String get tabIncomingText => isHindi ? 'मिले अनुरोध (Incoming)' : 'Incoming Requests';
+  String get tabMyDrivesText => isHindi ? 'मेरी राइड्स (My Drives)' : 'My Drives';
+  String get tabMyRequestsText => isHindi ? 'भेजे अनुरोध (My Requests)' : 'My Requests';
 
   // Search & Browse
   String get searchPageTitle => isHindi ? 'सवारियां खोजें व साझा करें' : 'Find & Share Rides';
@@ -64,7 +64,7 @@ class AppStrings {
       ? 'आपके चुने गए स्थान या तारीख के लिए अभी कोई सक्रिय राइड नहीं मिली।'
       : 'No active rides found matching your location or date.';
   String get googleMapsDirectionsText => isHindi ? 'Google Maps (मुफ़्त)' : 'Google Maps (Free)';
-  String get viewDetailsAndRequest => isHindi ? 'विवरण व अनुरोध' : 'Details & Request';
+  String get viewDetailsAndRequest => isHindi ? 'यात्री व विवरण' : 'Ride Details';
 
   // Messages & Conversations
   String get conversationsTitle => isHindi ? 'संदेश और बातचीत' : 'Messages & Chat';
@@ -109,8 +109,63 @@ class AppStrings {
   String get logoutConfirmText => isHindi ? 'क्या आप वाकई लॉग आउट करना चाहते हैं?' : 'Are you sure you want to log out?';
   String get interfaceLanguageText => isHindi ? 'इंटरफ़ेस भाषा' : 'Interface Language';
 
+  // Dynamic Form Fields & Labels
+  String get originCityLabel => isHindi ? 'प्रस्थान शहर (Departure City) *' : 'Departure City *';
+  String get originCityHint => isHindi ? 'शहर या इलाके का नाम (उदा. Pune, Hinjawadi)' : 'City or area name (e.g. Pune, Hinjawadi)';
+  String get originCityRequired => isHindi ? 'कृपया प्रस्थान शहर दर्ज करें' : 'Please enter departure city';
+  String get originAreaLabel => isHindi ? 'प्रस्थान क्षेत्र / इलाका (वैकल्पिक)' : 'Pickup Area / Landmark (Optional)';
+  String get originAreaHint => isHindi ? 'उदा. हिंजवड़ी, एयरपोर्ट, रेलवे स्टेशन' : 'e.g. Hinjawadi, Airport, Railway Station';
+
+  String get destinationCityLabel => isHindi ? 'गंतव्य शहर (Destination City) *' : 'Destination City *';
+  String get destinationCityHint => isHindi ? 'शहर या इलाके का नाम (उदा. Mumbai, Dadar)' : 'City or area name (e.g. Mumbai, Dadar)';
+  String get destinationCityRequired => isHindi ? 'कृपया गंतव्य शहर दर्ज करें' : 'Please enter destination city';
+  String get destinationAreaLabel => isHindi ? 'गंतव्य क्षेत्र / इलाका (वैकल्पिक)' : 'Drop Area / Landmark (Optional)';
+  String get destinationAreaHint => isHindi ? 'उदा. दादर, वैशाली नगर, बस स्टैंड' : 'e.g. Dadar, Vaishali Nagar, Bus Stand';
+
+  String get travelDateLabel => isHindi ? 'यात्रा की तारीख (Date) *' : 'Travel Date *';
+  String get travelTimeLabel => isHindi ? 'समय (वैकल्पिक)' : 'Time (Optional)';
+  String get flexibleTimeLabel => isHindi ? 'समय में लचीलापन है (Flexible Time)' : 'Timing is flexible';
+  String get flexibleTimeBadge => isHindi ? 'लचीला समय' : 'Flexible Time';
+
+  String get totalSeatsLabel => isHindi ? 'उपलब्ध सीटें (Available Seats)' : 'Available Seats';
+  String get seatsRequestedLabel => isHindi ? 'आवश्यक सीटें (Seats Needed)' : 'Seats Needed';
+  String get contributionAmountLabel => isHindi ? 'सहयोग राशि (₹) (वैकल्पिक)' : 'Contribution Amount (₹) (Optional)';
+  String get notesLabel => isHindi ? 'अतिरिक्त विवरण या शर्तें (वैकल्पिक)' : 'Additional Notes / Preferences (Optional)';
+  String get notesHint => isHindi ? 'उदा. 1 बैग की जगह है, AC चालू रहेगा' : 'e.g. Space for 1 bag, AC will be on';
+
+  String get vehicleTypeLabel => isHindi ? 'वाहन का प्रकार (Vehicle Type):' : 'Vehicle Type:';
+  String get vehicleCarLabel => isHindi ? 'कार (Car)' : 'Car';
+  String get vehicleBikeLabel => isHindi ? 'बाइक (Bike)' : 'Bike';
+  String get vehicleOtherLabel => isHindi ? 'अन्य / साझा (Other)' : 'Other / Shared';
+  String get vehicleAnyLabel => isHindi ? 'कोई भी वाहन (Any)' : 'Any Vehicle';
+
+  String get createRidePageTitle => isHindi ? 'सवारी प्रकाशित करें (Offer Ride)' : 'Offer a Ride';
+  String get createPassengerRequestPageTitle => isHindi ? 'यात्रा की आवश्यकता पोस्ट करें' : 'Post Ride Request';
+  String get publishRideButtonText => isHindi ? 'सवारी साझा करें (Offer Ride)' : 'Publish Ride Offer';
+  String get publishPassengerRequestButtonText => isHindi ? 'यात्रा आवश्यकता पोस्ट करें' : 'Publish Ride Request';
+  String get deleteRideButtonText => isHindi ? 'सवारी हटाएं (Delete Ride)' : 'Delete Ride';
+  String get deleteRequestButtonText => isHindi ? 'अनुरोध हटाएं (Delete Request)' : 'Delete Request';
+
+  String get locationSuggestionsTitle => isHindi ? 'स्थान सुझाव (Live Suggestions)' : 'Live Suggestions';
+  String get viewInMapsTooltip => isHindi ? 'Google Maps में देखें (मुफ़्त)' : 'View in Google Maps (Free)';
+  String get freeMapSuggestionsBadge => isHindi ? 'मुफ़्त नक्शा सुझाव (0 लागत)' : 'Free Map Suggestions (0 Cost)';
+  String get openInMapsText => isHindi ? 'Maps पर खोलें' : 'Open in Maps';
+
+  String seatsAvailableFormat(int available, int total, int booked) =>
+      isHindi ? 'उपलब्ध: $available / $total सीटें ($booked बुक)' : 'Available: $available / $total seats ($booked booked)';
+  String seatsNeededFormat(int seats) =>
+      isHindi ? '$seats सीटें आवश्यक' : '$seats seats needed';
+
+  String get rideActiveBadge => isHindi ? 'सक्रिय (Open)' : 'Active (Open)';
+  String get rideFullBadge => isHindi ? 'सीटें भर चुकी हैं (Full)' : 'Full (Closed)';
+  String get requestStatusOpen => isHindi ? 'सक्रिय (Open)' : 'Active (Open)';
+  String get requestStatusMatched => isHindi ? 'सवारी मिली (Matched)' : 'Matched';
+  String get riderDetailsButton => isHindi ? 'यात्री व विवरण' : 'Ride Details';
+  String get sendRequestButton => isHindi ? 'सवारी का अनुरोध करें' : 'Request Ride';
+  String get seatsFullButton => isHindi ? 'सीटें भर चुकी हैं (Full)' : 'Seats Full';
+
   // Authentication
-  String get signInTab => isHindi ? 'साइन इन (लॉगिन)' : 'Sign In';
+  String get signInTab => isHindi ? 'साइन इन (Sign In)' : 'Sign In';
   String get signUpTab => isHindi ? 'नया खाता (OTP)' : 'Sign Up (OTP)';
   String get fullNameLabel => isHindi ? 'आपका पूरा नाम *' : 'Full Name *';
   String get emailLabel => isHindi ? 'असली ईमेल पता (Gmail / Other) *' : 'Real Email Address *';
@@ -134,28 +189,7 @@ class AppStrings {
   static const String navMyTravel = 'मेरी यात्राएं';
   static const String navProfile = 'प्रोफ़ाइल';
 
-  // Primary Actions
-  static const String actionWantRide = 'मुझे यात्रा करनी है';
-  static const String actionGiveRide = 'मैं साथ ले जा सकता हूँ';
-  static const String actionWantRideSubtitle = 'अपने गंतव्य के लिए साथी खोजें';
-  static const String actionGiveRideSubtitle = 'अपनी गाड़ी में सीटें साझा करें';
-
-  // Home Screen Sections
-  static const String upcomingJourneys = 'आपकी आगामी यात्राएं';
-  static const String pendingRequests = 'प्रतीक्षारत अनुरोध';
-  static const String recentRides = 'हाल ही में जोड़ी गई सवारी';
-  static const String noUpcomingJourneys = 'कोई आगामी यात्रा निर्धारित नहीं है।';
-  static const String noPendingRequests = 'कोई नया अनुरोध लंबित नहीं है।';
-
-  // Authentication
-  static const String loginTitle = 'बाहर चलें में आपका स्वागत है';
-  static const String loginSubtitle = 'सुरक्षित और आसान सामुदायिक यात्रा समन्वय';
-  static const String signInWithGoogle = 'Google से साइन इन करें';
-  static const String loggingIn = 'साइन इन हो रहा है...';
-  static const String logout = 'लॉग आउट';
-  static const String logoutConfirm = 'क्या आप वाकई लॉग आउट करना चाहते हैं?';
-
-  // Form Fields & Labels
+  // Form Fields & Labels (Fallback)
   static const String originCity = 'प्रस्थान शहर';
   static const String originArea = 'प्रस्थान क्षेत्र / इलाका (वैकल्पिक)';
   static const String destinationCity = 'गंतव्य शहर';
@@ -183,22 +217,6 @@ class AppStrings {
   static const String openMap = 'Google Maps में देखें';
   static const String chat = 'बातचीत (Chat)';
   static const String agreement = 'यात्रा समन्वय';
-
-  // Statuses
-  static const String statusOpen = 'उपलब्ध';
-  static const String statusFull = 'सीटें भर चुकी हैं';
-  static const String statusPending = 'लंबित';
-  static const String statusAccepted = 'स्वीकृत';
-  static const String statusRejected = 'अस्वीकृत';
-  static const String statusConfirmed = 'पुष्टित';
-  static const String statusCompleted = 'पूर्ण';
-  static const String statusCancelled = 'रद्द';
-
-  // Error Messages
-  static const String errorNetwork = 'इंटरनेट कनेक्शन उपलब्ध नहीं है। कृपया अपना नेटवर्क जांचें।';
-  static const String errorGeneric = 'कुछ गलत हो गया। कृपया पुनः प्रयास करें।';
-  static const String errorAuthFailed = 'साइन इन करने में असमर्थ। कृपया पुनः प्रयास करें।';
-  static const String errorSeatsExhausted = 'माफ़ कीजिए, इस यात्रा में सीटें समाप्त हो चुकी हैं।';
 }
 
 final stringsProvider = Provider<AppStrings>((ref) {

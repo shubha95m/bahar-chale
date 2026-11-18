@@ -169,7 +169,7 @@ class TermsAndConditionsDialog extends StatelessWidget {
         _buildBody(
           'Passengers and drivers connect and travel at their own mutual discretion, choice, and risk. Bahar Chale does not guarantee '
           'individual user behavior, punctuality, or personal background. Travelers are strongly encouraged to verify identity and coordinate '
-          'safely via the built-in Travel Coordination Agreement (समन्वय पत्र).',
+          'safely via the built-in Travel Coordination Agreement.',
         ),
         const SizedBox(height: 14),
 

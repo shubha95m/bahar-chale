@@ -36,15 +36,15 @@ class AgreementPage extends ConsumerWidget {
         ],
       ),
       body: agreementAsync.when(
-        loading: () => const Center(
+        loading: () => Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: AppTheme.primaryGreen),
-              SizedBox(height: 16),
+              const CircularProgressIndicator(color: AppTheme.primaryGreen),
+              const SizedBox(height: 16),
               Text(
-                'यात्रा समन्वय पत्र लोड हो रहा है...',
-                style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                s.isHindi ? 'यात्रा समन्वय पत्र लोड हो रहा है...' : 'Loading travel agreement certificate...',
+                style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
               ),
             ],
           ),

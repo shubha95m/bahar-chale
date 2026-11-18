@@ -33,12 +33,12 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
   bool _isAdvancedOpen = false;
 
   final List<Map<String, String>> _popularRoutes = [
-    {'origin': 'Pune', 'dest': 'Mumbai', 'label': 'पुणे ➔ मुंबई'},
-    {'origin': 'Delhi', 'dest': 'Jaipur', 'label': 'दिल्ली ➔ जयपुर'},
-    {'origin': 'Bengaluru', 'dest': 'Mysuru', 'label': 'बेंगलुरु ➔ मैसूर'},
-    {'origin': 'Chandigarh', 'dest': 'Delhi', 'label': 'चंडीगढ़ ➔ दिल्ली'},
-    {'origin': 'Ahmedabad', 'dest': 'Vadodara', 'label': 'अहमदाबाद ➔ वडोदरा'},
-    {'origin': 'Lucknow', 'dest': 'Kanpur', 'label': 'लखनऊ ➔ कानपुर'},
+    {'origin': 'Pune', 'dest': 'Mumbai', 'labelHi': 'पुणे ➔ मुंबई', 'labelEn': 'Pune ➔ Mumbai'},
+    {'origin': 'Delhi', 'dest': 'Jaipur', 'labelHi': 'दिल्ली ➔ जयपुर', 'labelEn': 'Delhi ➔ Jaipur'},
+    {'origin': 'Bengaluru', 'dest': 'Mysuru', 'labelHi': 'बेंगलुरु ➔ मैसूर', 'labelEn': 'Bengaluru ➔ Mysuru'},
+    {'origin': 'Chandigarh', 'dest': 'Delhi', 'labelHi': 'चंडीगढ़ ➔ दिल्ली', 'labelEn': 'Chandigarh ➔ Delhi'},
+    {'origin': 'Ahmedabad', 'dest': 'Vadodara', 'labelHi': 'अहमदाबाद ➔ वडोदरा', 'labelEn': 'Ahmedabad ➔ Vadodara'},
+    {'origin': 'Lucknow', 'dest': 'Kanpur', 'labelHi': 'लखनऊ ➔ कानपुर', 'labelEn': 'Lucknow ➔ Kanpur'},
   ];
 
   @override
@@ -203,7 +203,10 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
                           padding: const EdgeInsets.only(right: 8.0),
                           child: ActionChip(
                             avatar: const Icon(Icons.trending_up_rounded, size: 14, color: AppTheme.primaryGreen),
-                            label: Text(route['label']!, style: const TextStyle(fontSize: 12)),
+                            label: Text(
+                              s.isHindi ? (route['labelHi'] ?? '') : (route['labelEn'] ?? ''),
+                              style: const TextStyle(fontSize: 12),
+                            ),
                             backgroundColor: const Color(0xFFF1F5F9),
                             onPressed: () => _applyPopularRoute(route['origin']!, route['dest']!),
                           ),
@@ -256,8 +259,8 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
                         Expanded(
                           child: LocationAutocompleteField(
                             controller: _originController,
-                            labelText: 'प्रस्थान शहर (From)',
-                            hintText: 'उदा. Pune',
+                            labelText: s.originCityLabel,
+                            hintText: s.isHindi ? 'उदा. Pune' : 'e.g. Pune',
                             prefixIcon: const Icon(Icons.my_location_rounded, size: 18, color: AppTheme.primaryGreen),
                             onSelected: (val) {
                               _searchQueryController.text = '$val ${_destController.text}'.trim();
@@ -269,8 +272,8 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
                         Expanded(
                           child: LocationAutocompleteField(
                             controller: _destController,
-                            labelText: 'गंतव्य शहर (To)',
-                            hintText: 'उदा. Mumbai',
+                            labelText: s.destinationCityLabel,
+                            hintText: s.isHindi ? 'उदा. Mumbai' : 'e.g. Mumbai',
                             prefixIcon: const Icon(Icons.location_on_rounded, size: 18, color: AppTheme.accentAmber),
                             onSelected: (val) {
                               _searchQueryController.text = '${_originController.text} $val'.trim();
@@ -290,7 +293,7 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
                             label: Text(
                               _selectedDate != null
                                   ? DateFormat('dd MMM yyyy').format(_selectedDate!)
-                                  : 'यात्रा की तारीख चुनें',
+                                  : (s.isHindi ? 'यात्रा की तारीख चुनें' : 'Select travel date'),
                               style: const TextStyle(fontSize: 12),
                             ),
                           ),

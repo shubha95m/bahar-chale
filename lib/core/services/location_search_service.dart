@@ -39,7 +39,7 @@ class LocationSearchService {
 
   /// Searches exact places, landmarks, sectors, stations, and cities.
   /// 100% Free via OpenStreetMap/Photon with zero Google Cloud API cost.
-  static Future<List<LocationSuggestion>> search(String query) async {
+  static Future<List<LocationSuggestion>> search(String query, {bool isHindi = false}) async {
     final clean = query.trim();
     if (clean.isEmpty) return const [];
 
@@ -55,7 +55,7 @@ class LocationSearchService {
         final key = '${c.englishName}_${c.state}'.toLowerCase();
         if (seen.add(key)) {
           results.add(LocationSuggestion(
-            title: c.displayName,
+            title: isHindi ? c.getDisplayName(isHindi: true) : c.englishName,
             subtitle: '${c.state}, India',
             primaryName: c.englishName,
             city: c.englishName,

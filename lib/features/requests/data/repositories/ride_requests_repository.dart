@@ -42,8 +42,8 @@ class RideRequestsRepository {
           'recipient_id': ownerId,
           'notification_type': 'ride_request',
           'reference_id': created.id,
-          'title': 'नया सवारी अनुरोध (New Ride Request)',
-          'body': 'एक सहयात्री ने आपकी ${rideData['origin_city']} ➔ ${rideData['destination_city']} यात्रा में $seatsRequested सीट का अनुरोध किया है।',
+          'title': 'New Ride Request / नया सवारी अनुरोध',
+          'body': 'A co-traveler requested $seatsRequested seat(s) for your ${rideData['origin_city']} ➔ ${rideData['destination_city']} journey. (एक सहयात्री ने सवारी का अनुरोध किया है।)',
         });
       }
     } catch (_) {}
@@ -125,8 +125,8 @@ class RideRequestsRepository {
 
     final ride = req?['rides'] as Map<String, dynamic>?;
     final driverId = ride?['owner_id']?.toString();
-    final origin = ride?['origin_city'] ?? 'प्रस्थान';
-    final dest = ride?['destination_city'] ?? 'गंतव्य';
+    final origin = ride?['origin_city'] ?? 'Origin';
+    final dest = ride?['destination_city'] ?? 'Destination';
     final status = req?['status']?.toString();
     final seats = (req?['seats_requested'] as int?) ?? 1;
     final rideId = req?['ride_id']?.toString();
@@ -137,8 +137,8 @@ class RideRequestsRepository {
         await _client.from('notifications').insert({
           'recipient_id': driverId,
           'notification_type': 'request_cancelled',
-          'title': 'यात्री द्वारा सीट अनुरोध रद्द (Seat Cancelled)',
-          'body': 'यात्री ने $origin → $dest यात्रा के लिए अपना अनुरोध रद्द कर दिया है।',
+          'title': 'Seat Request Cancelled / सीट अनुरोध रद्द',
+          'body': 'A passenger cancelled their seat request for the $origin → $dest journey. (यात्री ने अनुरोध रद्द कर दिया है।)',
           'reference_id': rideId,
         });
       } catch (e) {

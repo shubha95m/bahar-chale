@@ -27,7 +27,7 @@ class AppNotification {
       recipientId: map['recipient_id'] as String,
       notificationType: (map['notification_type'] as String?) ?? 'general',
       referenceId: map['reference_id'] as String?,
-      title: (map['title'] as String?) ?? 'सूचना',
+      title: (map['title'] as String?) ?? 'Notification',
       body: (map['body'] as String?) ?? '',
       readAt: map['read_at'] != null ? DateTime.parse(map['read_at'] as String) : null,
       createdAt: map['created_at'] != null

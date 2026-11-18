@@ -194,15 +194,15 @@ class RidesRepository {
     }
 
     // 3. Send cancellation notifications to all linked passengers
-    final origin = ride?.originCity ?? 'प्रस्थान';
-    final dest = ride?.destinationCity ?? 'गंतव्य';
+    final origin = ride?.originCity ?? 'Origin';
+    final dest = ride?.destinationCity ?? 'Destination';
     for (final passengerId in linkedPassengerIds) {
       try {
         await _client.from('notifications').insert({
           'recipient_id': passengerId,
           'notification_type': 'trip_cancelled',
-          'title': 'यात्रा रद्द हो गई (Ride Cancelled by Driver)',
-          'body': 'चालक द्वारा $origin → $dest की यात्रा रद्द कर दी गई है। कृपया अपनी अगली व्यवस्था के लिए अन्य उपलब्ध सवारियां देखें।',
+          'title': 'Ride Cancelled / यात्रा रद्द हो गई',
+          'body': '$origin → $dest: Ride was cancelled by the driver. Please check alternative rides. (चालक द्वारा यात्रा रद्द कर दी गई है।)',
           'reference_id': rideId,
         });
       } catch (e) {

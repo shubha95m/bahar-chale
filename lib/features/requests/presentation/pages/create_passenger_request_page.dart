@@ -73,12 +73,12 @@ class _CreatePassengerRequestPageState extends ConsumerState<CreatePassengerRequ
     if (!_formKey.currentState!.validate()) return;
 
     final user = ref.read(currentUserProvider);
+    final s = ref.read(stringsProvider);
     if (user == null) {
-      AppSnackBar.show(context, message: 'कृपया पहले साइन इन करें।', isError: true);
+      AppSnackBar.show(context, message: s.isHindi ? 'कृपया पहले साइन इन करें।' : 'Please sign in first.', isError: true);
       return;
     }
 
-    final s = ref.read(stringsProvider);
     final req = PassengerRequest(
       id: const Uuid().v4(),
       requesterId: user.id,
@@ -113,7 +113,7 @@ class _CreatePassengerRequestPageState extends ConsumerState<CreatePassengerRequ
       } else {
         AppSnackBar.show(
           context,
-          message: 'अनुरोध पोस्ट करने में त्रुटि। कृपया पुनः प्रयास करें।',
+          message: s.isHindi ? 'अनुरोध पोस्ट करने में त्रुटि। कृपया पुनः प्रयास करें।' : 'Failed to publish request. Please try again.',
           isError: true,
         );
       }
@@ -173,25 +173,25 @@ class _CreatePassengerRequestPageState extends ConsumerState<CreatePassengerRequ
                   // Origin City & Area
                   LocationAutocompleteField(
                     controller: _originCityController,
-                    labelText: '${AppStrings.originCity} *',
-                    hintText: 'उदा. Pune, Hinjawadi, Delhi Airport',
+                    labelText: s.originCityLabel,
+                    hintText: s.originCityHint,
                     prefixIcon: const Icon(Icons.my_location_rounded, color: AppTheme.primaryGreen),
-                    validator: (val) => val == null || val.trim().isEmpty ? 'कृपया प्रस्थान शहर दर्ज करें' : null,
-                    onSuggestionSelected: (s) {
-                      _originLat = s.latitude;
-                      _originLon = s.longitude;
-                      if (s.area != null && _originAreaController.text.trim().isEmpty) {
-                        _originAreaController.text = s.area!;
+                    validator: (val) => val == null || val.trim().isEmpty ? s.originCityRequired : null,
+                    onSuggestionSelected: (sugg) {
+                      _originLat = sugg.latitude;
+                      _originLon = sugg.longitude;
+                      if (sugg.area != null && _originAreaController.text.trim().isEmpty) {
+                        _originAreaController.text = sugg.area!;
                       }
                     },
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _originAreaController,
-                    decoration: const InputDecoration(
-                      labelText: 'पिकअप इलाका / लैंडमार्क (वैकल्पिक)',
-                      hintText: 'उदा. हिंजवड़ी, एयरपोर्ट, मेट्रो स्टेशन',
-                      prefixIcon: Icon(Icons.place_outlined, color: AppTheme.textMuted),
+                    decoration: InputDecoration(
+                      labelText: s.originAreaLabel,
+                      hintText: s.originAreaHint,
+                      prefixIcon: const Icon(Icons.place_outlined, color: AppTheme.textMuted),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -199,25 +199,25 @@ class _CreatePassengerRequestPageState extends ConsumerState<CreatePassengerRequ
                   // Destination City & Area
                   LocationAutocompleteField(
                     controller: _destCityController,
-                    labelText: '${AppStrings.destinationCity} *',
-                    hintText: 'उदा. Mumbai, Dadar, Bengaluru Airport',
+                    labelText: s.destinationCityLabel,
+                    hintText: s.destinationCityHint,
                     prefixIcon: const Icon(Icons.location_on_rounded, color: AppTheme.accentAmber),
-                    validator: (val) => val == null || val.trim().isEmpty ? 'कृपया गंतव्य शहर दर्ज करें' : null,
-                    onSuggestionSelected: (s) {
-                      _destLat = s.latitude;
-                      _destLon = s.longitude;
-                      if (s.area != null && _destAreaController.text.trim().isEmpty) {
-                        _destAreaController.text = s.area!;
+                    validator: (val) => val == null || val.trim().isEmpty ? s.destinationCityRequired : null,
+                    onSuggestionSelected: (sugg) {
+                      _destLat = sugg.latitude;
+                      _destLon = sugg.longitude;
+                      if (sugg.area != null && _destAreaController.text.trim().isEmpty) {
+                        _destAreaController.text = sugg.area!;
                       }
                     },
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _destAreaController,
-                    decoration: const InputDecoration(
-                      labelText: 'गंतव्य इलाका (वैकल्पिक)',
-                      hintText: 'उदा. दादर, रेलवे स्टेशन, वैशाली नगर',
-                      prefixIcon: Icon(Icons.place_outlined, color: AppTheme.textMuted),
+                    decoration: InputDecoration(
+                      labelText: s.destinationAreaLabel,
+                      hintText: s.destinationAreaHint,
+                      prefixIcon: const Icon(Icons.place_outlined, color: AppTheme.textMuted),
                     ),
                   ),
                   const SizedBox(height: 20),

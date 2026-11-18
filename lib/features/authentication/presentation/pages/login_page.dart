@@ -56,9 +56,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Future<void> _handleSignIn() async {
     final email = _loginEmailController.text.trim();
     final password = _loginPasswordController.text;
+    final s = ref.read(stringsProvider);
 
     if (email.isEmpty || password.isEmpty) {
-      _showSnack('कृपया ईमेल और पासवर्ड दोनों दर्ज करें।', isError: true);
+      _showSnack(
+        s.isHindi ? 'कृपया ईमेल और पासवर्ड दोनों दर्ज करें।' : 'Please enter both email and password.',
+        isError: true,
+      );
       return;
     }
 
@@ -69,13 +73,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Future<void> _handleSendOtp() async {
     final name = _signupNameController.text.trim();
     final email = _signupEmailController.text.trim();
+    final s = ref.read(stringsProvider);
 
     if (name.isEmpty) {
-      _showSnack('कृपया अपना पूरा नाम दर्ज करें।', isError: true);
+      _showSnack(
+        s.isHindi ? 'कृपया अपना पूरा नाम दर्ज करें।' : 'Please enter your full name.',
+        isError: true,
+      );
       return;
     }
     if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
-      _showSnack('कृपया एक असली और वैध ईमेल पता दर्ज करें।', isError: true);
+      _showSnack(
+        s.isHindi ? 'कृपया एक असली और वैध ईमेल पता दर्ज करें।' : 'Please enter a real and valid email address.',
+        isError: true,
+      );
       return;
     }
 
@@ -86,7 +97,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     if (sent && mounted) {
       setState(() => _signupStep = 2);
-      _showSnack('6-अंकों का OTP कोड आपके ईमेल ($email) पर भेजा गया है!', isSuccess: true);
+      _showSnack(
+        s.isHindi
+            ? '6-अंकों का OTP कोड आपके ईमेल ($email) पर भेजा गया है!'
+            : 'A 6-digit OTP code was sent to your email ($email)!',
+        isSuccess: true,
+      );
     }
   }
 
@@ -94,9 +110,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Future<void> _handleVerifyOtp() async {
     final email = _signupEmailController.text.trim();
     final otp = _signupOtpController.text.trim();
+    final s = ref.read(stringsProvider);
 
     if (otp.length < 6) {
-      _showSnack('कृपया ईमेल पर आया 6-अंकों का OTP कोड दर्ज करें।', isError: true);
+      _showSnack(
+        s.isHindi ? 'कृपया ईमेल पर आया 6-अंकों का OTP कोड दर्ज करें।' : 'Please enter the 6-digit OTP received on email.',
+        isError: true,
+      );
       return;
     }
 
@@ -107,7 +127,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     if (verified && mounted) {
       setState(() => _signupStep = 3);
-      _showSnack('ईमेल सफलतापूर्वक सत्यापित हुआ! अब अपना पासवर्ड बनाएं।', isSuccess: true);
+      _showSnack(
+        s.isHindi
+            ? 'ईमेल सफलतापूर्वक सत्यापित हुआ! अब अपना पासवर्ड बनाएं।'
+            : 'Email verified successfully! Now create your password.',
+        isSuccess: true,
+      );
     }
   }
 
@@ -116,10 +141,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final name = _signupNameController.text.trim();
     final password = _signupPasswordController.text;
     final confirmPassword = _signupConfirmPasswordController.text;
+    final s = ref.read(stringsProvider);
 
     if (!_acceptedTerms) {
       _showSnack(
-        ref.read(stringsProvider).isHindi
+        s.isHindi
             ? 'कृपया आगे बढ़ने के लिए नियम व शर्तें स्वीकार करें।'
             : 'Please accept Terms & Conditions to proceed.',
         isError: true,
@@ -128,11 +154,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
 
     if (password.length < 6) {
-      _showSnack('पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।', isError: true);
+      _showSnack(
+        s.isHindi ? 'पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।' : 'Password must be at least 6 characters.',
+        isError: true,
+      );
       return;
     }
     if (password != confirmPassword) {
-      _showSnack('दोनों पासवर्ड मेल नहीं खाते। कृपया पुनः जांचें।', isError: true);
+      _showSnack(
+        s.isHindi ? 'दोनों पासवर्ड मेल नहीं खाते। कृपया पुनः जांचें।' : 'Passwords do not match. Please re-check.',
+        isError: true,
+      );
       return;
     }
 
@@ -145,7 +177,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
 
     if (success && mounted) {
-      _showSnack('पंजीकरण सफल! आपका स्वागत है।', isSuccess: true);
+      _showSnack(
+        s.isHindi ? 'पंजीकरण सफल! आपका स्वागत है।' : 'Registration successful! Welcome.',
+        isSuccess: true,
+      );
     }
   }
 

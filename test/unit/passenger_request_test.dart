@@ -42,7 +42,8 @@ void main() {
 
       // Check helper getters
       expect(req.routeDisplay, equals('Pune (Hinjawadi) ➔ Mumbai (Dadar)'));
-      expect(req.vehicleLabel, equals('कार (Car)'));
+      expect(req.vehicleLabel, equals('Car'));
+      expect(req.localizedVehicleLabel(isHindi: true), equals('कार (Car)'));
 
       final outMap = req.toMap();
       expect(outMap['origin_city'], equals('Pune'));
@@ -66,7 +67,8 @@ void main() {
       );
 
       expect(req.routeDisplay, equals('Delhi ➔ Jaipur'));
-      expect(req.vehicleLabel, equals('कोई भी वाहन (Any Vehicle)'));
+      expect(req.vehicleLabel, equals('Any Vehicle'));
+      expect(req.localizedVehicleLabel(isHindi: true), equals('कोई भी वाहन (Any Vehicle)'));
     });
 
     test('vehicleLabel resolves bike preference correctly', () {
@@ -82,7 +84,8 @@ void main() {
         createdAt: DateTime.now(),
       );
 
-      expect(req.vehicleLabel, equals('बाइक (Bike)'));
+      expect(req.vehicleLabel, equals('Bike'));
+      expect(req.localizedVehicleLabel(isHindi: true), equals('बाइक (Bike)'));
     });
   });
 }

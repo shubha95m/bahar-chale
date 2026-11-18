@@ -102,7 +102,7 @@ class MyTravelPage extends ConsumerWidget {
         body: TabBarView(
           children: [
             // TAB 1: Incoming requests for my rides
-            _buildIncomingTab(context, ref, user.id, incomingAsync),
+            _buildIncomingTab(context, ref, user.id, s, incomingAsync),
 
             // TAB 2: Rides posted by me
             _buildMyDrivesTab(context, ref, user.id, s, myRidesAsync),
@@ -123,6 +123,7 @@ class MyTravelPage extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     String userId,
+    AppStrings s,
     AsyncValue<List<Map<String, dynamic>>> incomingAsync,
   ) {
     return incomingAsync.when(
@@ -135,21 +136,21 @@ class MyTravelPage extends ConsumerWidget {
             children: [
               const Icon(Icons.refresh_rounded, color: AppTheme.textMuted, size: 40),
               const SizedBox(height: 12),
-              const Text(
-                'अनुरोध लोड करने में अस्थायी समस्या',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              Text(
+                s.isHindi ? 'अनुरोध लोड करने में अस्थायी समस्या' : 'Temporary problem loading requests',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 4),
-              const Text(
-                'कृपया अपना इंटरनेट कनेक्शन जांचें।',
-                style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+              Text(
+                s.isHindi ? 'कृपया अपना इंटरनेट कनेक्शन जांचें।' : 'Please check your internet connection.',
+                style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => ref.refresh(allIncomingRequestsProvider(userId)),
-                child: const Text('पुनः प्रयास करें'),
+                child: Text(s.isHindi ? 'पुनः प्रयास करें' : 'Retry'),
               ),
             ],
           ),
@@ -159,9 +160,11 @@ class MyTravelPage extends ConsumerWidget {
         if (requests.isEmpty) {
           return _buildEmptyTab(
             icon: Icons.inbox_outlined,
-            title: 'कोई नया अनुरोध नहीं मिला',
-            subtitle: 'जब कोई यात्री आपकी पोस्ट की गई राइड में जुड़ने का अनुरोध करेगा, वह सीधे यहाँ दिखाई देगा।',
-            actionLabel: 'सवारी प्रस्तुत करें (Offer Ride)',
+            title: s.isHindi ? 'कोई नया अनुरोध नहीं मिला' : 'No new requests found',
+            subtitle: s.isHindi
+                ? 'जब कोई यात्री आपकी पोस्ट की गई राइड में जुड़ने का अनुरोध करेगा, वह सीधे यहाँ दिखाई देगा।'
+                : 'When passengers request to join your offered ride, they will appear here.',
+            actionLabel: s.isHindi ? 'सवारी प्रस्तुत करें (Offer Ride)' : 'Offer Ride',
             onAction: () => context.push('/create-ride'),
           );
         }
@@ -182,7 +185,7 @@ class MyTravelPage extends ConsumerWidget {
               final originArea = rideMap['origin_area'] as String?;
               final destArea = rideMap['destination_area'] as String?;
               final travelDateRaw = rideMap['travel_date'];
-              final travelTime = rideMap['travel_time'] ?? 'समय लचीला';
+              final travelTime = rideMap['travel_time'] ?? (s.isHindi ? 'समय लचीला' : 'Flexible time');
               DateTime? parsedDate;
               if (travelDateRaw != null) {
                 try {
@@ -190,7 +193,7 @@ class MyTravelPage extends ConsumerWidget {
                 } catch (_) {}
               }
 
-              final requesterName = requesterMap['display_name'] ?? 'सहयात्री';
+              final requesterName = requesterMap['display_name'] ?? (s.isHindi ? 'सहयात्री (Passenger)' : 'Co-traveler');
               final status = (req['status'] as String? ?? 'pending').toLowerCase();
               final seatsRequested = req['seats_requested'] ?? 1;
               final userMessage = req['message'] as String?;
@@ -201,19 +204,19 @@ class MyTravelPage extends ConsumerWidget {
               switch (status) {
                 case 'accepted':
                   statusColor = Colors.green.shade700;
-                  statusLabel = 'स्वीकृत (Accepted)';
+                  statusLabel = s.isHindi ? 'स्वीकृत (Accepted)' : 'Accepted';
                   break;
                 case 'rejected':
                   statusColor = Colors.red.shade700;
-                  statusLabel = 'अस्वीकृत (Rejected)';
+                  statusLabel = s.isHindi ? 'अस्वीकृत (Rejected)' : 'Rejected';
                   break;
                 case 'cancelled':
                   statusColor = Colors.grey.shade600;
-                  statusLabel = 'रद्द (Cancelled)';
+                  statusLabel = s.isHindi ? 'रद्द (Cancelled)' : 'Cancelled';
                   break;
                 default:
                   statusColor = Colors.orange.shade800;
-                  statusLabel = 'नया अनुरोध (Pending)';
+                  statusLabel = s.isHindi ? 'नया अनुरोध (Pending)' : 'Pending';
               }
 
               return Card(
@@ -251,7 +254,9 @@ class MyTravelPage extends ConsumerWidget {
                                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                                 ),
                                 Text(
-                                  '$seatsRequested सीट का अनुरोध',
+                                  s.isHindi
+                                      ? '$seatsRequested सीट का अनुरोध'
+                                      : '$seatsRequested ${seatsRequested == 1 ? "seat requested" : "seats requested"}',
                                   style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
                                 ),
                               ],
@@ -311,7 +316,7 @@ class MyTravelPage extends ConsumerWidget {
                       if (userMessage != null && userMessage.trim().isNotEmpty) ...[
                         const SizedBox(height: 8),
                         Text(
-                          'यात्री का संदेश: "$userMessage"',
+                          s.isHindi ? 'यात्री का संदेश: "$userMessage"' : 'Passenger note: "$userMessage"',
                           style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: AppTheme.textDark),
                         ),
                       ],
@@ -332,14 +337,14 @@ class MyTravelPage extends ConsumerWidget {
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ),
                                 icon: const Icon(Icons.check_circle_outline_rounded, size: 18),
-                                label: const Text('स्वीकार करें', style: TextStyle(fontWeight: FontWeight.bold)),
+                                label: Text(s.isHindi ? 'स्वीकार करें' : 'Accept', style: const TextStyle(fontWeight: FontWeight.bold)),
                                 onPressed: () async {
                                   final success = await ref.read(requestActionNotifierProvider.notifier).accept(reqId);
                                   if (context.mounted) {
                                     if (success) {
                                       AppSnackBar.show(
                                         context,
-                                        message: 'अनुरोध स्वीकार कर लिया गया है। सीटें अपडेट हो गई हैं।',
+                                        message: s.isHindi ? 'अनुरोध स्वीकार कर लिया गया है। सीटें अपडेट हो गई हैं।' : 'Request accepted. Seats updated.',
                                         isSuccess: true,
                                       );
                                       ref.invalidate(allIncomingRequestsProvider(userId));
@@ -347,7 +352,7 @@ class MyTravelPage extends ConsumerWidget {
                                     } else {
                                       AppSnackBar.show(
                                         context,
-                                        message: 'अनुरोध स्वीकार करने में त्रुटि। संभवतः सीटें समाप्त हो गई हैं।',
+                                        message: s.isHindi ? 'अनुरोध स्वीकार करने में त्रुटि। संभवतः सीटें समाप्त हो गई हैं।' : 'Error accepting request. Likely no seats left.',
                                         isError: true,
                                       );
                                     }
@@ -366,7 +371,7 @@ class MyTravelPage extends ConsumerWidget {
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ),
                                 icon: const Icon(Icons.cancel_outlined, size: 16),
-                                label: const Text('मना करें', style: TextStyle(fontSize: 12)),
+                                label: Text(s.isHindi ? 'मना करें' : 'Reject', style: const TextStyle(fontSize: 12)),
                                 onPressed: () async {
                                   await ref.read(requestActionNotifierProvider.notifier).reject(reqId);
                                   if (context.mounted) {
@@ -377,7 +382,7 @@ class MyTravelPage extends ConsumerWidget {
                             ),
                             const SizedBox(width: 8),
                             IconButton(
-                              tooltip: 'बातचीत करें',
+                              tooltip: s.isHindi ? 'बातचीत करें' : 'Chat',
                               icon: const Icon(Icons.chat_bubble_outline_rounded, color: AppTheme.primaryGreen),
                               onPressed: () => context.push('/chat/$reqId'),
                             ),
@@ -394,7 +399,7 @@ class MyTravelPage extends ConsumerWidget {
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ),
                                 icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
-                                label: const Text('बातचीत (Chat)', style: TextStyle(fontSize: 12)),
+                                label: Text(s.isHindi ? 'बातचीत (Chat)' : 'Chat', style: const TextStyle(fontSize: 12)),
                                 onPressed: () => context.push('/chat/$reqId'),
                               ),
                             ),
@@ -408,14 +413,14 @@ class MyTravelPage extends ConsumerWidget {
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                   ),
                                   icon: const Icon(Icons.handshake_outlined, size: 16),
-                                  label: const Text('सहमति पत्र', style: TextStyle(fontSize: 12)),
+                                  label: Text(s.isHindi ? 'सहमति पत्र (Agreement)' : 'Agreement', style: const TextStyle(fontSize: 12)),
                                   onPressed: () => context.push('/agreement/$reqId'),
                                 ),
                               ),
                               const SizedBox(width: 8),
                             ],
                             IconButton(
-                              tooltip: 'Google Maps में मार्ग देखें (मुफ़्त)',
+                              tooltip: s.isHindi ? 'Google Maps में मार्ग देखें (मुफ़्त)' : 'View Route on Google Maps (Free)',
                               icon: const Icon(Icons.map_outlined, color: Colors.blueAccent),
                               onPressed: () => MapLauncher.openDirections(
                                 origin: origin,
@@ -450,19 +455,24 @@ class MyTravelPage extends ConsumerWidget {
   ) {
     return myRidesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => const Center(
+      error: (err, _) => Center(
         child: Padding(
-          padding: EdgeInsets.all(24.0),
-          child: Text('यात्राएं लोड करने में असमर्थ। कृपया पुनः प्रयास करें।', style: TextStyle(color: AppTheme.textMuted)),
+          padding: const EdgeInsets.all(24.0),
+          child: Text(
+            s.isHindi ? 'यात्राएं लोड करने में असमर्थ। कृपया पुनः प्रयास करें।' : 'Failed to load rides. Please retry.',
+            style: const TextStyle(color: AppTheme.textMuted),
+          ),
         ),
       ),
       data: (rides) {
         if (rides.isEmpty) {
           return _buildEmptyTab(
             icon: Icons.directions_car_outlined,
-            title: 'आपने अभी कोई सवारी प्रस्तुत नहीं की है',
-            subtitle: 'जब आप कोई यात्रा साझा करेंगे, वह यहाँ दिखाई देगी और अन्य यात्री जुड़ सकेंगे।',
-            actionLabel: AppStrings.actionGiveRide,
+            title: s.isHindi ? 'आपने अभी कोई सवारी प्रस्तुत नहीं की है' : 'You have not offered any rides yet',
+            subtitle: s.isHindi
+                ? 'जब आप कोई यात्रा साझा करेंगे, वह यहाँ दिखाई देगी और अन्य यात्री जुड़ सकेंगे।'
+                : 'When you offer a ride, it will appear here for passengers to join.',
+            actionLabel: s.isHindi ? 'सवारी प्रस्तुत करें (Offer Ride)' : 'Offer Ride',
             onAction: () => context.push('/create-ride'),
           );
         }
@@ -543,7 +553,7 @@ class MyTravelPage extends ConsumerWidget {
                           const Icon(Icons.event_outlined, size: 16, color: AppTheme.textMuted),
                           const SizedBox(width: 6),
                           Text(
-                            '${DateFormat('dd MMM yyyy').format(ride.travelDate)} • ${ride.travelTime ?? 'लचीला समय'}',
+                            '${DateFormat('dd MMM yyyy').format(ride.travelDate)} • ${ride.travelTime ?? (s.isHindi ? 'लचीला समय' : 'Flexible')}',
                             style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
                           ),
                         ],
@@ -559,7 +569,7 @@ class MyTravelPage extends ConsumerWidget {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            '${ride.vehicleLabel} • उपलब्ध: ${ride.availableSeats} / ${ride.totalSeats} सीटें ($bookedSeats बुक)',
+                            '${ride.localizedVehicleLabel(isHindi: s.isHindi)} • ${s.isHindi ? "उपलब्ध" : "Available"}: ${ride.availableSeats} / ${ride.totalSeats} ${s.isHindi ? "सीटें" : "seats"} ($bookedSeats ${s.isHindi ? "बुक" : "booked"})',
                             style: TextStyle(
                               color: ride.availableSeats > 0 ? AppTheme.primaryGreen : Colors.red.shade700,
                               fontWeight: FontWeight.w600,
@@ -599,7 +609,7 @@ class MyTravelPage extends ConsumerWidget {
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
                               icon: const Icon(Icons.group_outlined, size: 16),
-                              label: const Text('यात्री व विवरण', style: TextStyle(fontSize: 12)),
+                              label: Text(s.isHindi ? 'यात्री व विवरण' : 'Passengers & Details', style: const TextStyle(fontSize: 12)),
                               onPressed: () => context.push('/ride/${ride.id}'),
                             ),
                           ),
@@ -705,7 +715,7 @@ class MyTravelPage extends ConsumerWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '${DateFormat('dd MMM yyyy').format(req.travelDate)} • ${req.seatsNeeded} सीट • ${req.vehicleLabel}',
+                                '${DateFormat('dd MMM yyyy').format(req.travelDate)} • ${req.seatsNeeded} ${s.isHindi ? "सीट" : (req.seatsNeeded == 1 ? "seat" : "seats")} • ${req.localizedVehicleLabel(isHindi: s.isHindi)}',
                                 style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
                               ),
                               const Divider(height: 16),
@@ -763,12 +773,15 @@ class MyTravelPage extends ConsumerWidget {
 
             myRequestsAsync.when(
               loading: () => const Center(child: Padding(padding: EdgeInsets.all(24.0), child: CircularProgressIndicator())),
-              error: (err, _) => const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24.0),
-          child: Text('यात्राएं लोड करने में असमर्थ। कृपया पुनः प्रयास करें।', style: TextStyle(color: AppTheme.textMuted)),
-        ),
-      ),
+              error: (err, _) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Text(
+                    s.isHindi ? 'यात्राएं लोड करने में असमर्थ। कृपया पुनः प्रयास करें।' : 'Failed to load requests. Please retry.',
+                    style: const TextStyle(color: AppTheme.textMuted),
+                  ),
+                ),
+              ),
               data: (requests) {
                 if (requests.isEmpty) {
                   return Container(
@@ -858,7 +871,7 @@ class MyTravelPage extends ConsumerWidget {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'मांगी गई सीटें: ${req['seats_requested']}',
+                              s.isHindi ? 'मांगी गई सीटें: ${req['seats_requested']}' : 'Seats requested: ${req['seats_requested']}',
                               style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
                             ),
                             const Divider(height: 20),

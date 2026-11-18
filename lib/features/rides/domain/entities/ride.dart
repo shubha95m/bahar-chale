@@ -61,17 +61,21 @@ class Ride {
     return '$from → $to';
   }
 
-  String get vehicleLabel {
-    if (rideCategory == 'general_travel') return 'सामान्य यात्रा समन्वय';
+  String localizedVehicleLabel({bool isHindi = false}) {
+    if (rideCategory == 'general_travel') {
+      return isHindi ? 'सामान्य यात्रा समन्वय (General Travel)' : 'General Travel Coordination';
+    }
     switch (vehicleType) {
       case 'bike':
-        return '🏍️ बाइक (Bike)';
+        return isHindi ? '🏍️ बाइक (Bike)' : '🏍️ Bike';
       case 'car':
-        return '🚗 कार (Car)';
+        return isHindi ? '🚗 कार (Car)' : '🚗 Car';
       default:
-        return '🛺 अन्य / साझा';
+        return isHindi ? '🛺 अन्य / साझा (Other)' : '🛺 Other / Shared';
     }
   }
+
+  String get vehicleLabel => localizedVehicleLabel(isHindi: false);
 
   String get vehicleIcon {
     if (rideCategory == 'general_travel') return '🎒';

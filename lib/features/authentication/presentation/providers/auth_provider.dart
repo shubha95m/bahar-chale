@@ -6,6 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../app/configuration/supabase_config.dart';
+import '../../../../core/localization/app_language.dart';
 
 final authStateProvider = StreamProvider<AuthState>((ref) {
   return SupabaseConfig.client.auth.onAuthStateChange;
@@ -17,7 +18,10 @@ final currentUserProvider = Provider<User?>((ref) {
 });
 
 class AuthController extends StateNotifier<AsyncValue<void>> {
-  AuthController() : super(const AsyncValue.data(null));
+  final Ref? _ref;
+  AuthController([this._ref]) : super(const AsyncValue.data(null));
+
+  bool get isHindi => _ref?.read(appLanguageProvider) == AppLanguage.hindi;
 
   String? _signupToken;
   String? _verifiedToken;
@@ -34,8 +38,10 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
           final settingsData = jsonDecode(settingsRes.body) as Map<String, dynamic>;
           final externalProviders = settingsData['external'] as Map<String, dynamic>?;
           if (externalProviders?['google'] != true) {
-            throw const AuthException(
-              'Supabase में Google Sign-In Provider अभी सक्रिय नहीं है। कृपया Supabase Dashboard (Auth > Providers > Google) में Client ID जोड़ें, या नीचे दिए गए डेमो मोड (Driver/Rider) से तुरंत प्रवेश करें।',
+            throw AuthException(
+              isHindi
+                  ? 'Supabase में Google Sign-In Provider अभी सक्रिय नहीं है। कृपया Supabase Dashboard (Auth > Providers > Google) में Client ID जोड़ें, या नीचे दिए गए डेमो मोड (Driver/Rider) से तुरंत प्रवेश करें।'
+                  : 'Google Sign-In is not currently enabled in Supabase Dashboard. Please configure Google OAuth credentials or sign in with email.',
             );
           }
         }
@@ -98,7 +104,9 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
     } on AuthException catch (e) {
       if (e.message.contains('provider is not enabled') || e.code == 'validation_failed') {
         state = AsyncValue.error(
-          'Supabase में Google Sign-In अभी चालू नहीं है। डैशबोर्ड (Auth > Providers > Google) में Client ID जोड़ें, या नीचे दिए गए डेमो मोड से जारी रखें।',
+          isHindi
+              ? 'Supabase में Google Sign-In अभी चालू नहीं है। डैशबोर्ड (Auth > Providers > Google) में Client ID जोड़ें, या नीचे दिए गए डेमो मोड से जारी रखें।'
+              : 'Google Sign-In is not currently enabled in Supabase Dashboard. Please configure credentials in Supabase.',
           StackTrace.current,
         );
       } else {
@@ -142,26 +150,39 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
     'crazymailing.com',
   };
 
-  static String _cleanErrorMessage(dynamic e) {
+  String _cleanErrorMessage(dynamic e) {
+    final hindi = isHindi;
     if (e is AuthException) {
       final msg = e.message.toLowerCase();
       if (msg.contains('invalid login credentials') || msg.contains('invalid credentials')) {
-        return 'गलत ईमेल या पासवर्ड। कृपया विवरण पुनः जांचें या "नया खाता बनाएं" चुनें।';
+        return hindi
+            ? 'गलत ईमेल या पासवर्ड। कृपया विवरण पुनः जांचें या "नया खाता बनाएं" चुनें।'
+            : 'Incorrect email or password. Please verify your credentials or create a new account.';
       }
       if (msg.contains('email not confirmed')) {
-        return 'ईमेल अभी सत्यापित नहीं है। कृपया OTP सत्यापन पूरा करें।';
+        return hindi
+            ? 'ईमेल अभी सत्यापित नहीं है। कृपया OTP सत्यापन पूरा करें।'
+            : 'Email not verified yet. Please complete OTP verification.';
       }
       if (msg.contains('rate limit') || msg.contains('too many requests')) {
-        return 'सुरक्षा सीमा: बहुत अधिक अनुरोध। कृपया कुछ मिनट बाद पुनः प्रयास करें।';
+        return hindi
+            ? 'सुरक्षा सीमा: बहुत अधिक अनुरोध। कृपया कुछ मिनट बाद पुनः प्रयास करें।'
+            : 'Security limit: Too many requests. Please retry after a few minutes.';
       }
       if (msg.contains('token has expired') || msg.contains('otp expired')) {
-        return 'OTP की समय सीमा समाप्त हो गई है। कृपया "OTP पुनः भेजें" पर टैप करें।';
+        return hindi
+            ? 'OTP की समय सीमा समाप्त हो गई है। कृपया "OTP पुनः भेजें" पर टैप करें।'
+            : 'OTP expired. Please tap "Resend OTP".';
       }
       if (msg.contains('invalid token') || msg.contains('token is invalid')) {
-        return 'गलत OTP कोड। कृपया अपने ईमेल पर प्राप्त 6-अंकों का सही कोड दर्ज करें।';
+        return hindi
+            ? 'गलत OTP कोड। कृपया अपने ईमेल पर प्राप्त 6-अंकों का सही कोड दर्ज करें।'
+            : 'Incorrect OTP code. Please enter the valid 6-digit code received on your email.';
       }
       if (msg.contains('user already registered')) {
-        return 'यह ईमेल पहले से पंजीकृत है। कृपया "साइन इन" टैब पर जाकर पासवर्ड से लॉगिन करें।';
+        return hindi
+            ? 'यह ईमेल पहले से पंजीकृत है। कृपया "साइन इन" टैब पर जाकर पासवर्ड से लॉगिन करें।'
+            : 'This email is already registered. Please go to the "Sign In" tab to log in.';
       }
       return e.message;
     }
@@ -178,12 +199,20 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
       final cleanEmail = email.trim().toLowerCase();
       final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
       if (!emailRegex.hasMatch(cleanEmail)) {
-        throw const FormatException('कृपया एक वैध और सही ईमेल पता दर्ज करें (उदा. yourname@gmail.com)।');
+        throw FormatException(
+          isHindi
+              ? 'कृपया एक वैध और सही ईमेल पता दर्ज करें (उदा. yourname@gmail.com)।'
+              : 'Please enter a valid email address (e.g. yourname@gmail.com).',
+        );
       }
 
       final domain = cleanEmail.split('@').last;
       if (_disposableDomains.contains(domain)) {
-        throw const FormatException('अस्थाई / डमी ईमेल (Disposable email) मान्य नहीं है। कृपया अपना असली व्यक्तिगत ईमेल उपयोग करें।');
+        throw FormatException(
+          isHindi
+              ? 'अस्थाई / डमी ईमेल (Disposable email) मान्य नहीं है। कृपया अपना असली व्यक्तिगत ईमेल उपयोग करें।'
+              : 'Disposable or dummy email is not permitted. Please use your real personal email.',
+        );
       }
 
       final uri = Uri.parse('${SupabaseConfig.defaultUrl}/functions/v1/custom-auth');
@@ -207,7 +236,7 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         state = const AsyncValue.data(null);
         return true;
       } else {
-        throw FormatException(data['error']?.toString() ?? 'OTP भेजने में त्रुटि हुई।');
+        throw FormatException(data['error']?.toString() ?? (isHindi ? 'OTP भेजने में त्रुटि हुई।' : 'Error sending OTP.'));
       }
     } catch (e, st) {
       state = AsyncValue.error(_cleanErrorMessage(e), st);
@@ -223,7 +252,7 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
       final cleanToken = token.trim();
 
       if (cleanToken.length < 6) {
-        throw const FormatException('कृपया 6-अंकों का OTP कोड दर्ज करें।');
+        throw FormatException(isHindi ? 'कृपया 6-अंकों का OTP कोड दर्ज करें।' : 'Please enter the 6-digit OTP code.');
       }
 
       final uri = Uri.parse('${SupabaseConfig.defaultUrl}/functions/v1/custom-auth');
@@ -247,7 +276,7 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         state = const AsyncValue.data(null);
         return true;
       } else {
-        throw FormatException(data['error']?.toString() ?? 'गलत OTP कोड। कृपया सही 6-अंकों का कोड दर्ज करें।');
+        throw FormatException(data['error']?.toString() ?? (isHindi ? 'गलत OTP कोड। कृपया सही 6-अंकों का कोड दर्ज करें।' : 'Invalid OTP code. Please enter the correct 6-digit code.'));
       }
     } catch (e, st) {
       state = AsyncValue.error(_cleanErrorMessage(e), st);
@@ -266,16 +295,16 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       if (!termsAccepted) {
-        throw const FormatException('कृपया आगे बढ़ने के लिए नियम व शर्तें और कानूनी सहमति स्वीकार करें। (Please accept Terms & Conditions to proceed.)');
+        throw FormatException(isHindi ? 'कृपया आगे बढ़ने के लिए नियम व शर्तें और कानूनी सहमति स्वीकार करें।' : 'Please accept Terms & Conditions and legal consent to proceed.');
       }
 
       if (password.length < 6) {
-        throw const FormatException('पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।');
+        throw FormatException(isHindi ? 'पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।' : 'Password must be at least 6 characters.');
       }
 
       final email = _signupEmail ?? SupabaseConfig.client.auth.currentUser?.email ?? '';
       if (email.isEmpty) {
-        throw const FormatException('सत्यापन सत्र समाप्त हो गया। कृपया पुनः OTP भेजें।');
+        throw FormatException(isHindi ? 'सत्यापन सत्र समाप्त हो गया। कृपया पुनः OTP भेजें।' : 'Verification session expired. Please resend OTP.');
       }
 
       final consentStatement = termsConsentText ??
@@ -311,7 +340,7 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         state = const AsyncValue.data(null);
         return true;
       } else {
-        throw FormatException(data['error']?.toString() ?? 'पंजीकरण विफल रहा। कृपया पुनः प्रयास करें।');
+        throw FormatException(data['error']?.toString() ?? (isHindi ? 'पंजीकरण विफल रहा। कृपया पुनः प्रयास करें।' : 'Registration failed. Please try again.'));
       }
     } catch (e, st) {
       state = AsyncValue.error(_cleanErrorMessage(e), st);
@@ -349,5 +378,5 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
 }
 
 final authControllerProvider = StateNotifierProvider<AuthController, AsyncValue<void>>((ref) {
-  return AuthController();
+  return AuthController(ref);
 });

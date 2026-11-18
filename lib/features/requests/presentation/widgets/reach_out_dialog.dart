@@ -35,10 +35,13 @@ class _ReachOutDialogState extends ConsumerState<ReachOutDialog> {
   @override
   void initState() {
     super.initState();
-    final passengerName = widget.request.requesterName ?? 'साथी';
-    final route = '${widget.request.originCity} से ${widget.request.destinationCity}';
+    final s = ref.read(stringsProvider);
+    final passengerName = widget.request.requesterName ?? (s.isHindi ? 'साथी' : 'Traveler');
+    final route = s.isHindi ? '${widget.request.originCity} से ${widget.request.destinationCity}' : '${widget.request.originCity} to ${widget.request.destinationCity}';
     _messageController = TextEditingController(
-      text: 'नमस्ते $passengerName! मैं भी $route के लिए जा रहा हूँ। क्या आप साथ चलना चाहेंगे?',
+      text: s.isHindi
+          ? 'नमस्ते $passengerName! मैं भी $route के लिए जा रहा हूँ। क्या आप साथ चलना चाहेंगे?'
+          : 'Hello $passengerName! I am also travelling from $route. Would you like to share the ride?',
     );
   }
 
@@ -69,8 +72,13 @@ class _ReachOutDialogState extends ConsumerState<ReachOutDialog> {
       return;
     }
 
+    final s = ref.read(stringsProvider);
     if (user.id == widget.request.requesterId) {
-      AppSnackBar.show(context, message: 'आप अपने ही अनुरोध पर प्रस्ताव नहीं भेज सकते।', isError: true);
+      AppSnackBar.show(
+        context,
+        message: s.isHindi ? 'आप अपने ही अनुरोध पर प्रस्ताव नहीं भेज सकते।' : 'You cannot reach out to your own request.',
+        isError: true,
+      );
       return;
     }
 
@@ -91,10 +99,18 @@ class _ReachOutDialogState extends ConsumerState<ReachOutDialog> {
       Navigator.of(context).pop();
 
       if (rideRequestId != null) {
-        AppSnackBar.show(context, message: 'प्रस्ताव व संदेश भेज दिया गया है! बातचीत खुल रही है...', isSuccess: true);
+        AppSnackBar.show(
+          context,
+          message: s.isHindi ? 'प्रस्ताव व संदेश भेज दिया गया है! बातचीत खुल रही है...' : 'Offer and message sent! Opening chat...',
+          isSuccess: true,
+        );
         context.push('/chat/$rideRequestId');
       } else {
-        AppSnackBar.show(context, message: 'प्रस्ताव भेजने में त्रुटि। कृपया पुनः प्रयास करें।', isError: true);
+        AppSnackBar.show(
+          context,
+          message: s.isHindi ? 'प्रस्ताव भेजने में त्रुटि। कृपया पुनः प्रयास करें।' : 'Failed to send offer. Please retry.',
+          isError: true,
+        );
       }
     }
   }
@@ -147,7 +163,7 @@ class _ReachOutDialogState extends ConsumerState<ReachOutDialog> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${DateFormat('dd MMM yyyy').format(req.travelDate)} • ${req.seatsNeeded} सीट की आवश्यकता',
+                    '${DateFormat('dd MMM yyyy').format(req.travelDate)} • ${req.seatsNeeded} ${s.isHindi ? "सीट की आवश्यकता" : (req.seatsNeeded == 1 ? "seat needed" : "seats needed")}',
                     style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
                   ),
                 ],
@@ -293,9 +309,9 @@ class _ReachOutDialogState extends ConsumerState<ReachOutDialog> {
             TextField(
               controller: _messageController,
               maxLines: 2,
-              decoration: const InputDecoration(
-                hintText: 'उदा. मैं 8:30 बजे निकलूंगा, आएं साथ चलें',
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: InputDecoration(
+                hintText: s.isHindi ? 'उदा. मैं 8:30 बजे निकलूंगा, आएं साथ चलें' : 'e.g. Leaving at 8:30 AM, let\'s travel together',
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               ),
             ),
           ],

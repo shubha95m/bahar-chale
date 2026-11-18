@@ -64,7 +64,7 @@ class PassengerRequestCardWidget extends ConsumerWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${request.seatsNeeded} ${s.isHindi ? "सीट की आवश्यकता" : "seat needed"} • ${request.vehicleLabel}',
+                        '${request.seatsNeeded} ${s.isHindi ? "सीट की आवश्यकता" : (request.seatsNeeded == 1 ? "seat needed" : "seats needed")} • ${request.localizedVehicleLabel(isHindi: s.isHindi)}',
                         style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
                       ),
                     ],

@@ -78,12 +78,18 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
     if (_seatsToRequest > availableSeats) {
       _seatsToRequest = availableSeats;
     }
+    final s = ref.read(stringsProvider);
+    final vehicleLabel = vehicleType == 'bike'
+        ? (s.isHindi ? '🏍️ बाइक (Bike)' : '🏍️ Bike')
+        : (vehicleType == 'car'
+            ? (s.isHindi ? '🚗 कार (Car)' : '🚗 Car')
+            : (s.isHindi ? '🛺 अन्य / साझा (Other)' : '🛺 Other / Shared'));
 
     showDialog(
       context: dialogContext,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('सवारी के लिए अनुरोध भेजें'),
+          title: Text(s.isHindi ? 'सवारी के लिए अनुरोध भेजें' : 'Send Ride Request'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,11 +106,11 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      vehicleType == 'bike' ? '🏍️ बाइक' : (vehicleType == 'car' ? '🚗 कार' : '🛺 साझा'),
+                      vehicleLabel,
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     Text(
-                      'उपलब्ध सीटें: $availableSeats',
+                      s.isHindi ? 'उपलब्ध सीटें: $availableSeats' : 'Available seats: $availableSeats',
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
@@ -115,7 +121,10 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text('आपको कितनी सीटें चाहिए?', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              Text(
+                s.isHindi ? 'आपको कितनी सीटें चाहिए?' : 'How many seats do you need?',
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              ),
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -146,7 +155,7 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                   const SizedBox(width: 8),
                   if (_seatsToRequest >= availableSeats)
                     Text(
-                      '(अधिकतम उपलब्ध)',
+                      s.isHindi ? '(अधिकतम उपलब्ध)' : '(Max available)',
                       style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontStyle: FontStyle.italic),
                     ),
                 ],
@@ -154,9 +163,9 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
               const SizedBox(height: 12),
               TextField(
                 controller: _messageController,
-                decoration: const InputDecoration(
-                  labelText: 'चालक के लिए संदेश (वैकल्पिक)',
-                  hintText: 'उदा. पिकअप स्थल या सामान का विवरण',
+                decoration: InputDecoration(
+                  labelText: s.isHindi ? 'चालक के लिए संदेश (वैकल्पिक)' : 'Message to driver (Optional)',
+                  hintText: s.isHindi ? 'उदा. पिकअप स्थल या सामान का विवरण' : 'e.g. Pickup point or luggage details',
                 ),
               ),
             ],
@@ -164,7 +173,7 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text(AppStrings.cancel),
+              child: Text(s.cancelText),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -180,14 +189,14 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                 AppSnackBar.show(
                   context,
                   message: success
-                      ? 'अनुरोध सफलतापूर्वक भेजा गया!'
-                      : 'अनुरोध भेजने में विफल (शायद आप पहले ही अनुरोध भेज चुके हैं)।',
+                      ? (s.isHindi ? 'अनुरोध सफलतापूर्वक भेजा गया!' : 'Ride request sent successfully!')
+                      : (s.isHindi ? 'अनुरोध भेजने में विफल (शायद आप पहले ही अनुरोध भेज चुके हैं)।' : 'Failed to send request (you may have already requested).'),
                   isSuccess: success,
                   isError: !success,
                 );
                 ref.invalidate(incomingRequestsProvider(widget.rideId));
               },
-              child: const Text('भेजें'),
+              child: Text(s.isHindi ? 'भेजें' : 'Send'),
             ),
           ],
         ),
@@ -228,15 +237,20 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
       ),
       body: rideAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => const Center(
+        error: (err, _) => Center(
           child: Padding(
-            padding: EdgeInsets.all(24.0),
-            child: Text('सवारी विवरण लोड करने में समस्या। कृपया पुनः प्रयास करें।', style: TextStyle(color: AppTheme.textMuted)),
+            padding: const EdgeInsets.all(24.0),
+            child: Text(
+              s.isHindi ? 'सवारी विवरण लोड करने में समस्या। कृपया पुनः प्रयास करें।' : 'Failed to load ride details. Please retry.',
+              style: const TextStyle(color: AppTheme.textMuted),
+            ),
           ),
         ),
         data: (ride) {
           if (ride == null) {
-            return const Center(child: Text('सवारी नहीं मिली।'));
+            return Center(
+              child: Text(s.isHindi ? 'सवारी नहीं मिली।' : 'Ride not found.'),
+            );
           }
 
           final isOwner = currentUser?.id == ride.ownerId;
@@ -267,7 +281,7 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                             radius: 26,
                             backgroundColor: AppTheme.primaryGreen.withOpacity(0.12),
                             child: Text(
-                              ride.ownerName?.isNotEmpty == true ? ride.ownerName![0].toUpperCase() : 'य',
+                              ride.ownerName?.isNotEmpty == true ? ride.ownerName![0].toUpperCase() : (s.isHindi ? 'य' : 'U'),
                               style: const TextStyle(fontSize: 20, color: AppTheme.primaryGreen, fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -277,11 +291,11 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  ride.ownerName ?? 'सवारी प्रदाता',
+                                  ride.ownerName ?? (s.isHindi ? 'सवारी प्रदाता (Driver)' : 'Ride Provider'),
                                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
                                 ),
                                 Text(
-                                  ride.vehicleLabel,
+                                  ride.localizedVehicleLabel(isHindi: s.isHindi),
                                   style: const TextStyle(fontSize: 14, color: AppTheme.textMuted),
                                 ),
                               ],
@@ -291,7 +305,7 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                const Text('सहयोग राशि', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+                                Text(s.isHindi ? 'सहयोग राशि' : 'Contribution', style: const TextStyle(fontSize: 11, color: AppTheme.textMuted)),
                                 Text(
                                   '₹${ride.contributionAmount!.toStringAsFixed(0)}',
                                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.accentAmber),
@@ -356,17 +370,17 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                             children: [
                               _buildInfoItem(
                                 Icons.calendar_today_rounded,
-                                'तारीख',
+                                s.isHindi ? 'तारीख' : 'Date',
                                 DateFormat('dd MMM yyyy').format(ride.travelDate),
                               ),
                               _buildInfoItem(
                                 Icons.access_time_rounded,
-                                'समय',
-                                ride.travelTime ?? (ride.isTimeFlexible ? 'लचीला समय' : 'निर्धारित नहीं'),
+                                s.isHindi ? 'समय' : 'Time',
+                                ride.travelTime ?? (ride.isTimeFlexible ? (s.isHindi ? 'लचीला समय' : 'Flexible') : (s.isHindi ? 'निर्धारित नहीं' : 'Not set')),
                               ),
                               _buildInfoItem(
                                 Icons.airline_seat_recline_normal_rounded,
-                                'उपलब्ध सीटें',
+                                s.isHindi ? 'उपलब्ध सीटें' : 'Available Seats',
                                 '${ride.availableSeats} / ${ride.totalSeats}',
                               ),
                             ],
@@ -374,7 +388,7 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
 
                           if (ride.notes != null && ride.notes!.isNotEmpty) ...[
                             const SizedBox(height: 16),
-                            const Text('अतिरिक्त विवरण:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                            Text(s.isHindi ? 'अतिरिक्त विवरण:' : 'Additional Details:', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                             const SizedBox(height: 4),
                             Text(ride.notes!, style: const TextStyle(color: AppTheme.textMuted, fontSize: 14)),
                           ],
@@ -406,21 +420,27 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                           );
                         },
                         icon: const Icon(Icons.map_rounded, color: Colors.blueAccent),
-                        label: const Text('Google Maps में पूरा मार्ग देखें (मुफ़्त)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                        label: Text(
+                          s.isHindi ? 'Google Maps में पूरा मार्ग देखें (मुफ़्त)' : 'View Route on Google Maps (Free)',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
 
                     // Section for Owner: Incoming Requests
                     if (isOwner) ...[
-                      const Text(
-                        'इस सवारी के लिए अनुरोध',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                      Text(
+                        s.isHindi ? 'इस सवारी के लिए अनुरोध' : 'Requests for this Ride',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
                       ),
                       const SizedBox(height: 12),
                       incomingRequestsAsync!.when(
                         loading: () => const Center(child: CircularProgressIndicator()),
-                        error: (err, _) => const Text('अनुरोध लोड करने में समस्या।', style: TextStyle(color: AppTheme.textMuted)),
+                        error: (err, _) => Text(
+                          s.isHindi ? 'अनुरोध लोड करने में समस्या।' : 'Failed to load requests.',
+                          style: const TextStyle(color: AppTheme.textMuted),
+                        ),
                         data: (requests) {
                           if (requests.isEmpty) {
                             return Container(
@@ -430,9 +450,9 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(color: const Color(0xFFE2E8F0)),
                               ),
-                              child: const Text(
-                                'अभी तक कोई अनुरोध प्राप्त नहीं हुआ है।',
-                                style: TextStyle(color: AppTheme.textMuted),
+                              child: Text(
+                                s.isHindi ? 'अभी तक कोई अनुरोध प्राप्त नहीं हुआ है।' : 'No requests received yet.',
+                                style: const TextStyle(color: AppTheme.textMuted),
                               ),
                             );
                           }
@@ -457,7 +477,7 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                                             child: Text(
                                               req.requesterName?.isNotEmpty == true
                                                   ? req.requesterName![0].toUpperCase()
-                                                  : 'य',
+                                                  : (s.isHindi ? 'य' : 'P'),
                                               style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold),
                                             ),
                                           ),
@@ -467,11 +487,11 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  req.requesterName ?? 'यात्री',
+                                                  req.requesterName ?? (s.isHindi ? 'यात्री (Passenger)' : 'Passenger'),
                                                   style: const TextStyle(fontWeight: FontWeight.bold),
                                                 ),
                                                 Text(
-                                                  '${req.seatsRequested} सीट मांगी • स्थिति: ${req.status}',
+                                                  '${req.seatsRequested} ${s.isHindi ? "सीट मांगी" : (req.seatsRequested == 1 ? "seat requested" : "seats requested")} • ${s.isHindi ? "स्थिति" : "Status"}: ${req.status}',
                                                   style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
                                                 ),
                                               ],
@@ -498,14 +518,16 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                                                   if (!context.mounted) return;
                                                   AppSnackBar.show(
                                                     context,
-                                                    message: success ? 'अनुरोध स्वीकार कर लिया गया!' : 'स्वीकृति विफल।',
+                                                    message: success
+                                                        ? (s.isHindi ? 'अनुरोध स्वीकार कर लिया गया!' : 'Request accepted!')
+                                                        : (s.isHindi ? 'स्वीकृति विफल।' : 'Failed to accept.'),
                                                     isSuccess: success,
                                                     isError: !success,
                                                   );
                                                   ref.invalidate(incomingRequestsProvider(widget.rideId));
                                                   ref.invalidate(rideDetailsProvider(widget.rideId));
                                                 },
-                                                child: const Text('स्वीकार करें'),
+                                                child: Text(s.isHindi ? 'स्वीकार करें' : 'Accept'),
                                               ),
                                             ),
                                             const SizedBox(width: 10),
@@ -520,7 +542,7 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                                                   await ref.read(requestActionNotifierProvider.notifier).reject(req.id);
                                                   ref.invalidate(incomingRequestsProvider(widget.rideId));
                                                 },
-                                                child: const Text('अस्वीकार करें'),
+                                                child: Text(s.isHindi ? 'अस्वीकार करें' : 'Reject'),
                                               ),
                                             ),
                                           ],
@@ -537,7 +559,7 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                                                   minimumSize: const Size.fromHeight(34),
                                                 ),
                                                 icon: const Icon(Icons.handshake_outlined, size: 16),
-                                                label: const Text('यात्रा समन्वय', style: TextStyle(fontSize: 12)),
+                                                label: Text(s.isHindi ? 'यात्रा समन्वय (Agreement)' : 'Agreement', style: const TextStyle(fontSize: 12)),
                                                 onPressed: () => context.push('/agreement/${req.id}'),
                                               ),
                                             ),
@@ -548,7 +570,7 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                                                   minimumSize: const Size.fromHeight(34),
                                                 ),
                                                 icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
-                                                label: const Text('बातचीत (Chat)', style: TextStyle(fontSize: 12)),
+                                                label: Text(s.isHindi ? 'बातचीत (Chat)' : 'Chat', style: const TextStyle(fontSize: 12)),
                                                 onPressed: () => context.push('/chat/${req.id}'),
                                               ),
                                             ),
@@ -592,7 +614,9 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                             ? () => _showRequestDialog(context, currentUser.id, ride.availableSeats, ride.vehicleType)
                             : null,
                         child: Text(
-                          ride.availableSeats > 0 ? AppStrings.sendRequest : 'सीटें भर चुकी हैं (Full)',
+                          ride.availableSeats > 0
+                              ? (s.isHindi ? 'सवारी का अनुरोध भेजें' : 'Send Ride Request')
+                              : (s.isHindi ? 'सीटें भर चुकी हैं (Full)' : 'Full (No seats)'),
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ),

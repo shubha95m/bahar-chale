@@ -55,16 +55,18 @@ class PassengerRequest {
     return '$from ➔ $to';
   }
 
-  String get vehicleLabel {
+  String localizedVehicleLabel({bool isHindi = false}) {
     switch (preferredVehicle) {
       case 'car':
-        return 'कार (Car)';
+        return isHindi ? 'कार (Car)' : 'Car';
       case 'bike':
-        return 'बाइक (Bike)';
+        return isHindi ? 'बाइक (Bike)' : 'Bike';
       default:
-        return 'कोई भी वाहन (Any Vehicle)';
+        return isHindi ? 'कोई भी वाहन (Any Vehicle)' : 'Any Vehicle';
     }
   }
+
+  String get vehicleLabel => localizedVehicleLabel(isHindi: false);
 
   factory PassengerRequest.fromMap(Map<String, dynamic> map) {
     final profiles = map['profiles'] as Map<String, dynamic>?;

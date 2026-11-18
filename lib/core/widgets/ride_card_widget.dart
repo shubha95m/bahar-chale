@@ -100,7 +100,7 @@ class RideCardWidget extends ConsumerWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            ride.vehicleLabel,
+                            ride.localizedVehicleLabel(isHindi: s.isHindi),
                             style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
                           ),
                         ],

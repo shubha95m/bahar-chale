@@ -168,7 +168,7 @@ class ConversationsPage extends ConsumerWidget {
                   final driverProfile = ride?['profiles'] as Map<String, dynamic>?;
                   final otherProfile = isDriver ? riderProfile : driverProfile;
 
-                  final otherName = otherProfile?['display_name'] as String? ?? (isDriver ? 'यात्री' : 'चालक');
+                  final otherName = otherProfile?['display_name'] as String? ?? (isDriver ? (s.isHindi ? 'यात्री' : 'Passenger') : (s.isHindi ? 'चालक' : 'Driver'));
                   final status = conv['status'] as String? ?? 'pending';
                   final seatsRequested = conv['seats_requested'] ?? 1;
 
@@ -178,19 +178,19 @@ class ConversationsPage extends ConsumerWidget {
                   switch (status) {
                     case 'accepted':
                       statusColor = Colors.green.shade700;
-                      statusLabel = 'स्वीकृत (Confirmed)';
+                      statusLabel = s.isHindi ? 'स्वीकृत (Confirmed)' : 'Confirmed';
                       break;
                     case 'rejected':
                       statusColor = Colors.red.shade700;
-                      statusLabel = 'अस्वीकृत (Rejected)';
+                      statusLabel = s.isHindi ? 'अस्वीकृत (Rejected)' : 'Rejected';
                       break;
                     case 'cancelled':
                       statusColor = Colors.grey.shade600;
-                      statusLabel = 'रद्द (Cancelled)';
+                      statusLabel = s.isHindi ? 'रद्द (Cancelled)' : 'Cancelled';
                       break;
                     default:
                       statusColor = Colors.orange.shade800;
-                      statusLabel = 'अनुरोध लंबित (Pending)';
+                      statusLabel = s.isHindi ? 'अनुरोध लंबित (Pending)' : 'Pending';
                   }
 
                   String formattedDate = '';
@@ -259,7 +259,9 @@ class ConversationsPage extends ConsumerWidget {
                                           borderRadius: BorderRadius.circular(4),
                                         ),
                                         child: Text(
-                                          isDriver ? '👤 साथी यात्री' : '🚗 यात्रा चालक (Driver)',
+                                          isDriver
+                                              ? (s.isHindi ? '👤 साथी यात्री' : '👤 Passenger')
+                                              : (s.isHindi ? '🚗 यात्रा चालक (Driver)' : '🚗 Driver'),
                                           style: TextStyle(
                                             fontSize: 10,
                                             fontWeight: FontWeight.w600,
@@ -307,12 +309,12 @@ class ConversationsPage extends ConsumerWidget {
                                 const Icon(Icons.calendar_today_outlined, size: 13, color: AppTheme.textMuted),
                                 const SizedBox(width: 6),
                                 Text(
-                                  '$formattedDate • ${travelTime ?? 'लचीला समय'}',
+                                  '$formattedDate • ${travelTime ?? (s.isHindi ? 'लचीला समय' : 'Flexible')}',
                                   style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
                                 ),
                                 const Spacer(),
                                 Text(
-                                  '$seatsRequested ${seatsRequested == 1 ? "सीट" : "सीटें"}',
+                                  '$seatsRequested ${s.isHindi ? (seatsRequested == 1 ? "सीट" : "सीटें") : (seatsRequested == 1 ? "seat" : "seats")}',
                                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textDark),
                                 ),
                               ],
@@ -323,9 +325,9 @@ class ConversationsPage extends ConsumerWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
-                                  'चैट खोलने के लिए टैप करें',
-                                  style: TextStyle(fontSize: 11, color: AppTheme.primaryGreen, fontWeight: FontWeight.w600),
+                                Text(
+                                  s.isHindi ? 'चैट खोलने के लिए टैप करें' : 'Tap to open chat',
+                                  style: const TextStyle(fontSize: 11, color: AppTheme.primaryGreen, fontWeight: FontWeight.w600),
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -333,12 +335,12 @@ class ConversationsPage extends ConsumerWidget {
                                     color: AppTheme.primaryGreen,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: const Row(
+                                  child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(Icons.chat_bubble_rounded, size: 13, color: Colors.white),
-                                      SizedBox(width: 4),
-                                      Text('बातचीत खोलें', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                                      const Icon(Icons.chat_bubble_rounded, size: 13, color: Colors.white),
+                                      const SizedBox(width: 4),
+                                      Text(s.isHindi ? 'बातचीत खोलें' : 'Open Chat', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
                                     ],
                                   ),
                                 ),

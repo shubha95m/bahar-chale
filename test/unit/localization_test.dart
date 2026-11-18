@@ -14,19 +14,19 @@ void main() {
     test('AppStrings provides correct Hindi translations', () {
       const strings = AppStrings(AppLanguage.hindi);
       expect(strings.isHindi, isTrue);
-      expect(strings.appTitle, equals('बाहर चलें'));
-      expect(strings.navHomeText, equals('होम'));
-      expect(strings.navSearchText, equals('सवारी खोजें'));
-      expect(strings.navMyTravelText, equals('मेरी यात्राएं'));
-      expect(strings.navMessagesText, equals('संदेश'));
-      expect(strings.navProfileText, equals('प्रोफ़ाइल'));
+      expect(strings.appTitle, equals('बाहर चलें (Bahar Chale)'));
+      expect(strings.navHomeText, equals('होम (Home)'));
+      expect(strings.navSearchText, equals('सवारी खोजें (Find Rides)'));
+      expect(strings.navMyTravelText, equals('मेरी यात्राएं (My Travel)'));
+      expect(strings.navMessagesText, equals('संदेश (Messages)'));
+      expect(strings.navProfileText, equals('प्रोफ़ाइल (Profile)'));
       expect(strings.actionWantRideText, equals('मुझे यात्रा करनी है'));
       expect(strings.actionGiveRideText, equals('अपनी ड्राइविंग राइड शेयर करें'));
       expect(strings.offerRideTitle, equals('अपनी ड्राइविंग राइड शेयर करें'));
       expect(strings.needRideTitle, equals('अपनी यात्रा का अनुरोध शेयर करें'));
       expect(strings.availableDrivesTab, equals('उपलब्ध ड्राइविंग राइड्स'));
       expect(strings.passengerRequestsTab, equals('यात्रियों के अनुरोध'));
-      expect(strings.tabIncomingText, equals('मिले अनुरोध'));
+      expect(strings.tabIncomingText, equals('मिले अनुरोध (Incoming)'));
     });
 
     test('AppStrings provides correct English translations', () {
