@@ -75,4 +75,51 @@ class RideRequestsRepository {
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     }).eq('id', requestId);
   }
+
+  /// Fetches ALL incoming requests for any ride owned by this driver
+  Future<List<Map<String, dynamic>>> getAllIncomingRequestsForDriver(String driverId) async {
+    final response = await _client
+        .from('ride_requests')
+        .select('*, rides!inner(*, profiles:owner_id(display_name, avatar_url)), profiles:requester_id(display_name, avatar_url, home_city)')
+        .eq('rides.owner_id', driverId)
+        .order('created_at', ascending: false);
+
+    return List<Map<String, dynamic>>.from(response as List);
+  }
+
+  /// Fetches all active conversation threads for a user (as driver or rider)
+  Future<List<Map<String, dynamic>>> getAllConversationsForUser(String userId) async {
+    final asRider = await _client
+        .from('ride_requests')
+        .select('*, rides(*, profiles:owner_id(display_name, avatar_url)), profiles:requester_id(display_name, avatar_url)')
+        .eq('requester_id', userId)
+        .order('created_at', ascending: false);
+
+    final asDriver = await _client
+        .from('ride_requests')
+        .select('*, rides!inner(*, profiles:owner_id(display_name, avatar_url)), profiles:requester_id(display_name, avatar_url)')
+        .eq('rides.owner_id', userId)
+        .order('created_at', ascending: false);
+
+    final Map<String, Map<String, dynamic>> uniqueMap = {};
+    for (final item in (asRider as List)) {
+      final map = Map<String, dynamic>.from(item as Map);
+      map['my_role'] = 'rider';
+      uniqueMap[map['id']] = map;
+    }
+    for (final item in (asDriver as List)) {
+      final map = Map<String, dynamic>.from(item as Map);
+      map['my_role'] = 'driver';
+      uniqueMap[map['id']] = map;
+    }
+
+    final list = uniqueMap.values.toList();
+    list.sort((a, b) {
+      final aDate = a['created_at']?.toString() ?? '';
+      final bDate = b['created_at']?.toString() ?? '';
+      return bDate.compareTo(aDate);
+    });
+
+    return list;
+  }
 }

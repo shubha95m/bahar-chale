@@ -51,6 +51,32 @@ final searchRidesProvider = FutureProvider.family<List<Ride>, SearchParams>((ref
   );
 });
 
+class BrowseRidesFilter {
+  final String? query;
+  final String? vehicleType;
+
+  const BrowseRidesFilter({this.query, this.vehicleType});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BrowseRidesFilter &&
+          runtimeType == other.runtimeType &&
+          query == other.query &&
+          vehicleType == other.vehicleType;
+
+  @override
+  int get hashCode => (query ?? '').hashCode ^ (vehicleType ?? '').hashCode;
+}
+
+final allAvailableRidesProvider = FutureProvider.family<List<Ride>, BrowseRidesFilter>((ref, filter) async {
+  final repo = ref.watch(ridesRepositoryProvider);
+  return repo.getAllAvailableRides(
+    queryText: filter.query,
+    vehicleType: filter.vehicleType,
+  );
+});
+
 final myRidesProvider = FutureProvider.family<List<Ride>, String>((ref, userId) async {
   final repo = ref.watch(ridesRepositoryProvider);
   return repo.getMyRides(userId);

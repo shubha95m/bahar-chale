@@ -85,6 +85,34 @@ class RidesRepository {
     return (response as List).map((row) => Ride.fromMap(row as Map<String, dynamic>)).toList();
   }
 
+  /// Fetches all active upcoming open rides across the platform with optional fuzzy search
+  Future<List<Ride>> getAllAvailableRides({
+    String? queryText,
+    String? vehicleType,
+    int limit = 50,
+  }) async {
+    final today = DateTime.now().toIso8601String().split('T').first;
+
+    var query = _client
+        .from('rides')
+        .select('*, profiles:owner_id(display_name, avatar_url)')
+        .eq('status', 'open')
+        .gt('available_seats', 0)
+        .gte('travel_date', today);
+
+    if (vehicleType != null && vehicleType.isNotEmpty && vehicleType != 'all') {
+      query = query.eq('vehicle_type', vehicleType);
+    }
+
+    if (queryText != null && queryText.trim().isNotEmpty) {
+      final clean = queryText.trim().toLowerCase();
+      query = query.or('origin_city.ilike.%$clean%,destination_city.ilike.%$clean%,origin_area.ilike.%$clean%,destination_area.ilike.%$clean%');
+    }
+
+    final response = await query.order('travel_date', ascending: true).limit(limit);
+    return (response as List).map((row) => Ride.fromMap(row as Map<String, dynamic>)).toList();
+  }
+
   /// Fetches rides published by a specific user
   Future<List<Ride>> getMyRides(String userId) async {
     final response = await _client

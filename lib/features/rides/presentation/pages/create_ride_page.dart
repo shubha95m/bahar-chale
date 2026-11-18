@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_strings.dart';
+import '../../../../core/widgets/location_autocomplete_field.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../domain/entities/ride.dart';
 import '../providers/rides_provider.dart';
@@ -343,12 +344,11 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                   ],
 
                   // Origin City & Area
-                  TextFormField(
+                  LocationAutocompleteField(
                     controller: _originCityController,
-                    decoration: const InputDecoration(
-                      labelText: '${AppStrings.originCity} *',
-                      prefixIcon: Icon(Icons.location_on_outlined, color: AppTheme.primaryGreen),
-                    ),
+                    labelText: '${AppStrings.originCity} *',
+                    hintText: 'शहर का नाम (उदा. Pune, Mumbai)',
+                    prefixIcon: const Icon(Icons.location_on_outlined, color: AppTheme.primaryGreen),
                     validator: (val) => val == null || val.trim().isEmpty ? 'कृपया प्रस्थान शहर दर्ज करें' : null,
                   ),
                   const SizedBox(height: 12),
@@ -362,12 +362,11 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                   const SizedBox(height: 16),
 
                   // Destination City & Area
-                  TextFormField(
+                  LocationAutocompleteField(
                     controller: _destCityController,
-                    decoration: const InputDecoration(
-                      labelText: '${AppStrings.destinationCity} *',
-                      prefixIcon: Icon(Icons.flag_outlined, color: AppTheme.accentAmber),
-                    ),
+                    labelText: '${AppStrings.destinationCity} *',
+                    hintText: 'शहर का नाम (उदा. Delhi, Jaipur)',
+                    prefixIcon: const Icon(Icons.flag_outlined, color: AppTheme.accentAmber),
                     validator: (val) => val == null || val.trim().isEmpty ? 'कृपया गंतव्य शहर दर्ज करें' : null,
                   ),
                   const SizedBox(height: 12),

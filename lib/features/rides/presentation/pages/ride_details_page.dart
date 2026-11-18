@@ -313,15 +313,24 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                     const SizedBox(height: 16),
 
                     // Google Maps Navigation (Zero Cost Deep Link)
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        MapLauncher.openDirections(
-                          origin: ride.originCity,
-                          destination: ride.destinationCity,
-                        );
-                      },
-                      icon: const Icon(Icons.map_rounded, color: AppTheme.primaryGreen),
-                      label: const Text(AppStrings.openMap, style: TextStyle(fontWeight: FontWeight.w600)),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.blue.shade700,
+                          side: BorderSide(color: Colors.blue.shade300),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: () {
+                          MapLauncher.openDirections(
+                            origin: ride.originCity,
+                            destination: ride.destinationCity,
+                          );
+                        },
+                        icon: const Icon(Icons.map_rounded, color: Colors.blueAccent),
+                        label: const Text('Google Maps में पूरा मार्ग देखें (मुफ़्त)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      ),
                     ),
                     const SizedBox(height: 24),
 

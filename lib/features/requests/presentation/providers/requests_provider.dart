@@ -16,6 +16,16 @@ final myRequestsProvider = FutureProvider.family<List<Map<String, dynamic>>, Str
   return repo.getMyRequestsWithRide(userId);
 });
 
+final allIncomingRequestsProvider = FutureProvider.family<List<Map<String, dynamic>>, String>((ref, driverId) async {
+  final repo = ref.watch(rideRequestsRepositoryProvider);
+  return repo.getAllIncomingRequestsForDriver(driverId);
+});
+
+final allConversationsProvider = FutureProvider.family<List<Map<String, dynamic>>, String>((ref, userId) async {
+  final repo = ref.watch(rideRequestsRepositoryProvider);
+  return repo.getAllConversationsForUser(userId);
+});
+
 class RequestActionNotifier extends StateNotifier<AsyncValue<void>> {
   final RideRequestsRepository _repository;
 

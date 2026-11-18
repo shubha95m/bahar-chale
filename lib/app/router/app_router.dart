@@ -6,6 +6,7 @@ import '../configuration/supabase_config.dart';
 import '../../features/agreement/presentation/pages/agreement_page.dart';
 import '../../features/authentication/presentation/pages/login_page.dart';
 import '../../features/chat/presentation/pages/chat_page.dart';
+import '../../features/chat/presentation/pages/conversations_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/rides/presentation/pages/create_ride_page.dart';
@@ -86,6 +87,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           final id = state.pathParameters['id'] ?? '';
           return ChatPage(requestId: id);
         },
+      ),
+      GoRoute(
+        path: '/conversations',
+        name: 'conversations',
+        builder: (context, state) => const ConversationsPage(),
       ),
       GoRoute(
         path: '/profile',

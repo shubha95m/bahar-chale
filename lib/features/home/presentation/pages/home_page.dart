@@ -55,6 +55,11 @@ class _HomePageState extends ConsumerState<HomePage> {
         ),
         actions: [
           IconButton(
+            tooltip: 'संदेश व बातचीत',
+            icon: const Icon(Icons.chat_bubble_outline_rounded, color: AppTheme.primaryGreen),
+            onPressed: () => context.push('/conversations'),
+          ),
+          IconButton(
             tooltip: AppStrings.logout,
             icon: const Icon(Icons.logout_rounded, color: AppTheme.textMuted),
             onPressed: () async {
@@ -369,24 +374,40 @@ class _HomePageState extends ConsumerState<HomePage> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: AppTheme.primaryGreen,
+        unselectedItemColor: AppTheme.textMuted,
+        selectedFontSize: 12,
+        unselectedFontSize: 11,
         onTap: (index) {
-          setState(() => _currentIndex = index);
-          if (index == 1) {
-            context.push('/my-travel');
+          if (index == 0) {
+            setState(() => _currentIndex = 0);
+          } else if (index == 1) {
+            context.push('/search-rides');
           } else if (index == 2) {
+            context.push('/my-travel');
+          } else if (index == 3) {
+            context.push('/conversations');
+          } else if (index == 4) {
             context.push('/profile');
           }
         },
-        selectedItemColor: AppTheme.primaryGreen,
-        unselectedItemColor: AppTheme.textMuted,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_filled),
             label: AppStrings.navHome,
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.search_rounded),
+            label: 'सवारी खोजें',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.commute_rounded),
             label: AppStrings.navMyTravel,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat_bubble_outline_rounded),
+            label: 'संदेश',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_rounded),
