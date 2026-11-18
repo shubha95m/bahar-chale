@@ -54,7 +54,9 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         // Native Mobile Flow with Automatic Browser OAuth Fallback
         bool nativeSuccess = false;
         try {
-          final webClientId = dotenv.env['GOOGLE_WEB_CLIENT_ID'];
+          final webClientId = dotenv.isInitialized
+              ? dotenv.maybeGet('GOOGLE_WEB_CLIENT_ID')
+              : const String.fromEnvironment('GOOGLE_WEB_CLIENT_ID', defaultValue: '');
           final googleSignIn = GoogleSignIn(
             serverClientId: (webClientId != null && webClientId.isNotEmpty) ? webClientId : null,
             scopes: ['email', 'profile'],

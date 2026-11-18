@@ -11,12 +11,19 @@ class SupabaseConfig {
     try {
       await dotenv.load(fileName: '.env');
     } catch (e) {
-      debugPrint('Notice: .env file not found or failed to load ($e). Using default production config.');
+      debugPrint('Notice: .env asset not present. Using production configuration.');
     }
 
-    final supabaseUrl = dotenv.env['SUPABASE_URL'] ??
+    String? envUrl;
+    String? envAnonKey;
+    if (dotenv.isInitialized) {
+      envUrl = dotenv.maybeGet('SUPABASE_URL');
+      envAnonKey = dotenv.maybeGet('SUPABASE_ANON_KEY');
+    }
+
+    final supabaseUrl = envUrl ??
         const String.fromEnvironment('SUPABASE_URL', defaultValue: defaultUrl);
-    final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'] ??
+    final supabaseAnonKey = envAnonKey ??
         const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: defaultAnonKey);
 
     await Supabase.initialize(

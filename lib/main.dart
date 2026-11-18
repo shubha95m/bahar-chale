@@ -9,11 +9,19 @@ import 'core/localization/app_strings.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Supabase from .env
-  await SupabaseConfig.initialize();
+  // Initialize Supabase safely
+  try {
+    await SupabaseConfig.initialize();
+  } catch (e, st) {
+    debugPrint('Supabase initialization error: $e\n$st');
+  }
 
   // Initialize local SQLite cache
-  await LocalDatabase.instance;
+  try {
+    await LocalDatabase.instance;
+  } catch (e, st) {
+    debugPrint('LocalDatabase initialization error: $e\n$st');
+  }
 
   runApp(
     const ProviderScope(
