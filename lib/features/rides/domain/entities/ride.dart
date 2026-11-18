@@ -61,6 +61,30 @@ class Ride {
     return '$from → $to';
   }
 
+  String get vehicleLabel {
+    if (rideCategory == 'general_travel') return 'सामान्य यात्रा समन्वय';
+    switch (vehicleType) {
+      case 'bike':
+        return '🏍️ बाइक (Bike)';
+      case 'car':
+        return '🚗 कार (Car)';
+      default:
+        return '🛺 अन्य / साझा';
+    }
+  }
+
+  String get vehicleIcon {
+    if (rideCategory == 'general_travel') return '🎒';
+    switch (vehicleType) {
+      case 'bike':
+        return '🏍️';
+      case 'car':
+        return '🚗';
+      default:
+        return '🛺';
+    }
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,

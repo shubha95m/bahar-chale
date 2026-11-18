@@ -30,7 +30,33 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
   DateTime _travelDate = DateTime.now().add(const Duration(days: 1));
   TimeOfDay? _travelTime;
   bool _isTimeFlexible = true;
-  int _seats = 3;
+  int _seats = 4;
+
+  int get _maxSeatsForVehicle {
+    if (_rideCategory == 'general_travel') return 6;
+    switch (_vehicleType) {
+      case 'bike':
+        return 2;
+      case 'car':
+        return 7;
+      default:
+        return 6;
+    }
+  }
+
+  void _onVehicleChanged(String type) {
+    setState(() {
+      _vehicleType = type;
+      if (type == 'bike') {
+        _seats = _seats.clamp(1, 2);
+      } else if (type == 'car') {
+        if (_seats < 1) _seats = 4;
+        if (_seats > 7) _seats = 7;
+      } else {
+        if (_seats > 6) _seats = 6;
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -180,19 +206,138 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Vehicle type dropdown if private vehicle
+                  // Vehicle type selector if private vehicle
                   if (_rideCategory == 'private_vehicle') ...[
-                    DropdownButtonFormField<String>(
-                      value: _vehicleType,
-                      decoration: const InputDecoration(labelText: AppStrings.vehicleType),
-                      items: const [
-                        DropdownMenuItem(value: 'car', child: Text(AppStrings.vehicleCar)),
-                        DropdownMenuItem(value: 'bike', child: Text(AppStrings.vehicleBike)),
-                        DropdownMenuItem(value: 'other', child: Text(AppStrings.vehicleOther)),
+                    const Text(
+                      'वाहन का प्रकार चुनें:',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textDark),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(10),
+                            onTap: () => _onVehicleChanged('car'),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: _vehicleType == 'car'
+                                    ? AppTheme.primaryGreen.withOpacity(0.12)
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: _vehicleType == 'car'
+                                      ? AppTheme.primaryGreen
+                                      : const Color(0xFFCBD5E1),
+                                  width: _vehicleType == 'car' ? 2 : 1,
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.directions_car_rounded,
+                                    color: _vehicleType == 'car' ? AppTheme.primaryGreen : AppTheme.textMuted,
+                                    size: 26,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'कार (Car)',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      color: _vehicleType == 'car' ? AppTheme.primaryGreen : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  const Text('1-7 सीटें', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(10),
+                            onTap: () => _onVehicleChanged('bike'),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: _vehicleType == 'bike'
+                                    ? AppTheme.primaryGreen.withOpacity(0.12)
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: _vehicleType == 'bike'
+                                      ? AppTheme.primaryGreen
+                                      : const Color(0xFFCBD5E1),
+                                  width: _vehicleType == 'bike' ? 2 : 1,
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.two_wheeler_rounded,
+                                    color: _vehicleType == 'bike' ? AppTheme.primaryGreen : AppTheme.textMuted,
+                                    size: 26,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'बाइक (Bike)',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      color: _vehicleType == 'bike' ? AppTheme.primaryGreen : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  const Text('1-2 सीटें', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(10),
+                            onTap: () => _onVehicleChanged('other'),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: _vehicleType == 'other'
+                                    ? AppTheme.primaryGreen.withOpacity(0.12)
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: _vehicleType == 'other'
+                                      ? AppTheme.primaryGreen
+                                      : const Color(0xFFCBD5E1),
+                                  width: _vehicleType == 'other' ? 2 : 1,
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.airport_shuttle_rounded,
+                                    color: _vehicleType == 'other' ? AppTheme.primaryGreen : AppTheme.textMuted,
+                                    size: 26,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'अन्य / साझा',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      color: _vehicleType == 'other' ? AppTheme.primaryGreen : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  const Text('1-6 सीटें', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
-                      onChanged: (val) {
-                        if (val != null) setState(() => _vehicleType = val);
-                      },
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -273,31 +418,68 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Seats Counter
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        AppStrings.totalSeats,
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.textDark),
-                      ),
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.remove_circle_outline, color: AppTheme.primaryGreen),
-                            onPressed: _seats > 1 ? () => setState(() => _seats--) : null,
-                          ),
-                          Text(
-                            '$_seats',
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.add_circle_outline, color: AppTheme.primaryGreen),
-                            onPressed: _seats < 8 ? () => setState(() => _seats++) : null,
-                          ),
-                        ],
-                      ),
-                    ],
+                  // Seats Counter with Vehicle Capping
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceLight,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  AppStrings.totalSeats,
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _rideCategory == 'general_travel'
+                                      ? 'अधिकतम 6 सह-यात्री'
+                                      : (_vehicleType == 'bike'
+                                          ? '🏍️ बाइक: अधिकतम 2 सीटें'
+                                          : (_vehicleType == 'car'
+                                              ? '🚗 कार: 1 से 7 सीटें'
+                                              : 'अधिकतम 6 सीटें')),
+                                  style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.remove_circle_outline, color: AppTheme.primaryGreen, size: 28),
+                                  onPressed: _seats > 1 ? () => setState(() => _seats--) : null,
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: const Color(0xFFCBD5E1)),
+                                  ),
+                                  child: Text(
+                                    '$_seats',
+                                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.add_circle_outline, color: AppTheme.primaryGreen, size: 28),
+                                  onPressed: _seats < _maxSeatsForVehicle ? () => setState(() => _seats++) : null,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 12),
 

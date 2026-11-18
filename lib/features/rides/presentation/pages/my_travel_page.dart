@@ -81,7 +81,7 @@ class MyTravelPage extends ConsumerWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'स्थिति: ${ride.status.toUpperCase()} • उपलब्ध सीटें: ${ride.availableSeats}',
+                              '${ride.vehicleLabel} • उपलब्ध सीटें: ${ride.availableSeats} / ${ride.totalSeats}',
                               style: TextStyle(
                                 color: ride.status == 'open' ? AppTheme.primaryGreen : Colors.orange.shade800,
                                 fontWeight: FontWeight.w600,

@@ -206,10 +206,96 @@ class LoginPage extends ConsumerWidget {
                       side: const BorderSide(color: AppTheme.accentAmber, width: 1.5),
                     ),
                   ),
+                  const SizedBox(height: 12),
+
+                  // Custom Email Login Button
+                  TextButton.icon(
+                    onPressed: isLoading ? null : () => _showEmailAuthDialog(context, ref),
+                    icon: const Icon(Icons.email_outlined, size: 18),
+                    label: const Text(
+                      'ईमेल द्वारा साइन इन / नया खाता बनाएं',
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showEmailAuthDialog(BuildContext context, WidgetRef ref) {
+    final emailController = TextEditingController();
+    final passController = TextEditingController();
+    final nameController = TextEditingController();
+    bool isSignUp = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text(isSignUp ? 'नया खाता बनाएं' : 'ईमेल से साइन इन करें'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isSignUp) ...[
+                  TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(labelText: 'आपका नाम *', prefixIcon: Icon(Icons.person_outline)),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                TextField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(labelText: 'ईमेल पता *', prefixIcon: Icon(Icons.email_outlined)),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: passController,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: 'पासवर्ड *', prefixIcon: Icon(Icons.lock_outline)),
+                ),
+                const SizedBox(height: 14),
+                TextButton(
+                  onPressed: () => setDialogState(() => isSignUp = !isSignUp),
+                  child: Text(
+                    isSignUp ? 'पहले से खाता है? साइन इन करें' : 'नया खाता बनाना चाहते हैं? यहाँ क्लिक करें',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('रद्द करें'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final email = emailController.text.trim();
+                final pass = passController.text.trim();
+                if (email.isEmpty || pass.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('कृपया ईमेल और पासवर्ड दोनों दर्ज करें।')),
+                  );
+                  return;
+                }
+                Navigator.pop(ctx);
+                if (isSignUp) {
+                  final name = nameController.text.trim().isNotEmpty ? nameController.text.trim() : 'यात्री';
+                  await ref.read(authControllerProvider.notifier).signUpWithEmail(email, pass, name);
+                } else {
+                  await ref.read(authControllerProvider.notifier).signInWithEmail(email, pass);
+                }
+              },
+              child: Text(isSignUp ? 'खाता बनाएं' : 'साइन इन'),
+            ),
+          ],
         ),
       ),
     );

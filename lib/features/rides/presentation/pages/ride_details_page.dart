@@ -28,7 +28,12 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
     super.dispose();
   }
 
-  void _showRequestDialog(BuildContext dialogContext, String currentUserId) {
+  void _showRequestDialog(BuildContext dialogContext, String currentUserId, int availableSeats, String? vehicleType) {
+    if (availableSeats <= 0) return;
+    if (_seatsToRequest > availableSeats) {
+      _seatsToRequest = availableSeats;
+    }
+
     showDialog(
       context: dialogContext,
       builder: (ctx) => StatefulBuilder(
@@ -38,20 +43,67 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('सीटों की संख्या:', style: TextStyle(fontWeight: FontWeight.w600)),
+              // Vehicle and availability badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceLight,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      vehicleType == 'bike' ? '🏍️ बाइक' : (vehicleType == 'car' ? '🚗 कार' : '🛺 साझा'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    Text(
+                      'उपलब्ध सीटें: $availableSeats',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                        color: availableSeats == 1 ? Colors.orange.shade800 : AppTheme.primaryGreen,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text('आपको कितनी सीटें चाहिए?', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.remove_circle_outline),
+                    icon: const Icon(Icons.remove_circle_outline, color: AppTheme.primaryGreen, size: 28),
                     onPressed: _seatsToRequest > 1
                         ? () => setDialogState(() => _seatsToRequest--)
                         : null,
                   ),
-                  Text('$_seatsToRequest', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  IconButton(
-                    icon: const Icon(Icons.add_circle_outline),
-                    onPressed: () => setDialogState(() => _seatsToRequest++),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFCBD5E1)),
+                    ),
+                    child: Text(
+                      '$_seatsToRequest',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                    ),
                   ),
+                  IconButton(
+                    icon: const Icon(Icons.add_circle_outline, color: AppTheme.primaryGreen, size: 28),
+                    onPressed: _seatsToRequest < availableSeats
+                        ? () => setDialogState(() => _seatsToRequest++)
+                        : null,
+                  ),
+                  const SizedBox(width: 8),
+                  if (_seatsToRequest >= availableSeats)
+                    Text(
+                      '(अधिकतम उपलब्ध)',
+                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontStyle: FontStyle.italic),
+                    ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -59,7 +111,7 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                 controller: _messageController,
                 decoration: const InputDecoration(
                   labelText: 'चालक के लिए संदेश (वैकल्पिक)',
-                  hintText: 'उदा. सामान का विवरण या पिकअप स्थल',
+                  hintText: 'उदा. पिकअप स्थल या सामान का विवरण',
                 ),
               ),
             ],
@@ -158,9 +210,7 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
                                 ),
                                 Text(
-                                  ride.rideCategory == 'private_vehicle'
-                                      ? 'वाहन: ${ride.vehicleType == 'bike' ? 'बाइक' : 'कार'}'
-                                      : 'सामान्य यात्रा समन्वय',
+                                  ride.vehicleLabel,
                                   style: const TextStyle(fontSize: 14, color: AppTheme.textMuted),
                                 ),
                               ],
@@ -434,10 +484,10 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: ride.availableSeats > 0 && ride.status == 'open'
-                            ? () => _showRequestDialog(context, currentUser.id)
+                            ? () => _showRequestDialog(context, currentUser.id, ride.availableSeats, ride.vehicleType)
                             : null,
                         child: Text(
-                          ride.availableSeats > 0 ? AppStrings.sendRequest : AppStrings.statusFull,
+                          ride.availableSeats > 0 ? AppStrings.sendRequest : 'सीटें भर चुकी हैं (Full)',
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ),

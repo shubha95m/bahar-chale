@@ -98,6 +98,33 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
     }
   }
 
+  Future<void> signInWithEmail(String email, String password) async {
+    state = const AsyncValue.loading();
+    try {
+      await SupabaseConfig.client.auth.signInWithPassword(
+        email: email.trim(),
+        password: password,
+      );
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> signUpWithEmail(String email, String password, String displayName) async {
+    state = const AsyncValue.loading();
+    try {
+      await SupabaseConfig.client.auth.signUp(
+        email: email.trim(),
+        password: password,
+        data: {'full_name': displayName.trim(), 'name': displayName.trim()},
+      );
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
   Future<void> signOut() async {
     state = const AsyncValue.loading();
     try {

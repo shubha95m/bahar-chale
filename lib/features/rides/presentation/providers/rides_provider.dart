@@ -56,9 +56,9 @@ final myRidesProvider = FutureProvider.family<List<Ride>, String>((ref, userId) 
   return repo.getMyRides(userId);
 });
 
-final rideDetailsProvider = FutureProvider.family<Ride?, String>((ref, rideId) async {
+final rideDetailsProvider = StreamProvider.family<Ride?, String>((ref, rideId) {
   final repo = ref.watch(ridesRepositoryProvider);
-  return repo.getRideDetails(rideId);
+  return repo.streamRideDetails(rideId);
 });
 
 class CreateRideNotifier extends StateNotifier<AsyncValue<Ride?>> {

@@ -218,9 +218,7 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
                           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppTheme.textDark),
                         ),
                         Text(
-                          ride.rideCategory == 'private_vehicle'
-                              ? 'निजी वाहन (${ride.vehicleType == 'bike' ? 'बाइक' : 'कार'})'
-                              : 'सामान्य यात्रा समन्वय',
+                          ride.vehicleLabel,
                           style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
                         ),
                       ],

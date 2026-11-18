@@ -108,6 +108,15 @@ class RidesRepository {
     return Ride.fromMap(response);
   }
 
+  /// Realtime stream of a specific ride's details (updates dynamically when seats are confirmed)
+  Stream<Ride?> streamRideDetails(String rideId) {
+    return _client
+        .from('rides')
+        .stream(primaryKey: ['id'])
+        .eq('id', rideId)
+        .asyncMap((_) async => getRideDetails(rideId));
+  }
+
   /// Cancels an open ride
   Future<void> cancelRide(String rideId) async {
     await _client.from('rides').update({
