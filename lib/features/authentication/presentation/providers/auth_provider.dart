@@ -21,9 +21,11 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       if (kIsWeb) {
-        // Web Google OAuth via Supabase PKCE
+        // Web Google OAuth via Supabase PKCE with dynamic origin callback
+        final redirectUrl = Uri.base.origin;
         await SupabaseConfig.client.auth.signInWithOAuth(
           OAuthProvider.google,
+          redirectTo: redirectUrl,
         );
       } else {
         // Native Mobile Flow with Automatic Browser OAuth Fallback

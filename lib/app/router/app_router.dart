@@ -1,8 +1,10 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../configuration/supabase_config.dart';
 import '../../features/agreement/presentation/pages/agreement_page.dart';
 import '../../features/authentication/presentation/pages/login_page.dart';
-import '../../features/authentication/presentation/providers/auth_provider.dart';
 import '../../features/chat/presentation/pages/chat_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
@@ -11,11 +13,30 @@ import '../../features/rides/presentation/pages/my_travel_page.dart';
 import '../../features/rides/presentation/pages/ride_details_page.dart';
 import '../../features/rides/presentation/pages/search_rides_page.dart';
 
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen(
+          (dynamic _) => notifyListeners(),
+        );
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
-  final user = ref.watch(currentUserProvider);
+  final refreshStream = GoRouterRefreshStream(SupabaseConfig.client.auth.onAuthStateChange);
+  ref.onDispose(refreshStream.dispose);
 
   return GoRouter(
     initialLocation: '/',
+    refreshListenable: refreshStream,
     routes: [
       GoRoute(
         path: '/login',
@@ -73,6 +94,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
     redirect: (context, state) {
+      final session = SupabaseConfig.client.auth.currentSession;
+      final user = session?.user ?? SupabaseConfig.client.auth.currentUser;
       final loggingIn = state.matchedLocation == '/login';
       final isLoggedIn = user != null;
 

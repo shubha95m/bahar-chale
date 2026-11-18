@@ -20,10 +20,11 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
-    final userDisplayName = user?.userMetadata?['full_name'] ??
-        user?.userMetadata?['name'] ??
+    final userDisplayName = (user?.userMetadata?['full_name'] as String?) ??
+        (user?.userMetadata?['name'] as String?) ??
         user?.email?.split('@').first ??
         'यात्री';
+    final userAvatarUrl = (user?.userMetadata?['avatar_url'] as String?) ?? (user?.userMetadata?['picture'] as String?);
 
     final upcomingJourneysAsync = user != null ? ref.watch(homeUpcomingJourneysProvider(user.id)) : null;
     final pendingCountAsync = user != null ? ref.watch(homePendingRequestsCountProvider(user.id)) : null;
@@ -100,16 +101,23 @@ class _HomePageState extends ConsumerState<HomePage> {
                   ),
                   child: Row(
                     children: [
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundColor: AppTheme.primaryGreen,
-                        child: Text(
-                          userDisplayName.isNotEmpty ? userDisplayName[0].toUpperCase() : 'य',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
+                      InkWell(
+                        onTap: () => context.push('/profile'),
+                        borderRadius: BorderRadius.circular(24),
+                        child: CircleAvatar(
+                          radius: 24,
+                          backgroundColor: AppTheme.primaryGreen,
+                          backgroundImage: userAvatarUrl != null ? NetworkImage(userAvatarUrl) : null,
+                          child: userAvatarUrl == null
+                              ? Text(
+                                  userDisplayName.isNotEmpty ? userDisplayName[0].toUpperCase() : 'य',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                )
+                              : null,
                         ),
                       ),
                       const SizedBox(width: 14),

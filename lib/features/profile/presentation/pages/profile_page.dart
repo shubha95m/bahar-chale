@@ -12,7 +12,12 @@ class ProfilePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
     final isDriver = user?.email == 'demo@baharchale.local';
-    final name = user?.userMetadata?['full_name'] ?? user?.email?.split('@').first ?? 'यात्री';
+    final meta = user?.userMetadata;
+    final name = (meta?['full_name'] as String?) ??
+        (meta?['name'] as String?) ??
+        user?.email?.split('@').first ??
+        'यात्री';
+    final avatarUrl = (meta?['avatar_url'] as String?) ?? (meta?['picture'] as String?);
 
     return Scaffold(
       appBar: AppBar(
@@ -39,10 +44,13 @@ class ProfilePage extends ConsumerWidget {
                       CircleAvatar(
                         radius: 32,
                         backgroundColor: AppTheme.primaryGreen.withOpacity(0.12),
-                        child: Text(
-                          name.isNotEmpty ? name[0].toUpperCase() : 'य',
-                          style: const TextStyle(fontSize: 26, color: AppTheme.primaryGreen, fontWeight: FontWeight.bold),
-                        ),
+                        backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                        child: avatarUrl == null
+                            ? Text(
+                                name.isNotEmpty ? name[0].toUpperCase() : 'य',
+                                style: const TextStyle(fontSize: 26, color: AppTheme.primaryGreen, fontWeight: FontWeight.bold),
+                              )
+                            : null,
                       ),
                       const SizedBox(width: 16),
                       Expanded(
