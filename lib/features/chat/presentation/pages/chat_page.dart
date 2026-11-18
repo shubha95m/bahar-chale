@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../app/theme/app_theme.dart';
+import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
 
@@ -69,6 +71,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('बातचीत (Realtime Chat)'),
+        actions: [
+          IconButton(
+            tooltip: 'सहमति पत्र (Agreement)',
+            icon: const Icon(Icons.assignment_turned_in_outlined, color: AppTheme.primaryGreen),
+            onPressed: () => context.push('/agreement/${widget.requestId}'),
+          ),
+          const LanguageSwitcherButton(),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SafeArea(
         child: Column(

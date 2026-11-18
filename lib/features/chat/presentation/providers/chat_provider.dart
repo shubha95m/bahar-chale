@@ -35,7 +35,16 @@ final unreadConversationsCountProvider = StreamProvider<int>((ref) async* {
     },
   );
 
+  // Periodic safety check every 15 seconds
+  final timer = Timer.periodic(const Duration(seconds: 15), (_) async {
+    final updated = await repo.getUnreadConversationsCount(user.id);
+    if (!controller.isClosed) {
+      controller.add(updated);
+    }
+  });
+
   ref.onDispose(() {
+    timer.cancel();
     channel.unsubscribe();
     controller.close();
   });

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_strings.dart';
+import '../../../../core/utils/snackbar_helper.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
 import '../providers/auth_provider.dart';
 
@@ -44,21 +45,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
-  void _showSnack(String message, {bool isError = false}) {
+  void _showSnack(String message, {bool isError = false, bool isSuccess = false}) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: const TextStyle(fontSize: 14)),
-        backgroundColor: isError ? Colors.red.shade800 : AppTheme.primaryGreen,
-        duration: const Duration(seconds: 4),
-        action: SnackBarAction(
-          label: 'ठीक है',
-          textColor: Colors.white,
-          onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
-        ),
-      ),
-    );
+    AppSnackBar.show(context, message: message, isError: isError, isSuccess: isSuccess);
   }
 
   // --- Sign In Handler ---
@@ -95,7 +84,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     if (sent && mounted) {
       setState(() => _signupStep = 2);
-      _showSnack('6-अंकों का OTP कोड आपके ईमेल ($email) पर भेजा गया है!');
+      _showSnack('6-अंकों का OTP कोड आपके ईमेल ($email) पर भेजा गया है!', isSuccess: true);
     }
   }
 
@@ -116,7 +105,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     if (verified && mounted) {
       setState(() => _signupStep = 3);
-      _showSnack('ईमेल सफलतापूर्वक सत्यापित हुआ! अब अपना पासवर्ड बनाएं।');
+      _showSnack('ईमेल सफलतापूर्वक सत्यापित हुआ! अब अपना पासवर्ड बनाएं।', isSuccess: true);
     }
   }
 
@@ -141,8 +130,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
 
     if (success && mounted) {
-      _showSnack('पंजीकरण सफल! आपका स्वागत है।');
-      // GoRouter automatically redirects to home upon successful session
+      _showSnack('पंजीकरण सफल! आपका स्वागत है।', isSuccess: true);
     }
   }
 
@@ -161,12 +149,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       );
     });
 
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.only(
+            left: 20.0,
+            right: 20.0,
+            top: 20.0,
+            bottom: bottomInset > 0 ? bottomInset + 30 : 64.0,
+          ),
+          child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 440),
               child: Card(
@@ -181,14 +177,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Language Switcher Toggle at Top
+                      // Top Row: Language Switcher
                       const Align(
                         alignment: Alignment.topRight,
                         child: LanguageSwitcherButton(),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
 
-                      // Logo & App Name
+                      // App Logo & Branding
                       Center(
                         child: Container(
                           width: 68,
@@ -227,7 +223,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Tabs: Sign In vs Sign Up with OTP
+                      // Tabs: Sign In vs Sign Up
                       Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
@@ -296,10 +292,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         TextField(
                           controller: _loginEmailController,
                           keyboardType: TextInputType.emailAddress,
-                          decoration: const InputDecoration(
-                            labelText: 'ईमेल पता (Email) *',
-                            hintText: 'उदा. your.name@gmail.com',
-                            prefixIcon: Icon(Icons.email_outlined, color: AppTheme.primaryGreen),
+                          decoration: InputDecoration(
+                            labelText: s.isHindi ? 'ईमेल पता (Email) *' : 'Email Address *',
+                            hintText: 'your.name@gmail.com',
+                            prefixIcon: const Icon(Icons.email_outlined, color: AppTheme.primaryGreen),
                           ),
                         ),
                         const SizedBox(height: 14),
@@ -307,7 +303,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           controller: _loginPasswordController,
                           obscureText: _obscureLoginPassword,
                           decoration: InputDecoration(
-                            labelText: 'पासवर्ड (Password) *',
+                            labelText: s.isHindi ? 'पासवर्ड (Password) *' : 'Password *',
                             prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.primaryGreen),
                             suffixIcon: IconButton(
                               icon: Icon(_obscureLoginPassword ? Icons.visibility_off : Icons.visibility, size: 20),
@@ -322,22 +318,28 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
-                                'एक बार लॉगिन करने पर अगली बार ऑटो-लॉगिन रहेगा',
+                                s.isHindi
+                                    ? 'एक बार लॉगिन करने पर अगली बार स्वतः लॉगिन रहेगा'
+                                    : 'Stay logged in securely on this device',
                                 style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 20),
                         ElevatedButton(
                           onPressed: isLoading ? null : _handleSignIn,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.primaryGreen,
                             minimumSize: const Size.fromHeight(48),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                           child: isLoading
                               ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                              : const Text('साइन इन करें', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              : Text(
+                                  s.isHindi ? 'साइन इन करें' : 'Sign In',
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
                         ),
                       ],
 
@@ -347,35 +349,41 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         if (_signupStep == 1) ...[
                           TextField(
                             controller: _signupNameController,
-                            decoration: const InputDecoration(
-                              labelText: 'आपका पूरा नाम *',
-                              hintText: 'उदा. राहुल शर्मा',
-                              prefixIcon: Icon(Icons.person_outline, color: AppTheme.primaryGreen),
+                            decoration: InputDecoration(
+                              labelText: s.isHindi ? 'आपका पूरा नाम *' : 'Your Full Name *',
+                              hintText: s.isHindi ? 'उदा. शुभम शर्मा' : 'e.g. Shubham Sharma',
+                              prefixIcon: const Icon(Icons.person_outline, color: AppTheme.primaryGreen),
                             ),
                           ),
                           const SizedBox(height: 12),
                           TextField(
                             controller: _signupEmailController,
                             keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(
-                              labelText: 'असली ईमेल पता (Gmail / Other) *',
-                              hintText: 'उदा. shubham@gmail.com',
-                              prefixIcon: Icon(Icons.mark_email_read_outlined, color: AppTheme.primaryGreen),
+                            decoration: InputDecoration(
+                              labelText: s.isHindi ? 'असली ईमेल पता (Gmail / Other) *' : 'Real Email Address *',
+                              hintText: 'name@gmail.com',
+                              prefixIcon: const Icon(Icons.mark_email_read_outlined, color: AppTheme.primaryGreen),
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '🛡️ केवल असली ईमेल मान्य है। सत्यापन हेतु 6-अंकों का OTP भेजा जाएगा।',
+                            s.isHindi
+                                ? '🛡️ केवल असली ईमेल मान्य है। सत्यापन हेतु 6-अंकों का OTP भेजा जाएगा।'
+                                : '🛡️ Only genuine email accepted. A 6-digit OTP code will be sent.',
                             style: TextStyle(fontSize: 12, color: Colors.grey.shade700, height: 1.3),
                           ),
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 20),
                           ElevatedButton.icon(
                             onPressed: isLoading ? null : _handleSendOtp,
                             icon: const Icon(Icons.send_rounded, size: 18),
-                            label: const Text('ईमेल पर OTP भेजें', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                            label: Text(
+                              s.isHindi ? 'ईमेल पर OTP भेजें' : 'Send OTP to Email',
+                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                            ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppTheme.primaryGreen,
                               minimumSize: const Size.fromHeight(48),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
                         ],
@@ -394,7 +402,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    '${_signupEmailController.text.trim()} पर 6-अंकों का OTP भेजा गया है।',
+                                    s.isHindi
+                                        ? '${_signupEmailController.text.trim()} पर 6-अंकों का OTP भेजा गया है।'
+                                        : 'A 6-digit OTP was sent to ${_signupEmailController.text.trim()}',
                                     style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textDark),
                                   ),
                                 ),
@@ -408,20 +418,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             maxLength: 6,
                             textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 6),
-                            decoration: const InputDecoration(
-                              labelText: '6-अंकों का OTP दर्ज करें *',
+                            decoration: InputDecoration(
+                              labelText: s.isHindi ? '6-अंकों का OTP दर्ज करें *' : 'Enter 6-digit OTP *',
                               counterText: '',
-                              prefixIcon: Icon(Icons.pin_outlined, color: AppTheme.primaryGreen),
+                              prefixIcon: const Icon(Icons.pin_outlined, color: AppTheme.primaryGreen),
                             ),
                           ),
                           const SizedBox(height: 14),
                           ElevatedButton.icon(
                             onPressed: isLoading ? null : _handleVerifyOtp,
                             icon: const Icon(Icons.verified_outlined, size: 18),
-                            label: const Text('OTP सत्यापित करें', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                            label: Text(
+                              s.isHindi ? 'OTP सत्यापित करें' : 'Verify OTP',
+                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                            ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppTheme.primaryGreen,
                               minimumSize: const Size.fromHeight(48),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -430,11 +444,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             children: [
                               TextButton(
                                 onPressed: () => setState(() => _signupStep = 1),
-                                child: const Text('ईमेल बदलें', style: TextStyle(fontSize: 12)),
+                                child: Text(s.isHindi ? 'ईमेल बदलें' : 'Change Email', style: const TextStyle(fontSize: 12)),
                               ),
                               TextButton(
                                 onPressed: isLoading ? null : _handleSendOtp,
-                                child: const Text('OTP पुनः भेजें', style: TextStyle(fontSize: 12)),
+                                child: Text(s.isHindi ? 'OTP पुनः भेजें' : 'Resend OTP', style: const TextStyle(fontSize: 12)),
                               ),
                             ],
                           ),
@@ -449,14 +463,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(color: Colors.green.shade200),
                             ),
-                            child: const Row(
+                            child: Row(
                               children: [
-                                Icon(Icons.check_circle_rounded, color: Colors.green, size: 18),
-                                SizedBox(width: 8),
+                                const Icon(Icons.check_circle_rounded, color: Colors.green, size: 18),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'ईमेल सत्यापित हो गया! अब अपना लॉगिन पासवर्ड बनाएं:',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.green),
+                                    s.isHindi
+                                        ? 'ईमेल सत्यापित हुआ! अब सुरक्षित पासवर्ड बनाएं:'
+                                        : 'Email verified! Now set a secure password:',
+                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.green),
                                   ),
                                 ),
                               ],
@@ -467,7 +483,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             controller: _signupPasswordController,
                             obscureText: _obscureSignupPassword,
                             decoration: InputDecoration(
-                              labelText: 'नया पासवर्ड बनाएं (कम से कम 6 अक्षर) *',
+                              labelText: s.isHindi ? 'नया पासवर्ड बनाएं (कम से कम 6 अक्षर) *' : 'Create Password (min 6 chars) *',
                               prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.primaryGreen),
                               suffixIcon: IconButton(
                                 icon: Icon(_obscureSignupPassword ? Icons.visibility_off : Icons.visibility, size: 20),
@@ -479,19 +495,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           TextField(
                             controller: _signupConfirmPasswordController,
                             obscureText: _obscureSignupPassword,
-                            decoration: const InputDecoration(
-                              labelText: 'पासवर्ड की पुष्टि करें *',
-                              prefixIcon: Icon(Icons.lock_reset, color: AppTheme.primaryGreen),
+                            decoration: InputDecoration(
+                              labelText: s.isHindi ? 'पासवर्ड की पुष्टि करें *' : 'Confirm Password *',
+                              prefixIcon: const Icon(Icons.lock_reset, color: AppTheme.primaryGreen),
                             ),
                           ),
                           const SizedBox(height: 18),
                           ElevatedButton.icon(
                             onPressed: isLoading ? null : _handleCompleteSignup,
                             icon: const Icon(Icons.check_circle_rounded, size: 18),
-                            label: const Text('खाता बनाएं और प्रवेश करें', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                            label: Text(
+                              s.isHindi ? 'खाता बनाएं और प्रवेश करें' : 'Create Account & Enter',
+                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                            ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppTheme.primaryGreen,
                               minimumSize: const Size.fromHeight(48),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
                         ],
@@ -499,14 +519,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
                       const SizedBox(height: 24),
 
-                      // Divider for Google / Demo options
+                      // Optional Google OAuth
                       Row(
                         children: [
                           const Expanded(child: Divider(color: Color(0xFFCBD5E1))),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 10.0),
                             child: Text(
-                              s.quickTestHeader,
+                              s.isHindi ? 'या' : 'OR',
                               style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey.shade600),
                             ),
                           ),
@@ -515,44 +535,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ),
                       const SizedBox(height: 14),
 
-                      // Demo 1-Click Buttons
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: isLoading ? null : () => ref.read(authControllerProvider.notifier).signInAsDemoUser(asDriver: true),
-                              icon: const Icon(Icons.flash_on_rounded, size: 16, color: Colors.white),
-                              label: Text(s.driverRole, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.primaryGreen,
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: isLoading ? null : () => ref.read(authControllerProvider.notifier).signInAsDemoUser(asDriver: false),
-                              icon: const Icon(Icons.person_search_rounded, size: 16, color: AppTheme.accentAmber),
-                              label: Text(s.riderRole, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.accentAmber)),
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: AppTheme.accentAmber, width: 1.5),
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Google Sign In (for when admin configures provider)
                       OutlinedButton.icon(
                         onPressed: isLoading ? null : () => ref.read(authControllerProvider.notifier).signInWithGoogle(),
-                        icon: const Icon(Icons.g_mobiledata_rounded, size: 26, color: Colors.blue),
+                        icon: const Icon(Icons.g_mobiledata_rounded, size: 28, color: Colors.blue),
                         label: Text(s.googleSignInButton, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Color(0xFFCBD5E1)),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                     ],

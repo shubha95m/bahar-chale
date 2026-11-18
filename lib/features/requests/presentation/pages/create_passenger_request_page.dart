@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_strings.dart';
+import '../../../../core/utils/snackbar_helper.dart';
+import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../../core/widgets/location_autocomplete_field.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../domain/entities/passenger_request.dart';
@@ -68,9 +70,7 @@ class _CreatePassengerRequestPageState extends ConsumerState<CreatePassengerRequ
 
     final user = ref.read(currentUserProvider);
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('कृपया पहले साइन इन करें।')),
-      );
+      AppSnackBar.show(context, message: 'कृपया पहले साइन इन करें।', isError: true);
       return;
     }
 
@@ -96,19 +96,17 @@ class _CreatePassengerRequestPageState extends ConsumerState<CreatePassengerRequ
 
     if (mounted) {
       if (res != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(s.isHindi ? 'आपकी यात्रा की जरूरत पोस्ट हो गई है! चालक आपसे संपर्क कर सकेंगे।' : 'Your travel need has been published! Drivers can now reach out.'),
-            backgroundColor: AppTheme.primaryGreen,
-          ),
+        AppSnackBar.show(
+          context,
+          message: s.isHindi ? 'आपकी यात्रा की जरूरत पोस्ट हो गई है! चालक आपसे संपर्क कर सकेंगे।' : 'Your travel need has been published! Drivers can now reach out.',
+          isSuccess: true,
         );
         context.pop();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('अनुरोध पोस्ट करने में त्रुटि। कृपया पुनः प्रयास करें।'),
-            backgroundColor: Colors.red,
-          ),
+        AppSnackBar.show(
+          context,
+          message: 'अनुरोध पोस्ट करने में त्रुटि। कृपया पुनः प्रयास करें।',
+          isError: true,
         );
       }
     }
@@ -123,10 +121,15 @@ class _CreatePassengerRequestPageState extends ConsumerState<CreatePassengerRequ
     return Scaffold(
       appBar: AppBar(
         title: Text(s.isHindi ? 'सवारी की आवश्यकता पोस्ट करें' : 'Post Ride Request'),
+        actions: const [
+          LanguageSwitcherButton(),
+          SizedBox(width: 8),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 16.0, bottom: 90.0),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
             child: Form(

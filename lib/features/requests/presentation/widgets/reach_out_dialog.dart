@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_strings.dart';
+import '../../../../core/utils/snackbar_helper.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../domain/entities/passenger_request.dart';
 import '../providers/passenger_requests_provider.dart';
@@ -67,9 +68,7 @@ class _ReachOutDialogState extends ConsumerState<ReachOutDialog> {
     }
 
     if (user.id == widget.request.requesterId) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('आप अपने ही अनुरोध पर प्रस्ताव नहीं भेज सकते।')),
-      );
+      AppSnackBar.show(context, message: 'आप अपने ही अनुरोध पर प्रस्ताव नहीं भेज सकते।', isError: true);
       return;
     }
 
@@ -90,17 +89,10 @@ class _ReachOutDialogState extends ConsumerState<ReachOutDialog> {
       Navigator.of(context).pop();
 
       if (rideRequestId != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('प्रस्ताव व संदेश भेज दिया गया है! बातचीत खुल रही है...'),
-            backgroundColor: AppTheme.primaryGreen,
-          ),
-        );
+        AppSnackBar.show(context, message: 'प्रस्ताव व संदेश भेज दिया गया है! बातचीत खुल रही है...', isSuccess: true);
         context.push('/chat/$rideRequestId');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('प्रस्ताव भेजने में त्रुटि। कृपया पुनः प्रयास करें।'), backgroundColor: Colors.red),
-        );
+        AppSnackBar.show(context, message: 'प्रस्ताव भेजने में त्रुटि। कृपया पुनः प्रयास करें।', isError: true);
       }
     }
   }

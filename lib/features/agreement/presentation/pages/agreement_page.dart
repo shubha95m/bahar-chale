@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_strings.dart';
 import '../../../../core/utilities/map_launcher.dart';
+import '../../../../core/utils/snackbar_helper.dart';
+import '../../../../core/widgets/language_switcher_button.dart';
 import '../providers/agreement_provider.dart';
 
 class AgreementPage extends ConsumerWidget {
@@ -20,11 +22,13 @@ class AgreementPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('यात्रा समन्वय (Travel Agreement)'),
         actions: [
+          const LanguageSwitcherButton(),
           IconButton(
             tooltip: 'बातचीत (Chat)',
             icon: const Icon(Icons.chat_bubble_outline_rounded, color: AppTheme.primaryGreen),
             onPressed: () => context.push('/chat/$requestId'),
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: agreementAsync.when(
@@ -172,11 +176,11 @@ class AgreementPage extends ConsumerWidget {
                       onPressed: () async {
                         final success = await ref.read(agreementNotifierProvider.notifier).confirm(agreement.id);
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(success ? 'पुष्टि सफलतापूर्वक दर्ज की गई!' : 'पुष्टि विफल।'),
-                              backgroundColor: success ? AppTheme.primaryGreen : Colors.red,
-                            ),
+                          AppSnackBar.show(
+                            context,
+                            message: success ? 'पुष्टि सफलतापूर्वक दर्ज की गई!' : 'पुष्टि विफल। कृपया पुनः प्रयास करें।',
+                            isSuccess: success,
+                            isError: !success,
                           );
                           ref.invalidate(agreementByRequestProvider(requestId));
                         }

@@ -7,6 +7,8 @@ import '../../../../core/localization/app_strings.dart';
 import '../../../../core/widgets/app_bottom_bar.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
+import '../../../notifications/presentation/providers/notifications_provider.dart';
+import '../../../notifications/presentation/widgets/notifications_sheet.dart';
 import '../../../requests/presentation/providers/requests_provider.dart';
 import '../providers/chat_provider.dart';
 
@@ -27,6 +29,7 @@ class ConversationsPage extends ConsumerWidget {
     }
 
     final convsAsync = ref.watch(allConversationsProvider(user.id));
+    final unreadNotificationsCount = ref.watch(unreadNotificationsCountProvider).value ?? 0;
 
     return Scaffold(
       appBar: AppBar(
@@ -43,9 +46,19 @@ class ConversationsPage extends ConsumerWidget {
             ),
           ],
         ),
-        actions: const [
-          LanguageSwitcherButton(),
-          SizedBox(width: 8),
+        actions: [
+          const LanguageSwitcherButton(),
+          IconButton(
+            tooltip: s.notificationsText,
+            icon: Badge.count(
+              count: unreadNotificationsCount,
+              isLabelVisible: unreadNotificationsCount > 0,
+              backgroundColor: Colors.red.shade700,
+              child: const Icon(Icons.notifications_none_rounded, color: AppTheme.primaryGreen),
+            ),
+            onPressed: () => NotificationsSheet.show(context),
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(

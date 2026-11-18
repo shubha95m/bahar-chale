@@ -80,6 +80,18 @@ class ChatRepository {
   /// Calculates the count of distinct conversations that have unread incoming messages
   Future<int> getUnreadConversationsCount(String userId) async {
     try {
+      // 1. Try lightning-fast optimized Postgres RPC
+      final rpcRes = await _client.rpc(
+        'get_unread_conversations_count',
+        params: {'p_user_id': userId},
+      );
+      if (rpcRes is int) return rpcRes;
+      if (rpcRes is num) return rpcRes.toInt();
+    } catch (_) {
+      // Fallback to client query if RPC unavailable
+    }
+
+    try {
       final asRider = await _client
           .from('ride_requests')
           .select('id')

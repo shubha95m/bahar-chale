@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_strings.dart';
+import '../../../../core/utils/snackbar_helper.dart';
+import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../../core/widgets/location_autocomplete_field.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../domain/entities/ride.dart';
@@ -97,9 +99,7 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
 
     final user = ref.read(currentUserProvider);
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('कृपया पहले साइन इन करें।')),
-      );
+      AppSnackBar.show(context, message: 'कृपया पहले साइन इन करें।', isError: true);
       return;
     }
 
@@ -134,12 +134,7 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
 
     final created = await ref.read(createRideNotifierProvider.notifier).submitRide(ride);
     if (created != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('सवारी सफलतापूर्वक प्रकाशित की गई!'),
-          backgroundColor: AppTheme.primaryGreen,
-        ),
-      );
+      AppSnackBar.show(context, message: 'सवारी सफलतापूर्वक प्रकाशित की गई!', isSuccess: true);
       context.pop();
     }
   }
@@ -152,10 +147,15 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('सवारी प्रकाशित करें'),
+        actions: const [
+          LanguageSwitcherButton(),
+          SizedBox(width: 8),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 16.0, bottom: 90.0),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
             child: Form(

@@ -21,7 +21,11 @@ void main() {
       expect(strings.navMessagesText, equals('संदेश'));
       expect(strings.navProfileText, equals('प्रोफ़ाइल'));
       expect(strings.actionWantRideText, equals('मुझे यात्रा करनी है'));
-      expect(strings.actionGiveRideText, equals('मैं साथ ले जा सकता हूँ'));
+      expect(strings.actionGiveRideText, equals('अपनी ड्राइविंग राइड शेयर करें'));
+      expect(strings.offerRideTitle, equals('अपनी ड्राइविंग राइड शेयर करें'));
+      expect(strings.needRideTitle, equals('अपनी यात्रा का अनुरोध शेयर करें'));
+      expect(strings.availableDrivesTab, equals('उपलब्ध ड्राइविंग राइड्स'));
+      expect(strings.passengerRequestsTab, equals('यात्रियों के अनुरोध'));
       expect(strings.tabIncomingText, equals('मिले अनुरोध'));
     });
 

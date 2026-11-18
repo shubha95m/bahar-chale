@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../data/repositories/passenger_requests_repository.dart';
 import '../../domain/entities/passenger_request.dart';
 
@@ -9,8 +10,9 @@ final passengerRequestsRepositoryProvider = Provider<PassengerRequestsRepository
 class BrowsePassengerFilter {
   final String? query;
   final String? vehicleType;
+  final String? excludeUserId;
 
-  const BrowsePassengerFilter({this.query, this.vehicleType});
+  const BrowsePassengerFilter({this.query, this.vehicleType, this.excludeUserId});
 
   @override
   bool operator ==(Object other) =>
@@ -18,18 +20,21 @@ class BrowsePassengerFilter {
       other is BrowsePassengerFilter &&
           runtimeType == other.runtimeType &&
           query == other.query &&
-          vehicleType == other.vehicleType;
+          vehicleType == other.vehicleType &&
+          excludeUserId == other.excludeUserId;
 
   @override
-  int get hashCode => (query ?? '').hashCode ^ (vehicleType ?? '').hashCode;
+  int get hashCode => (query ?? '').hashCode ^ (vehicleType ?? '').hashCode ^ (excludeUserId ?? '').hashCode;
 }
 
 final allOpenPassengerRequestsProvider =
     FutureProvider.family<List<PassengerRequest>, BrowsePassengerFilter>((ref, filter) async {
+  final user = ref.watch(currentUserProvider);
   final repo = ref.watch(passengerRequestsRepositoryProvider);
   return repo.getAllOpenRequests(
     queryText: filter.query,
     vehicleType: filter.vehicleType,
+    excludeUserId: filter.excludeUserId ?? user?.id,
   );
 });
 

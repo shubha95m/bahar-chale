@@ -20,14 +20,24 @@ class AppStrings {
   String get navMyTravelText => isHindi ? 'मेरी यात्राएं' : 'My Travel';
   String get navMessagesText => isHindi ? 'संदेश' : 'Messages';
   String get navProfileText => isHindi ? 'प्रोफ़ाइल' : 'Profile';
+  String get notificationsText => isHindi ? 'सूचनाएं' : 'Notifications';
 
-  // Primary Actions
+  // Primary Actions (Dual Cards)
+  String get offerRideTitle => isHindi ? 'अपनी ड्राइविंग राइड शेयर करें' : 'Offer a Ride';
+  String get offerRideSubtitle => isHindi ? 'गाड़ी या बाइक में खाली सीटें शेयर करें' : 'Share empty seats in your car or bike';
+  String get needRideTitle => isHindi ? 'अपनी यात्रा का अनुरोध शेयर करें' : 'Need a Ride';
+  String get needRideSubtitle => isHindi ? 'यात्रा विवरण पोस्ट करें, चालक आपसे जुड़ेंगे' : 'Post itinerary to get driver offers';
+
   String get actionWantRideText => isHindi ? 'मुझे यात्रा करनी है' : 'Find a Ride';
-  String get actionGiveRideText => isHindi ? 'मैं साथ ले जा सकता हूँ' : 'Offer a Ride';
+  String get actionGiveRideText => isHindi ? 'अपनी ड्राइविंग राइड शेयर करें' : 'Offer a Ride';
   String get actionWantRideSubtitleText =>
-      isHindi ? 'अपने गंतव्य के लिए साथी खोजें' : 'Find co-travelers heading your way';
+      isHindi ? 'यात्रा विवरण पोस्ट करें, चालक आपसे जुड़ेंगे' : 'Find co-travelers heading your way';
   String get actionGiveRideSubtitleText =>
-      isHindi ? 'अपनी गाड़ी में सीटें साझा करें' : 'Share empty seats in your car or bike';
+      isHindi ? 'गाड़ी या बाइक में खाली सीटें शेयर करें' : 'Share empty seats in your car or bike';
+
+  // Marketplace Feed Tabs
+  String get availableDrivesTab => isHindi ? 'उपलब्ध ड्राइविंग राइड्स' : 'Available Rides';
+  String get passengerRequestsTab => isHindi ? 'यात्रियों के अनुरोध' : 'Passenger Requests';
 
   // Home Screen Sections
   String get upcomingJourneysText => isHindi ? 'आपकी आगामी यात्राएं' : 'Upcoming Journeys';

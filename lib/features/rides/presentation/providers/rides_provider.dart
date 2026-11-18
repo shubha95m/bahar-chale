@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../data/repositories/rides_repository.dart';
 import '../../domain/entities/ride.dart';
 
@@ -42,12 +43,14 @@ class SearchParams {
 }
 
 final searchRidesProvider = FutureProvider.family<List<Ride>, SearchParams>((ref, params) async {
+  final user = ref.watch(currentUserProvider);
   final repo = ref.watch(ridesRepositoryProvider);
   return repo.searchRides(
     originCity: params.originCity,
     destinationCity: params.destinationCity,
     travelDate: params.travelDate,
     rideCategory: params.rideCategory,
+    excludeUserId: user?.id,
   );
 });
 
@@ -70,10 +73,12 @@ class BrowseRidesFilter {
 }
 
 final allAvailableRidesProvider = FutureProvider.family<List<Ride>, BrowseRidesFilter>((ref, filter) async {
+  final user = ref.watch(currentUserProvider);
   final repo = ref.watch(ridesRepositoryProvider);
   return repo.getAllAvailableRides(
     queryText: filter.query,
     vehicleType: filter.vehicleType,
+    excludeUserId: user?.id,
   );
 });
 

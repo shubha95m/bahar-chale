@@ -23,6 +23,7 @@ class PassengerRequestsRepository {
   Future<List<PassengerRequest>> getAllOpenRequests({
     String? queryText,
     String? vehicleType,
+    String? excludeUserId,
     int limit = 50,
   }) async {
     final today = DateTime.now().toIso8601String().split('T').first;
@@ -32,6 +33,10 @@ class PassengerRequestsRepository {
         .select('*, profiles:requester_id(display_name, avatar_url)')
         .eq('status', 'open')
         .gte('travel_date', today);
+
+    if (excludeUserId != null && excludeUserId.isNotEmpty) {
+      query = query.neq('requester_id', excludeUserId);
+    }
 
     if (vehicleType != null && vehicleType.isNotEmpty && vehicleType != 'all') {
       query = query.or('preferred_vehicle.eq.$vehicleType,preferred_vehicle.eq.any');
@@ -116,6 +121,17 @@ class PassengerRequestsRepository {
         'message_body': initialMessage.trim(),
       });
     }
+
+    // 4. Send real-time notification to the passenger
+    try {
+      await _client.from('notifications').insert({
+        'recipient_id': passengerRequest.requesterId,
+        'notification_type': 'ride_offer',
+        'reference_id': rideRequestId,
+        'title': 'नया सवारी प्रस्ताव (New Ride Offer)',
+        'body': 'एक चालक ने आपके ${passengerRequest.originCity} ➔ ${passengerRequest.destinationCity} अनुरोध हेतु सवारी प्रस्तुत की है। बातचीत या सहमति देखें।',
+      });
+    } catch (_) {}
 
     return rideRequestId;
   }

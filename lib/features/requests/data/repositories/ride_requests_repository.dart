@@ -26,7 +26,28 @@ class RideRequestsRepository {
         .select('*, profiles:requester_id(display_name, avatar_url, home_city)')
         .single();
 
-    return RideRequest.fromMap(response);
+    final created = RideRequest.fromMap(response);
+
+    // Notify ride owner (driver)
+    try {
+      final rideData = await _client
+          .from('rides')
+          .select('owner_id, origin_city, destination_city')
+          .eq('id', rideId)
+          .single();
+      final ownerId = rideData['owner_id'] as String?;
+      if (ownerId != null && ownerId != requesterId) {
+        await _client.from('notifications').insert({
+          'recipient_id': ownerId,
+          'notification_type': 'ride_request',
+          'reference_id': created.id,
+          'title': 'नया सवारी अनुरोध (New Ride Request)',
+          'body': 'एक सहयात्री ने आपकी ${rideData['origin_city']} ➔ ${rideData['destination_city']} यात्रा में $seatsRequested सीट का अनुरोध किया है।',
+        });
+      }
+    } catch (_) {}
+
+    return created;
   }
 
   /// Fetches requests made by the current user

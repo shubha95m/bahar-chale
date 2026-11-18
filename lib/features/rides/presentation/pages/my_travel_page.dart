@@ -5,10 +5,13 @@ import 'package:intl/intl.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_strings.dart';
 import '../../../../core/utilities/map_launcher.dart';
+import '../../../../core/utils/snackbar_helper.dart';
 import '../../../../core/widgets/app_bottom_bar.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../../chat/presentation/providers/chat_provider.dart';
+import '../../../notifications/presentation/providers/notifications_provider.dart';
+import '../../../notifications/presentation/widgets/notifications_sheet.dart';
 import '../../../requests/domain/entities/passenger_request.dart';
 import '../../../requests/presentation/providers/passenger_requests_provider.dart';
 import '../../../requests/presentation/providers/requests_provider.dart';
@@ -35,6 +38,7 @@ class MyTravelPage extends ConsumerWidget {
     final myRequestsAsync = ref.watch(myRequestsProvider(user.id));
     final myPassengerRequestsAsync = ref.watch(myPassengerRequestsProvider(user.id));
     final unreadMessagesCount = ref.watch(unreadConversationsCountProvider).value ?? 0;
+    final unreadNotificationsCount = ref.watch(unreadNotificationsCountProvider).value ?? 0;
 
     return DefaultTabController(
       length: 3,
@@ -46,6 +50,16 @@ class MyTravelPage extends ConsumerWidget {
           ),
           actions: [
             const LanguageSwitcherButton(),
+            IconButton(
+              icon: Badge.count(
+                count: unreadNotificationsCount,
+                isLabelVisible: unreadNotificationsCount > 0,
+                backgroundColor: Colors.red.shade700,
+                child: const Icon(Icons.notifications_none_rounded),
+              ),
+              tooltip: s.notificationsText,
+              onPressed: () => NotificationsSheet.show(context),
+            ),
             IconButton(
               icon: Badge.count(
                 count: unreadMessagesCount,
@@ -316,14 +330,18 @@ class MyTravelPage extends ConsumerWidget {
                                   final success = await ref.read(requestActionNotifierProvider.notifier).accept(reqId);
                                   if (context.mounted) {
                                     if (success) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('अनुरोध स्वीकार कर लिया गया है। सीटें अपडेट हो गई हैं।')),
+                                      AppSnackBar.show(
+                                        context,
+                                        message: 'अनुरोध स्वीकार कर लिया गया है। सीटें अपडेट हो गई हैं।',
+                                        isSuccess: true,
                                       );
                                       ref.invalidate(allIncomingRequestsProvider(userId));
                                       ref.invalidate(myRidesProvider(userId));
                                     } else {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('अनुरोध स्वीकार करने में त्रुटि। संभवतः सीटें समाप्त हो गई हैं।')),
+                                      AppSnackBar.show(
+                                        context,
+                                        message: 'अनुरोध स्वीकार करने में त्रुटि। संभवतः सीटें समाप्त हो गई हैं।',
+                                        isError: true,
                                       );
                                     }
                                   }

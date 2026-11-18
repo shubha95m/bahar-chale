@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_strings.dart';
 import '../../../../core/utilities/map_launcher.dart';
+import '../../../../core/utils/snackbar_helper.dart';
+import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../../requests/presentation/providers/requests_provider.dart';
 import '../providers/rides_provider.dart';
@@ -132,15 +134,13 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                 );
 
                 if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      success
-                          ? 'अनुरोध सफलतापूर्वक भेजा गया!'
-                          : 'अनुरोध भेजने में विफल (शायद आप पहले ही अनुरोध भेज चुके हैं)।',
-                    ),
-                    backgroundColor: success ? AppTheme.primaryGreen : Colors.red,
-                  ),
+                AppSnackBar.show(
+                  context,
+                  message: success
+                      ? 'अनुरोध सफलतापूर्वक भेजा गया!'
+                      : 'अनुरोध भेजने में विफल (शायद आप पहले ही अनुरोध भेज चुके हैं)।',
+                  isSuccess: success,
+                  isError: !success,
                 );
                 ref.invalidate(incomingRequestsProvider(widget.rideId));
               },
@@ -160,6 +160,10 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('सवारी विवरण'),
+        actions: const [
+          LanguageSwitcherButton(),
+          SizedBox(width: 8),
+        ],
       ),
       body: rideAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -181,7 +185,8 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
 
           return SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 16.0, bottom: 90.0),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 600),
                 child: Column(
@@ -423,12 +428,12 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                                                 ),
                                                 onPressed: () async {
                                                   final success = await ref.read(requestActionNotifierProvider.notifier).accept(req.id);
-                                                  if (!mounted) return;
-                                                  ScaffoldMessenger.of(this.context).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(success ? 'अनुरोध स्वीकार कर लिया गया!' : 'स्वीकृति विफल।'),
-                                                      backgroundColor: success ? AppTheme.primaryGreen : Colors.red,
-                                                    ),
+                                                  if (!context.mounted) return;
+                                                  AppSnackBar.show(
+                                                    context,
+                                                    message: success ? 'अनुरोध स्वीकार कर लिया गया!' : 'स्वीकृति विफल।',
+                                                    isSuccess: success,
+                                                    isError: !success,
                                                   );
                                                   ref.invalidate(incomingRequestsProvider(widget.rideId));
                                                   ref.invalidate(rideDetailsProvider(widget.rideId));

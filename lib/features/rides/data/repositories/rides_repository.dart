@@ -58,6 +58,7 @@ class RidesRepository {
     required String destinationCity,
     required DateTime travelDate,
     String? rideCategory,
+    String? excludeUserId,
     int limit = 20,
     int offset = 0,
   }) async {
@@ -74,6 +75,10 @@ class RidesRepository {
         .eq('status', 'open')
         .gt('available_seats', 0);
 
+    if (excludeUserId != null && excludeUserId.isNotEmpty) {
+      query = query.neq('owner_id', excludeUserId);
+    }
+
     if (rideCategory != null && rideCategory.isNotEmpty) {
       query = query.eq('ride_category', rideCategory);
     }
@@ -89,6 +94,7 @@ class RidesRepository {
   Future<List<Ride>> getAllAvailableRides({
     String? queryText,
     String? vehicleType,
+    String? excludeUserId,
     int limit = 50,
   }) async {
     final today = DateTime.now().toIso8601String().split('T').first;
@@ -99,6 +105,10 @@ class RidesRepository {
         .eq('status', 'open')
         .gt('available_seats', 0)
         .gte('travel_date', today);
+
+    if (excludeUserId != null && excludeUserId.isNotEmpty) {
+      query = query.neq('owner_id', excludeUserId);
+    }
 
     if (vehicleType != null && vehicleType.isNotEmpty && vehicleType != 'all') {
       query = query.eq('vehicle_type', vehicleType);

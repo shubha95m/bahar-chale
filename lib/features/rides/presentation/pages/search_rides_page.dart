@@ -9,6 +9,9 @@ import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../../core/widgets/location_autocomplete_field.dart';
 import '../../../../core/widgets/passenger_request_card_widget.dart';
 import '../../../../core/widgets/ride_card_widget.dart';
+import '../../../chat/presentation/providers/chat_provider.dart';
+import '../../../notifications/presentation/providers/notifications_provider.dart';
+import '../../../notifications/presentation/widgets/notifications_sheet.dart';
 import '../../../requests/presentation/providers/passenger_requests_provider.dart';
 import '../providers/rides_provider.dart';
 
@@ -90,6 +93,8 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
 
     final ridesAsync = ref.watch(allAvailableRidesProvider(filter));
     final passengerReqsAsync = ref.watch(allOpenPassengerRequestsProvider(passengerFilter));
+    final unreadMessagesCount = ref.watch(unreadConversationsCountProvider).value ?? 0;
+    final unreadNotificationsCount = ref.watch(unreadNotificationsCountProvider).value ?? 0;
 
     return Scaffold(
       appBar: AppBar(
@@ -103,8 +108,23 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
         actions: [
           const LanguageSwitcherButton(),
           IconButton(
+            tooltip: s.notificationsText,
+            icon: Badge.count(
+              count: unreadNotificationsCount,
+              isLabelVisible: unreadNotificationsCount > 0,
+              backgroundColor: Colors.red.shade700,
+              child: const Icon(Icons.notifications_none_rounded, color: AppTheme.primaryGreen),
+            ),
+            onPressed: () => NotificationsSheet.show(context),
+          ),
+          IconButton(
             tooltip: s.navMessagesText,
-            icon: const Icon(Icons.chat_bubble_outline_rounded, color: AppTheme.primaryGreen),
+            icon: Badge.count(
+              count: unreadMessagesCount,
+              isLabelVisible: unreadMessagesCount > 0,
+              backgroundColor: Colors.red.shade700,
+              child: const Icon(Icons.chat_bubble_outline_rounded, color: AppTheme.primaryGreen),
+            ),
             onPressed: () => context.push('/conversations'),
           ),
           const SizedBox(width: 8),

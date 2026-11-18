@@ -1,17 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/configuration/supabase_config.dart';
+import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../../rides/domain/entities/ride.dart';
 
 final recentRidesFeedProvider = FutureProvider<List<Ride>>((ref) async {
-  final response = await SupabaseConfig.client
+  final user = ref.watch(currentUserProvider);
+  var query = SupabaseConfig.client
       .from('rides')
       .select('*, profiles:owner_id(display_name, avatar_url)')
       .eq('status', 'open')
       .gt('available_seats', 0)
-      .gte('travel_date', DateTime.now().toIso8601String().split('T').first)
-      .order('created_at', ascending: false)
-      .limit(5);
+      .gte('travel_date', DateTime.now().toIso8601String().split('T').first);
 
+  if (user != null) {
+    query = query.neq('owner_id', user.id);
+  }
+
+  final response = await query.order('created_at', ascending: false).limit(10);
   return (response as List).map((row) => Ride.fromMap(row as Map<String, dynamic>)).toList();
 });
 
