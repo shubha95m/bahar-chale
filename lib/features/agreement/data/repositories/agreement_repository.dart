@@ -7,8 +7,36 @@ class AgreementRepository {
 
   AgreementRepository({SupabaseClient? client}) : _client = client ?? SupabaseConfig.client;
 
-  /// Fetches agreement associated with a ride request
+  /// Fetches or atomically creates agreement associated with a ride request
   Future<RideAgreement?> getAgreementByRequestId(String requestId) async {
+    try {
+      final rpcRes = await _client.rpc(
+        'get_or_create_agreement',
+        params: {'p_request_id': requestId},
+      );
+
+      if (rpcRes != null && rpcRes is Map && rpcRes['success'] == true) {
+        final agrMap = Map<String, dynamic>.from(rpcRes['agreement'] as Map);
+        final driverMap = rpcRes['driver'] as Map<String, dynamic>?;
+        final passengerMap = rpcRes['passenger'] as Map<String, dynamic>?;
+        final rideMap = rpcRes['ride'] as Map<String, dynamic>?;
+        final reqMap = rpcRes['request'] as Map<String, dynamic>?;
+
+        agrMap['driver_name'] = driverMap?['name'];
+        agrMap['driver_id'] = driverMap?['id'];
+        agrMap['passenger_name'] = passengerMap?['name'];
+        agrMap['passenger_id'] = passengerMap?['id'];
+        agrMap['vehicle_type'] = rideMap?['vehicle_type'];
+        agrMap['origin_city'] = rideMap?['origin_city'];
+        agrMap['destination_city'] = rideMap?['destination_city'];
+        agrMap['seats_requested'] = reqMap?['seats_requested'];
+
+        return RideAgreement.fromMap(agrMap);
+      }
+    } catch (e) {
+      // Fallback to direct query
+    }
+
     final response = await _client
         .from('ride_agreements')
         .select()

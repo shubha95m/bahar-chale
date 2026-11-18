@@ -169,7 +169,8 @@ class NotificationsSheet extends ConsumerWidget {
 
                           // Deep link if referenceId exists
                           if (notif.referenceId != null && notif.referenceId!.isNotEmpty) {
-                            if (notif.notificationType.contains('agreement')) {
+                            if (notif.notificationType.contains('agreement') ||
+                                notif.notificationType.contains('accept')) {
                               context.push('/agreement/${notif.referenceId}');
                             } else if (notif.notificationType.contains('ride_offer') ||
                                 notif.notificationType.contains('request') ||

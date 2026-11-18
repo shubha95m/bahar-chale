@@ -60,5 +60,43 @@ void main() {
       expect(serialized['agreed_date'], '2026-11-25');
       expect(serialized['owner_confirmed'], isTrue);
     });
+
+    test('RideAgreement parses rich certificate metadata correctly', () {
+      final map = {
+        'id': 'agr-cert-1',
+        'ride_request_id': 'req-cert-1',
+        'pickup_details': 'Samariya Khurd, Begun Tehsil',
+        'drop_details': 'Begun Tehsil',
+        'agreed_date': '2026-11-25',
+        'agreed_time': '09:00',
+        'agreed_contribution': 50.0,
+        'owner_confirmed': true,
+        'requester_confirmed': true,
+        'status': 'confirmed',
+        'created_at': '2026-11-18T10:00:00Z',
+        'updated_at': '2026-11-18T10:05:00Z',
+        'driver_name': 'सुरेश पाटीदार',
+        'driver_id': 'driver-123',
+        'passenger_name': 'पूजा शर्मा',
+        'passenger_id': 'passenger-456',
+        'vehicle_type': 'car',
+        'seats_requested': 2,
+        'origin_city': 'Suratpura',
+        'destination_city': 'Begun',
+      };
+
+      final agreement = RideAgreement.fromMap(map);
+      expect(agreement.driverName, 'सुरेश पाटीदार');
+      expect(agreement.passengerName, 'पूजा शर्मा');
+      expect(agreement.vehicleType, 'car');
+      expect(agreement.seatsRequested, 2);
+      expect(agreement.originCity, 'Suratpura');
+      expect(agreement.destinationCity, 'Begun');
+      expect(agreement.isFullyConfirmed, isTrue);
+
+      final serialized = agreement.toMap();
+      expect(serialized['driver_name'], 'सुरेश पाटीदार');
+      expect(serialized['passenger_id'], 'passenger-456');
+    });
   });
 }

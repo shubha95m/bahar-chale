@@ -6,6 +6,7 @@ import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_strings.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
+import '../../../requests/presentation/providers/requests_provider.dart';
 import '../providers/chat_provider.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
@@ -60,6 +61,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final s = ref.watch(stringsProvider);
     final chatState = ref.watch(chatControllerProvider(widget.requestId));
     final currentUser = ref.watch(currentUserProvider);
+    final detailsAsync = ref.watch(rideRequestDetailsProvider(widget.requestId));
 
     if (currentUser == null) {
       return Scaffold(
@@ -70,17 +72,142 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
     _scrollToBottom();
 
+    String otherUserName = s.isHindi ? 'सहयात्री / चालक' : 'Participant';
+    String otherUserRole = '';
+    String? otherUserAvatar;
+    String fromCity = '';
+    String toCity = '';
+    String? rideId;
+    bool isDriver = false;
+
+    if (detailsAsync.value != null) {
+      final data = detailsAsync.value!;
+      final ride = data['rides'] as Map<String, dynamic>?;
+      final requester = data['profiles'] as Map<String, dynamic>?;
+      final owner = ride?['profiles'] as Map<String, dynamic>?;
+
+      fromCity = ride?['origin_city'] ?? '';
+      toCity = ride?['destination_city'] ?? '';
+      rideId = ride?['id'];
+
+      final isMeOwner = currentUser.id == ride?['owner_id'];
+      isDriver = isMeOwner;
+      if (isMeOwner) {
+        otherUserName = requester?['display_name'] ?? (s.isHindi ? 'सहयात्री' : 'Passenger');
+        otherUserRole = s.isHindi ? 'सहयात्री (Passenger)' : 'Passenger';
+        otherUserAvatar = requester?['avatar_url'];
+      } else {
+        otherUserName = owner?['display_name'] ?? (s.isHindi ? 'चालक' : 'Driver');
+        otherUserRole = s.isHindi ? 'चालक (Driver)' : 'Driver';
+        otherUserAvatar = owner?['avatar_url'];
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(s.isHindi ? 'बातचीत (Chat)' : 'Chat'),
+        titleSpacing: 0,
+        title: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () {
+            if (rideId != null) {
+              if (isDriver) {
+                context.push('/my-travel');
+              } else {
+                context.push('/ride/$rideId');
+              }
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: AppTheme.primaryGreen.withOpacity(0.12),
+                  backgroundImage: otherUserAvatar != null ? NetworkImage(otherUserAvatar) : null,
+                  child: otherUserAvatar == null
+                      ? Text(
+                          otherUserName.isNotEmpty ? otherUserName[0].toUpperCase() : '?',
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen, fontSize: 13),
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              otherUserName,
+                              style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.bold),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (otherUserRole.isNotEmpty) ...[
+                            const SizedBox(width: 5),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: isDriver ? Colors.blue.shade50 : Colors.amber.shade50,
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: isDriver ? Colors.blue.shade300 : Colors.amber.shade400,
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Text(
+                                otherUserRole,
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDriver ? Colors.blue.shade800 : Colors.brown.shade800,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      if (fromCity.isNotEmpty && toCity.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            const Icon(Icons.route_rounded, size: 12, color: AppTheme.primaryGreen),
+                            const SizedBox(width: 3),
+                            Flexible(
+                              child: Text(
+                                '$fromCity ➔ $toCity',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppTheme.primaryGreen,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 3),
+                            const Icon(Icons.arrow_forward_ios_rounded, size: 8, color: AppTheme.textMuted),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
         actions: [
           IconButton(
-            tooltip: s.isHindi ? 'सहमति पत्र (Agreement)' : 'Travel Agreement',
-            icon: const Icon(Icons.assignment_turned_in_outlined, color: AppTheme.primaryGreen),
+            tooltip: s.isHindi ? 'यात्रा समन्वय (Travel Agreement)' : 'Travel Agreement',
+            icon: const Icon(Icons.assignment_turned_in_outlined, color: AppTheme.primaryGreen, size: 24),
             onPressed: () => context.push('/agreement/${widget.requestId}'),
           ),
           const LanguageSwitcherButton(),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
         ],
       ),
       body: SafeArea(

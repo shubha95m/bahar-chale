@@ -72,6 +72,18 @@ class RideRequestsRepository {
     return (response as List).map((row) => RideRequest.fromMap(row as Map<String, dynamic>)).toList();
   }
 
+  /// Fetches a single ride request with full ride & profiles context
+  Future<Map<String, dynamic>?> getRequestWithDetails(String requestId) async {
+    final response = await _client
+        .from('ride_requests')
+        .select('*, rides(*, profiles:owner_id(display_name, avatar_url)), profiles:requester_id(display_name, avatar_url)')
+        .eq('id', requestId)
+        .maybeSingle();
+
+    if (response == null) return null;
+    return Map<String, dynamic>.from(response);
+  }
+
   /// Accepts a request atomically using Supabase RPC
   Future<Map<String, dynamic>> acceptRequest(String requestId) async {
     final response = await _client.rpc(
