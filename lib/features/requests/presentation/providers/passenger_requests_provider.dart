@@ -73,6 +73,18 @@ class PassengerRequestActionNotifier extends StateNotifier<AsyncValue<void>> {
     }
   }
 
+  Future<bool> delete(String id) async {
+    state = const AsyncValue.loading();
+    try {
+      await _repo.deleteRequest(id);
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return false;
+    }
+  }
+
   Future<String?> reachOut({
     required PassengerRequest passengerRequest,
     required String driverId,

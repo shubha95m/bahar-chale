@@ -8,6 +8,7 @@ import '../../../../core/utilities/map_launcher.dart';
 import '../../../../core/utils/snackbar_helper.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
+import '../../../home/presentation/providers/home_provider.dart';
 import '../../../requests/presentation/providers/requests_provider.dart';
 import '../providers/rides_provider.dart';
 
@@ -28,6 +29,55 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
   void dispose() {
     _messageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _confirmDeleteRide(AppStrings s) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        title: Text(s.isHindi ? 'सवारी हटाएं?' : 'Delete Ride?'),
+        content: Text(s.isHindi
+            ? 'क्या आप वाकई इस सवारी को हटाना चाहते हैं? इससे जुड़े सभी अनुरोध भी हटा दिए जाएंगे।'
+            : 'Are you sure you want to delete this ride? All associated requests will also be removed.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(s.cancelText),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(s.isHindi ? 'हां, हटाएं' : 'Yes, Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final success = await ref.read(rideActionNotifierProvider.notifier).deleteRide(widget.rideId);
+      if (!mounted) return;
+      AppSnackBar.show(
+        context,
+        message: success
+            ? (s.isHindi ? 'सवारी सफलतापूर्वक हटा दी गई।' : 'Ride deleted successfully.')
+            : (s.isHindi ? 'सवारी हटाने में त्रुटि।' : 'Failed to delete ride.'),
+        isSuccess: success,
+        isError: !success,
+      );
+      if (success && mounted) {
+        final currentUser = ref.read(currentUserProvider);
+        if (currentUser != null) {
+          ref.invalidate(myRidesProvider(currentUser.id));
+        }
+        ref.invalidate(recentRidesFeedProvider);
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/home');
+        }
+      }
+    }
   }
 
   void _showRequestDialog(BuildContext dialogContext, String currentUserId, int availableSeats, String? vehicleType) {
@@ -156,13 +206,27 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
   Widget build(BuildContext context) {
     final rideAsync = ref.watch(rideDetailsProvider(widget.rideId));
     final currentUser = ref.watch(currentUserProvider);
+    final s = ref.watch(stringsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('सवारी विवरण'),
-        actions: const [
-          LanguageSwitcherButton(),
-          SizedBox(width: 8),
+        title: Text(s.isHindi ? 'सवारी विवरण' : 'Ride Details'),
+        actions: [
+          rideAsync.maybeWhen(
+            data: (ride) {
+              if (ride != null && currentUser?.id == ride.ownerId) {
+                return IconButton(
+                  icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                  tooltip: s.isHindi ? 'सवारी हटाएं' : 'Delete Ride',
+                  onPressed: () => _confirmDeleteRide(s),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+            orElse: () => const SizedBox.shrink(),
+          ),
+          const LanguageSwitcherButton(),
+          const SizedBox(width: 8),
         ],
       ),
       body: rideAsync.when(
@@ -501,6 +565,21 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                             }).toList(),
                           );
                         },
+                      ),
+                      const SizedBox(height: 20),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: const BorderSide(color: Colors.red),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                        label: Text(
+                          s.isHindi ? 'यह सवारी हटाएं (Delete Ride)' : 'Delete this Ride',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        onPressed: () => _confirmDeleteRide(s),
                       ),
                     ],
 

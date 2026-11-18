@@ -53,8 +53,10 @@ class _ReachOutDialogState extends ConsumerState<ReachOutDialog> {
       _vehicleType = type;
       if (type == 'bike') {
         _totalSeats = 1;
-      } else {
+      } else if (type == 'car') {
         _totalSeats = 4;
+      } else {
+        _totalSeats = 6;
       }
     });
   }
@@ -175,7 +177,7 @@ class _ReachOutDialogState extends ConsumerState<ReachOutDialog> {
                     onSelected: (val) => _onVehicleChanged('car'),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Expanded(
                   child: ChoiceChip(
                     avatar: const Icon(Icons.two_wheeler_rounded, size: 16),
@@ -189,6 +191,73 @@ class _ReachOutDialogState extends ConsumerState<ReachOutDialog> {
                     ),
                     onSelected: (val) => _onVehicleChanged('bike'),
                   ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: ChoiceChip(
+                    avatar: const Icon(Icons.airport_shuttle_rounded, size: 16),
+                    label: Text(s.isHindi ? 'अन्य' : 'Other'),
+                    selected: _vehicleType == 'other',
+                    selectedColor: AppTheme.primaryGreen,
+                    labelStyle: TextStyle(
+                      color: _vehicleType == 'other' ? Colors.white : AppTheme.textDark,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    onSelected: (val) => _onVehicleChanged('other'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Seats Counter (Increment / Decrement)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      s.isHindi ? 'उपलब्ध सीटें:' : 'Available Seats:',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      _vehicleType == 'bike'
+                          ? (s.isHindi ? 'डिफ़ॉल्ट 1 (अधिकतम 3)' : 'Default 1 (Max 3)')
+                          : (_vehicleType == 'car'
+                              ? (s.isHindi ? 'डिफ़ॉल्ट 4 (अधिकतम 8)' : 'Default 4 (Max 8)')
+                              : (s.isHindi ? 'डिफ़ॉल्ट 6 (अधिकतम 12)' : 'Default 6 (Max 12)')),
+                      style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove_circle_outline, color: AppTheme.primaryGreen, size: 24),
+                      onPressed: _totalSeats > 1 ? () => setState(() => _totalSeats--) : null,
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFFCBD5E1)),
+                      ),
+                      child: Text(
+                        '$_totalSeats',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline, color: AppTheme.primaryGreen, size: 24),
+                      onPressed: () {
+                        final maxSeats = _vehicleType == 'bike' ? 3 : (_vehicleType == 'car' ? 8 : 12);
+                        if (_totalSeats < maxSeats) setState(() => _totalSeats++);
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),

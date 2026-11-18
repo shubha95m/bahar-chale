@@ -71,6 +71,11 @@ class PassengerRequestsRepository {
     }).eq('id', requestId);
   }
 
+  /// Permanently deletes an owned passenger request
+  Future<void> deleteRequest(String requestId) async {
+    await _client.from('passenger_requests').delete().eq('id', requestId);
+  }
+
   /// Driver reaches out to a passenger request:
   /// Creates an offered ride + links the passenger request as a ride_request + sends initial chat message.
   /// Returns the rideRequestId so the driver can directly open /chat/{rideRequestId}!

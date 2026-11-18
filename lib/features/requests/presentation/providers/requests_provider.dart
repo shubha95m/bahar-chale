@@ -97,6 +97,18 @@ class RequestActionNotifier extends StateNotifier<AsyncValue<void>> {
       return false;
     }
   }
+
+  Future<bool> delete(String requestId) async {
+    state = const AsyncValue.loading();
+    try {
+      await _repository.deleteRequest(requestId);
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return false;
+    }
+  }
 }
 
 final requestActionNotifierProvider = StateNotifierProvider<RequestActionNotifier, AsyncValue<void>>((ref) {

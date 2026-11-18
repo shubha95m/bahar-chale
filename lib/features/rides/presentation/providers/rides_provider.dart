@@ -114,3 +114,38 @@ final createRideNotifierProvider = StateNotifierProvider<CreateRideNotifier, Asy
   final repo = ref.watch(ridesRepositoryProvider);
   return CreateRideNotifier(repo);
 });
+
+class RideActionNotifier extends StateNotifier<AsyncValue<void>> {
+  final RidesRepository _repository;
+
+  RideActionNotifier(this._repository) : super(const AsyncValue.data(null));
+
+  Future<bool> deleteRide(String rideId) async {
+    state = const AsyncValue.loading();
+    try {
+      await _repository.deleteRide(rideId);
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return false;
+    }
+  }
+
+  Future<bool> cancelRide(String rideId) async {
+    state = const AsyncValue.loading();
+    try {
+      await _repository.cancelRide(rideId);
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return false;
+    }
+  }
+}
+
+final rideActionNotifierProvider = StateNotifierProvider<RideActionNotifier, AsyncValue<void>>((ref) {
+  final repo = ref.watch(ridesRepositoryProvider);
+  return RideActionNotifier(repo);
+});

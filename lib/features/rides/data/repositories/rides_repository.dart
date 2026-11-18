@@ -162,4 +162,9 @@ class RidesRepository {
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     }).eq('id', rideId);
   }
+
+  /// Permanently deletes an owned ride (cascades requests, agreements and messages)
+  Future<void> deleteRide(String rideId) async {
+    await _client.from('rides').delete().eq('id', rideId);
+  }
 }

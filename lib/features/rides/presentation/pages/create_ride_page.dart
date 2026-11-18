@@ -40,14 +40,14 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
   double? _destLon;
 
   int get _maxSeatsForVehicle {
-    if (_rideCategory == 'general_travel') return 6;
+    if (_rideCategory == 'general_travel') return 8;
     switch (_vehicleType) {
       case 'bike':
-        return 2;
+        return 3;
       case 'car':
-        return 7;
+        return 8;
       default:
-        return 6;
+        return 12;
     }
   }
 
@@ -55,12 +55,11 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
     setState(() {
       _vehicleType = type;
       if (type == 'bike') {
-        _seats = _seats.clamp(1, 2);
+        _seats = 1;
       } else if (type == 'car') {
-        if (_seats < 1) _seats = 4;
-        if (_seats > 7) _seats = 7;
+        _seats = 4;
       } else {
-        if (_seats > 6) _seats = 6;
+        _seats = 6;
       }
     });
   }
@@ -463,12 +462,12 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                                 const SizedBox(height: 2),
                                 Text(
                                   _rideCategory == 'general_travel'
-                                      ? 'अधिकतम 6 सह-यात्री'
+                                      ? 'अधिकतम 8 सह-यात्री'
                                       : (_vehicleType == 'bike'
-                                          ? '🏍️ बाइक: अधिकतम 2 सीटें'
+                                          ? '🏍️ बाइक: डिफ़ॉल्ट 1 सीट (1-3 उपलब्ध)'
                                           : (_vehicleType == 'car'
-                                              ? '🚗 कार: 1 से 7 सीटें'
-                                              : 'अधिकतम 6 सीटें')),
+                                              ? '🚗 कार: डिफ़ॉल्ट 4 सीटें (1-8 उपलब्ध)'
+                                              : '🚐 अन्य: डिफ़ॉल्ट 6 सीटें (1-12 उपलब्ध)')),
                                   style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
                                 ),
                               ],

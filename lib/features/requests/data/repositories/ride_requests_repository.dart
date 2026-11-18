@@ -109,6 +109,11 @@ class RideRequestsRepository {
     }).eq('id', requestId);
   }
 
+  /// Permanently deletes a ride request
+  Future<void> deleteRequest(String requestId) async {
+    await _client.from('ride_requests').delete().eq('id', requestId);
+  }
+
   /// Fetches ALL incoming requests for any ride owned by this driver
   Future<List<Map<String, dynamic>>> getAllIncomingRequestsForDriver(String driverId) async {
     final response = await _client

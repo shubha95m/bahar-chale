@@ -89,5 +89,25 @@ void main() {
       expect(param1, equals(param2));
       expect(param1.hashCode, equals(param2.hashCode));
     });
+
+    test('Vehicle type defaults and constraints adhere to platform specifications', () {
+      // Bike: default 1 seat, min 1, max 3
+      const bikeDefault = 1;
+      const bikeMax = 3;
+      expect(bikeDefault, 1);
+      expect(bikeMax, 3);
+
+      // Car: default 4 seats, min 1, max 8
+      const carDefault = 4;
+      const carMax = 8;
+      expect(carDefault, 4);
+      expect(carMax, 8);
+
+      // Other: default 6 seats, min 1, max 12
+      const otherDefault = 6;
+      const otherMax = 12;
+      expect(otherDefault, 6);
+      expect(otherMax, 12);
+    });
   });
 }

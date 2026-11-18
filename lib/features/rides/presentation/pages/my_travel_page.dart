@@ -10,6 +10,7 @@ import '../../../../core/widgets/app_bottom_bar.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../../chat/presentation/providers/chat_provider.dart';
+import '../../../home/presentation/providers/home_provider.dart';
 import '../../../notifications/presentation/providers/notifications_provider.dart';
 import '../../../notifications/presentation/widgets/notifications_sheet.dart';
 import '../../../requests/domain/entities/passenger_request.dart';
@@ -103,7 +104,7 @@ class MyTravelPage extends ConsumerWidget {
             _buildIncomingTab(context, ref, user.id, incomingAsync),
 
             // TAB 2: Rides posted by me
-            _buildMyDrivesTab(context, ref, user.id, myRidesAsync),
+            _buildMyDrivesTab(context, ref, user.id, s, myRidesAsync),
 
             // TAB 3: Requests I sent to other drivers + My posted itineraries
             _buildMySentRequestsTab(context, ref, user.id, s, myRequestsAsync, myPassengerRequestsAsync),
@@ -443,6 +444,7 @@ class MyTravelPage extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     String userId,
+    AppStrings s,
     AsyncValue<dynamic> myRidesAsync,
   ) {
     return myRidesAsync.when(
@@ -494,22 +496,35 @@ class MyTravelPage extends ConsumerWidget {
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: isFullyBooked
-                                  ? Colors.red.withOpacity(0.1)
-                                  : AppTheme.primaryGreen.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              isFullyBooked ? 'फुल (Full)' : 'सक्रिय (Open)',
-                              style: TextStyle(
-                                color: isFullyBooked ? Colors.red.shade700 : AppTheme.primaryGreen,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 11,
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: isFullyBooked
+                                      ? Colors.red.withOpacity(0.1)
+                                      : AppTheme.primaryGreen.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  isFullyBooked ? (s.isHindi ? 'फुल (Full)' : 'Full') : (s.isHindi ? 'सक्रिय (Open)' : 'Open'),
+                                  style: TextStyle(
+                                    color: isFullyBooked ? Colors.red.shade700 : AppTheme.primaryGreen,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                  ),
+                                ),
                               ),
-                            ),
+                              const SizedBox(width: 4),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 20),
+                                tooltip: s.isHindi ? 'सवारी हटाएं' : 'Delete Ride',
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: () => _confirmDeleteRide(context, ref, ride.id, userId, s),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -692,12 +707,23 @@ class MyTravelPage extends ConsumerWidget {
                                     s.isHindi ? 'चालक सीधे आपको संदेश भेज सकेंगे' : 'Drivers can reach out to you',
                                     style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: AppTheme.textMuted),
                                   ),
-                                  TextButton(
-                                    onPressed: () async {
-                                      await ref.read(passengerRequestActionNotifierProvider.notifier).cancel(req.id);
-                                      ref.invalidate(myPassengerRequestsProvider(userId));
-                                    },
-                                    child: Text(s.isHindi ? 'रद्द करें' : 'Cancel', style: const TextStyle(color: Colors.red, fontSize: 12)),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TextButton(
+                                        onPressed: () async {
+                                          await ref.read(passengerRequestActionNotifierProvider.notifier).cancel(req.id);
+                                          ref.invalidate(myPassengerRequestsProvider(userId));
+                                        },
+                                        child: Text(s.isHindi ? 'रद्द करें' : 'Cancel', style: const TextStyle(color: Colors.amber, fontSize: 12)),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 18),
+                                        tooltip: s.isHindi ? 'अनुरोध हटाएं' : 'Delete Request',
+                                        onPressed: () => _confirmDeletePassengerRequest(context, ref, req.id, userId, s),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -867,11 +893,16 @@ class MyTravelPage extends ConsumerWidget {
                                   tooltip: 'Google Maps',
                                   icon: const Icon(Icons.map_outlined, color: Colors.blueAccent),
                                   onPressed: () => MapLauncher.openDirections(
-                                origin: origin,
-                                destination: dest,
-                                originArea: originArea,
-                                destinationArea: destArea,
-                              ),
+                                    origin: origin,
+                                    destination: dest,
+                                    originArea: originArea,
+                                    destinationArea: destArea,
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: s.isHindi ? 'अनुरोध हटाएं' : 'Delete Request',
+                                  icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+                                  onPressed: () => _confirmDeleteRideRequest(context, ref, reqId, userId, s),
                                 ),
                               ],
                             ),
@@ -887,6 +918,125 @@ class MyTravelPage extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmDeleteRide(BuildContext context, WidgetRef ref, String rideId, String userId, AppStrings s) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        title: Text(s.isHindi ? 'सवारी हटाएं?' : 'Delete Ride?'),
+        content: Text(s.isHindi
+            ? 'क्या आप वाकई इस सवारी को हटाना चाहते हैं? इससे जुड़े सभी अनुरोध व बातचीत हटा दिए जाएंगे।'
+            : 'Are you sure you want to delete this ride? All associated requests and messages will be permanently removed.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(s.cancelText),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(s.isHindi ? 'हां, हटाएं' : 'Yes, Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final success = await ref.read(rideActionNotifierProvider.notifier).deleteRide(rideId);
+      if (context.mounted) {
+        AppSnackBar.show(
+          context,
+          message: success
+              ? (s.isHindi ? 'सवारी सफलतापूर्वक हटा दी गई।' : 'Ride deleted successfully.')
+              : (s.isHindi ? 'सवारी हटाने में त्रुटि।' : 'Failed to delete ride.'),
+          isSuccess: success,
+          isError: !success,
+        );
+        ref.invalidate(myRidesProvider(userId));
+        ref.invalidate(recentRidesFeedProvider);
+      }
+    }
+  }
+
+  Future<void> _confirmDeletePassengerRequest(BuildContext context, WidgetRef ref, String reqId, String userId, AppStrings s) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        title: Text(s.isHindi ? 'यात्रा अनुरोध हटाएं?' : 'Delete Travel Request?'),
+        content: Text(s.isHindi
+            ? 'क्या आप वाकई इस यात्रा अनुरोध को हटाना चाहते हैं?'
+            : 'Are you sure you want to delete this travel request?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(s.cancelText),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(s.isHindi ? 'हां, हटाएं' : 'Yes, Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final success = await ref.read(passengerRequestActionNotifierProvider.notifier).delete(reqId);
+      if (context.mounted) {
+        AppSnackBar.show(
+          context,
+          message: success
+              ? (s.isHindi ? 'यात्रा अनुरोध हटा दिया गया।' : 'Travel request deleted.')
+              : (s.isHindi ? 'अनुरोध हटाने में त्रुटि।' : 'Failed to delete request.'),
+          isSuccess: success,
+          isError: !success,
+        );
+        ref.invalidate(myPassengerRequestsProvider(userId));
+        ref.invalidate(allOpenPassengerRequestsProvider);
+      }
+    }
+  }
+
+  Future<void> _confirmDeleteRideRequest(BuildContext context, WidgetRef ref, String reqId, String userId, AppStrings s) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        title: Text(s.isHindi ? 'अनुरोध हटाएं?' : 'Delete Request?'),
+        content: Text(s.isHindi
+            ? 'क्या आप वाकई इस सवारी अनुरोध को हटाना चाहते हैं?'
+            : 'Are you sure you want to delete this ride request?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(s.cancelText),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(s.isHindi ? 'हां, हटाएं' : 'Yes, Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final success = await ref.read(requestActionNotifierProvider.notifier).delete(reqId);
+      if (context.mounted) {
+        AppSnackBar.show(
+          context,
+          message: success
+              ? (s.isHindi ? 'अनुरोध हटा दिया गया।' : 'Request deleted.')
+              : (s.isHindi ? 'अनुरोध हटाने में त्रुटि।' : 'Failed to delete request.'),
+          isSuccess: success,
+          isError: !success,
+        );
+        ref.invalidate(myRequestsProvider(userId));
+      }
+    }
   }
 
   Widget _buildEmptyTab({
