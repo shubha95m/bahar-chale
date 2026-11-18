@@ -300,7 +300,7 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'मुफ़्त नक्शा सुझाव (0 लागत)',
+                          'स्थान सुझाव (Live Suggestions)',
                           style: TextStyle(fontSize: 10, color: AppTheme.textMuted),
                         ),
                         TextButton.icon(
@@ -311,7 +311,7 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
                           ),
                           icon: const Icon(Icons.map_outlined, size: 12, color: Colors.blueAccent),
                           label: const Text(
-                            'Maps पर खोलें',
+                            'Google Maps ↗',
                             style: TextStyle(fontSize: 10.5, color: Colors.blueAccent, fontWeight: FontWeight.bold),
                           ),
                           onPressed: () {

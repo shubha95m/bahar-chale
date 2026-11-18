@@ -48,7 +48,8 @@ class AgreementPage extends ConsumerWidget {
 
           return SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 90),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 600),
                 child: Column(
@@ -172,21 +173,48 @@ class AgreementPage extends ConsumerWidget {
                     const SizedBox(height: 24),
 
                     // Action 1: Confirm Agreement Button
-                    ElevatedButton(
-                      onPressed: () async {
-                        final success = await ref.read(agreementNotifierProvider.notifier).confirm(agreement.id);
-                        if (context.mounted) {
-                          AppSnackBar.show(
-                            context,
-                            message: success ? 'पुष्टि सफलतापूर्वक दर्ज की गई!' : 'पुष्टि विफल। कृपया पुनः प्रयास करें।',
-                            isSuccess: success,
-                            isError: !success,
-                          );
-                          ref.invalidate(agreementByRequestProvider(requestId));
-                        }
-                      },
-                      child: const Text('मेरी ओर से पुष्टि करें (Confirm Arrangement)'),
-                    ),
+                    if (!agreement.isFullyConfirmed)
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryGreen,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        icon: const Icon(Icons.check_circle_outline_rounded, size: 20),
+                        onPressed: () async {
+                          final success = await ref.read(agreementNotifierProvider.notifier).confirm(agreement.id);
+                          if (context.mounted) {
+                            AppSnackBar.show(
+                              context,
+                              message: success ? 'पुष्टि सफलतापूर्वक दर्ज की गई!' : 'पुष्टि विफल। कृपया पुनः प्रयास करें।',
+                              isSuccess: success,
+                              isError: !success,
+                            );
+                            ref.invalidate(agreementByRequestProvider(requestId));
+                          }
+                        },
+                        label: const Text('मेरी ओर से पुष्टि करें (Confirm Arrangement)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.green.shade400),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.verified_rounded, color: Colors.green, size: 22),
+                            SizedBox(width: 8),
+                            Text(
+                              'सहमति पत्र दोनों पक्षों द्वारा पुष्टित है! ✓',
+                              style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 14.5),
+                            ),
+                          ],
+                        ),
+                      ),
                     const SizedBox(height: 12),
 
                     // Action 2: Chat Button

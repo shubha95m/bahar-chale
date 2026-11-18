@@ -114,22 +114,22 @@ class ConversationsPage extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      const Text(
-                        'अभी कोई सक्रिय बातचीत नहीं है',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                      Text(
+                        s.noConversationsTitle,
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'जब आप किसी यात्रा के लिए अनुरोध करेंगे या कोई आपकी सवारी में शामिल होना चाहेगा, तो यहाँ सीधे संवाद शुरू हो जाएगा।',
-                        style: TextStyle(fontSize: 13, color: AppTheme.textMuted, height: 1.4),
+                      Text(
+                        s.noConversationsSubtitle,
+                        style: const TextStyle(fontSize: 13, color: AppTheme.textMuted, height: 1.4),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
                         onPressed: () => context.push('/search-rides'),
                         icon: const Icon(Icons.search_rounded),
-                        label: const Text('उपलब्ध सवारियां खोजें'),
+                        label: Text(s.isHindi ? 'उपलब्ध सवारियां खोजें' : 'Browse Available Rides'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.primaryGreen,
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),

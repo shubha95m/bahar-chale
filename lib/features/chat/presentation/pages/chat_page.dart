@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../app/theme/app_theme.dart';
+import '../../../../core/localization/app_strings.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
@@ -56,13 +57,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final s = ref.watch(stringsProvider);
     final chatState = ref.watch(chatControllerProvider(widget.requestId));
     final currentUser = ref.watch(currentUserProvider);
 
     if (currentUser == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('बातचीत (Chat)')),
-        body: const Center(child: Text('बातचीत देखने के लिए कृपया साइन इन करें।')),
+        appBar: AppBar(title: Text(s.isHindi ? 'बातचीत (Chat)' : 'Chat')),
+        body: Center(child: Text(s.isHindi ? 'बातचीत देखने के लिए कृपया साइन इन करें।' : 'Please sign in to view chat.')),
       );
     }
 
@@ -70,10 +72,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('बातचीत (Realtime Chat)'),
+        title: Text(s.isHindi ? 'बातचीत (Chat)' : 'Chat'),
         actions: [
           IconButton(
-            tooltip: 'सहमति पत्र (Agreement)',
+            tooltip: s.isHindi ? 'सहमति पत्र (Agreement)' : 'Travel Agreement',
             icon: const Icon(Icons.assignment_turned_in_outlined, color: AppTheme.primaryGreen),
             onPressed: () => context.push('/agreement/${widget.requestId}'),
           ),
@@ -89,20 +91,20 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               child: chatState.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : chatState.messages.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.chat_outlined, size: 56, color: Color(0xFFCBD5E1)),
-                              SizedBox(height: 12),
+                              const Icon(Icons.chat_outlined, size: 56, color: Color(0xFFCBD5E1)),
+                              const SizedBox(height: 12),
                               Text(
-                                'अभी कोई संदेश नहीं है।',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                s.isHindi ? 'अभी कोई संदेश नहीं है।' : 'No messages yet.',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                               ),
-                              SizedBox(height: 4),
+                              const SizedBox(height: 4),
                               Text(
-                                'यात्रा समन्वय के लिए पहला संदेश भेजें!',
-                                style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                                s.isHindi ? 'यात्रा समन्वय के लिए पहला संदेश भेजें!' : 'Send a message to coordinate your journey!',
+                                style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
                               ),
                             ],
                           ),
@@ -193,7 +195,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       controller: _textController,
                       textCapitalization: TextCapitalization.sentences,
                       decoration: InputDecoration(
-                        hintText: 'संदेश लिखें...',
+                        hintText: s.isHindi ? 'संदेश लिखें...' : 'Type a message...',
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),

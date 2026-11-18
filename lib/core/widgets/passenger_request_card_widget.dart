@@ -187,7 +187,7 @@ class PassengerRequestCardWidget extends ConsumerWidget {
                           ),
                           icon: const Icon(Icons.handshake_outlined, size: 16),
                           label: Text(
-                            s.isHindi ? 'गाड़ी में ले जाएं (Offer)' : 'Offer Ride',
+                            s.isHindi ? 'सवारी प्रस्तुत करें (Offer)' : 'Offer Ride',
                             style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
                           ),
                           onPressed: () => ReachOutDialog.show(context, request),
