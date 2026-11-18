@@ -1,13 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:bahar_chale/features/authentication/presentation/providers/auth_provider.dart';
+import 'package:bahar_chale/features/chat/presentation/providers/chat_provider.dart';
+import 'package:bahar_chale/features/notifications/presentation/providers/notifications_provider.dart';
+import 'package:bahar_chale/features/requests/presentation/providers/passenger_requests_provider.dart';
 import 'package:bahar_chale/features/rides/presentation/pages/search_rides_page.dart';
+import 'package:bahar_chale/features/rides/presentation/providers/rides_provider.dart';
 
 void main() {
   testWidgets('SearchRidesPage renders universal search bar, filter chips and popular routes', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(
+      ProviderScope(
+        overrides: [
+          currentUserProvider.overrideWithValue(null),
+          allAvailableRidesProvider.overrideWith((ref, filter) => const []),
+          allOpenPassengerRequestsProvider.overrideWith((ref, filter) => const []),
+          unreadConversationsCountProvider.overrideWith((ref) => Stream.value(0)),
+          unreadNotificationsCountProvider.overrideWith((ref) => Stream.value(0)),
+        ],
+        child: const MaterialApp(
           home: SearchRidesPage(),
         ),
       ),

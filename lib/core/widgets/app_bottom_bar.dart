@@ -52,6 +52,7 @@ class AppBottomBar extends ConsumerWidget {
               break;
             case 3:
               context.go('/conversations');
+              ref.invalidate(unreadConversationsCountProvider);
               break;
             case 4:
               context.go('/profile');

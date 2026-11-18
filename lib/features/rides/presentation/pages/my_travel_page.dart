@@ -68,7 +68,10 @@ class MyTravelPage extends ConsumerWidget {
                 child: const Icon(Icons.chat_bubble_outline_rounded),
               ),
               tooltip: s.navMessagesText,
-              onPressed: () => context.push('/conversations'),
+              onPressed: () async {
+                await context.push('/conversations');
+                ref.invalidate(unreadConversationsCountProvider);
+              },
             ),
             const SizedBox(width: 8),
           ],

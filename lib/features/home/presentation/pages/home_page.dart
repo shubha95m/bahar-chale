@@ -87,7 +87,10 @@ class _HomePageState extends ConsumerState<HomePage> {
               backgroundColor: Colors.red.shade700,
               child: const Icon(Icons.chat_bubble_outline_rounded, color: AppTheme.primaryGreen),
             ),
-            onPressed: () => context.push('/conversations'),
+            onPressed: () async {
+              await context.push('/conversations');
+              ref.invalidate(unreadConversationsCountProvider);
+            },
           ),
           IconButton(
             tooltip: s.logoutText,

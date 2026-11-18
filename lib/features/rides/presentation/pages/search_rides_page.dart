@@ -125,7 +125,10 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
               backgroundColor: Colors.red.shade700,
               child: const Icon(Icons.chat_bubble_outline_rounded, color: AppTheme.primaryGreen),
             ),
-            onPressed: () => context.push('/conversations'),
+            onPressed: () async {
+              await context.push('/conversations');
+              ref.invalidate(unreadConversationsCountProvider);
+            },
           ),
           const SizedBox(width: 8),
         ],
@@ -495,11 +498,13 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
     VoidCallback? onAction,
   }) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
             Icon(icon, size: 64, color: const Color(0xFFCBD5E1)),
             const SizedBox(height: 16),
             Text(
@@ -529,6 +534,7 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 }

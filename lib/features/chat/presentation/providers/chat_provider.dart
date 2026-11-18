@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../domain/entities/chat_message.dart';
@@ -9,39 +10,34 @@ final chatRepositoryProvider = Provider<ChatRepository>((ref) {
 });
 
 /// Stream provider for realtime unread conversation badge count
-final unreadConversationsCountProvider = StreamProvider<int>((ref) async* {
+final unreadConversationsCountProvider = StreamProvider<int>((ref) {
   final user = ref.watch(currentUserProvider);
   if (user == null) {
-    yield 0;
-    return;
+    return Stream.value(0);
   }
 
   final repo = ref.watch(chatRepositoryProvider);
-  final controller = StreamController<int>();
+  final controller = StreamController<int>.broadcast();
 
-  // Initial fetch
-  final initialCount = await repo.getUnreadConversationsCount(user.id);
-  if (!controller.isClosed) {
-    controller.add(initialCount);
+  Future<void> update() async {
+    try {
+      final count = await repo.getUnreadConversationsCount(user.id);
+      if (!controller.isClosed) {
+        controller.add(count);
+      }
+    } catch (_) {}
   }
 
-  // Realtime subscription for incoming messages
+  // 1. Initial fetch
+  update();
+
+  // 2. Realtime subscription for incoming messages
   final channel = repo.subscribeToUnreadMessages(
-    onChange: () async {
-      final updated = await repo.getUnreadConversationsCount(user.id);
-      if (!controller.isClosed) {
-        controller.add(updated);
-      }
-    },
+    onChange: () => update(),
   );
 
-  // Periodic safety check every 15 seconds
-  final timer = Timer.periodic(const Duration(seconds: 15), (_) async {
-    final updated = await repo.getUnreadConversationsCount(user.id);
-    if (!controller.isClosed) {
-      controller.add(updated);
-    }
-  });
+  // 3. Periodic safety check every 5 seconds for instant badge sync
+  final timer = Timer.periodic(const Duration(seconds: 5), (_) => update());
 
   ref.onDispose(() {
     timer.cancel();
@@ -49,7 +45,7 @@ final unreadConversationsCountProvider = StreamProvider<int>((ref) async* {
     controller.close();
   });
 
-  yield* controller.stream;
+  return controller.stream;
 });
 
 class ChatState {
@@ -80,6 +76,7 @@ class ChatController extends StateNotifier<ChatState> {
   final ChatRepository _repository;
   final String _requestId;
   final String? _currentUserId;
+  RealtimeChannel? _subscription;
 
   ChatController(this._repository, this._requestId, [this._currentUserId]) : super(const ChatState(isLoading: true)) {
     _init();
@@ -97,11 +94,11 @@ class ChatController extends StateNotifier<ChatState> {
       state = state.copyWith(messages: history, isLoading: false);
 
       // Subscribe to Realtime channel
-      _repository.subscribeToMessages(
+      _subscription = _repository.subscribeToMessages(
         requestId: _requestId,
         onInsert: (payload) {
           final newMsg = ChatMessage.fromMap(payload);
-          // If receiving a message while in the chat screen, mark it read
+          // If receiving a message while actively inside the chat screen, mark it read
           if (_currentUserId != null && newMsg.senderId != _currentUserId) {
             _repository.markMessagesAsRead(
               requestId: _requestId,
@@ -117,6 +114,12 @@ class ChatController extends StateNotifier<ChatState> {
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
+  }
+
+  @override
+  void dispose() {
+    _subscription?.unsubscribe();
+    super.dispose();
   }
 
   Future<bool> send({required String senderId, required String body}) async {
@@ -138,7 +141,7 @@ class ChatController extends StateNotifier<ChatState> {
   }
 }
 
-final chatControllerProvider = StateNotifierProvider.family<ChatController, ChatState, String>((ref, requestId) {
+final chatControllerProvider = StateNotifierProvider.autoDispose.family<ChatController, ChatState, String>((ref, requestId) {
   final repo = ref.watch(chatRepositoryProvider);
   final user = ref.watch(currentUserProvider);
   return ChatController(repo, requestId, user?.id);
