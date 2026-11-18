@@ -11,6 +11,7 @@ import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../../home/presentation/providers/home_provider.dart';
 import '../../../requests/presentation/providers/requests_provider.dart';
 import '../providers/rides_provider.dart';
+import '../widgets/cancellation_warning_dialog.dart';
 
 class RideDetailsPage extends ConsumerStatefulWidget {
   final String rideId;
@@ -31,27 +32,19 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
     super.dispose();
   }
 
-  Future<void> _confirmDeleteRide(AppStrings s) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        title: Text(s.isHindi ? 'सवारी हटाएं?' : 'Delete Ride?'),
-        content: Text(s.isHindi
-            ? 'क्या आप वाकई इस सवारी को हटाना चाहते हैं? इससे जुड़े सभी अनुरोध भी हटा दिए जाएंगे।'
-            : 'Are you sure you want to delete this ride? All associated requests will also be removed.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(s.cancelText),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(s.isHindi ? 'हां, हटाएं' : 'Yes, Delete'),
-          ),
-        ],
-      ),
+  Future<void> _confirmDeleteRide(
+    AppStrings s, {
+    bool hasLinkedTravelers = false,
+    String route = '',
+  }) async {
+    final confirmed = await CancellationWarningDialog.show(
+      context,
+      s: s,
+      title: s.isHindi ? 'सवारी रद्द / हटाएं?' : 'Cancel / Delete Ride?',
+      tripDescription: route,
+      hasLinkedTravelers: hasLinkedTravelers,
+      role: 'driver',
+      remainingCancellations: 2,
     );
 
     if (confirmed == true) {
@@ -60,7 +53,7 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
       AppSnackBar.show(
         context,
         message: success
-            ? (s.isHindi ? 'सवारी सफलतापूर्वक हटा दी गई।' : 'Ride deleted successfully.')
+            ? (s.isHindi ? 'सवारी रद्द कर दी गई एवं यात्रियों को सूचित कर दिया गया।' : 'Ride cancelled and passengers notified.')
             : (s.isHindi ? 'सवारी हटाने में त्रुटि।' : 'Failed to delete ride.'),
         isSuccess: success,
         isError: !success,
@@ -218,7 +211,11 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                 return IconButton(
                   icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
                   tooltip: s.isHindi ? 'सवारी हटाएं' : 'Delete Ride',
-                  onPressed: () => _confirmDeleteRide(s),
+                  onPressed: () => _confirmDeleteRide(
+                    s,
+                    hasLinkedTravelers: ride.availableSeats < ride.totalSeats,
+                    route: ride.routeDisplay,
+                  ),
                 );
               }
               return const SizedBox.shrink();
@@ -579,7 +576,11 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                           s.isHindi ? 'यह सवारी हटाएं (Delete Ride)' : 'Delete this Ride',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        onPressed: () => _confirmDeleteRide(s),
+                        onPressed: () => _confirmDeleteRide(
+                          s,
+                          hasLinkedTravelers: ride.availableSeats < ride.totalSeats,
+                          route: ride.routeDisplay,
+                        ),
                       ),
                     ],
 

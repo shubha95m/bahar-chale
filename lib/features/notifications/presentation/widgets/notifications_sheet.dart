@@ -167,8 +167,10 @@ class NotificationsSheet extends ConsumerWidget {
                           ref.read(notificationsControllerProvider.notifier).markAsRead(notif.id);
                           Navigator.pop(ctx);
 
-                          // Deep link if referenceId exists
-                          if (notif.referenceId != null && notif.referenceId!.isNotEmpty) {
+                          // Deep link if referenceId exists or redirect to search options on cancellation
+                          if (notif.notificationType.contains('cancel')) {
+                            context.push('/search-rides');
+                          } else if (notif.referenceId != null && notif.referenceId!.isNotEmpty) {
                             if (notif.notificationType.contains('agreement') ||
                                 notif.notificationType.contains('accept')) {
                               context.push('/agreement/${notif.referenceId}');

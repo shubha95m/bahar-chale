@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../app/configuration/supabase_config.dart';
 import '../../domain/entities/ride_request.dart';
@@ -109,8 +110,82 @@ class RideRequestsRepository {
     }).eq('id', requestId);
   }
 
-  /// Permanently deletes a ride request
+  /// Permanently deletes a ride request.
+  /// 1. Notifies the driver that the passenger cancelled their seat.
+  /// 2. Restores available seats on the ride if it was already accepted.
+  /// 3. Records cancellation in `trip_cancellations` for backend tracking and abuse prevention.
   Future<void> deleteRequest(String requestId) async {
+    // 1. Fetch request details to notify driver and restore seats if needed
+    Map<String, dynamic>? req;
+    try {
+      req = await getRequestWithDetails(requestId);
+    } catch (e) {
+      debugPrint('Notice: Error fetching request details before deletion: $e');
+    }
+
+    final ride = req?['rides'] as Map<String, dynamic>?;
+    final driverId = ride?['owner_id']?.toString();
+    final origin = ride?['origin_city'] ?? 'प्रस्थान';
+    final dest = ride?['destination_city'] ?? 'गंतव्य';
+    final status = req?['status']?.toString();
+    final seats = (req?['seats_requested'] as int?) ?? 1;
+    final rideId = req?['ride_id']?.toString();
+
+    // 2. Notify driver if request was pending or accepted
+    if (driverId != null && (status == 'pending' || status == 'accepted')) {
+      try {
+        await _client.from('notifications').insert({
+          'recipient_id': driverId,
+          'notification_type': 'request_cancelled',
+          'title': 'यात्री द्वारा सीट अनुरोध रद्द (Seat Cancelled)',
+          'body': 'यात्री ने $origin → $dest यात्रा के लिए अपना अनुरोध रद्द कर दिया है।',
+          'reference_id': rideId,
+        });
+      } catch (e) {
+        debugPrint('Error notifying driver of request cancellation: $e');
+      }
+
+      // Restore available seats if accepted
+      if (status == 'accepted' && rideId != null) {
+        try {
+          final currRide = await _client.from('rides').select('available_seats').eq('id', rideId).maybeSingle();
+          if (currRide != null) {
+            final currAvail = (currRide['available_seats'] as int?) ?? 0;
+            await _client.from('rides').update({'available_seats': currAvail + seats}).eq('id', rideId);
+          }
+        } catch (e) {
+          debugPrint('Error restoring ride available seats: $e');
+        }
+      }
+    }
+
+    // 3. Record in trip_cancellations
+    final currentUserId = _client.auth.currentUser?.id;
+    if (currentUserId != null) {
+      try {
+        await _client.from('trip_cancellations').insert({
+          'user_id': currentUserId,
+          'entity_type': 'ride_request',
+          'entity_id': requestId,
+          'reason': 'Passenger cancelled ride request',
+          'affected_users_count': driverId != null ? 1 : 0,
+        });
+
+        final profile = await _client
+            .from('profiles')
+            .select('cancellation_count')
+            .eq('id', currentUserId)
+            .maybeSingle();
+        final currCount = (profile?['cancellation_count'] as int?) ?? 0;
+        await _client.from('profiles').update({
+          'cancellation_count': currCount + 1,
+        }).eq('id', currentUserId);
+      } catch (e) {
+        debugPrint('Error recording cancellation in database: $e');
+      }
+    }
+
+    // 4. Delete the request
     await _client.from('ride_requests').delete().eq('id', requestId);
   }
 

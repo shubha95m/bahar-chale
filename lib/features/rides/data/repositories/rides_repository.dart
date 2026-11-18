@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../app/configuration/supabase_config.dart';
 import '../../../../core/database/local_database.dart';
@@ -163,8 +164,80 @@ class RidesRepository {
     }).eq('id', rideId);
   }
 
-  /// Permanently deletes an owned ride (cascades requests, agreements and messages)
-  Future<void> deleteRide(String rideId) async {
+  /// Permanently deletes an owned ride.
+  /// 1. Dispatches instant notifications to all linked passengers with alternate ride suggestions.
+  /// 2. Records cancellation in `trip_cancellations` for backend tracking and abuse prevention.
+  /// 3. Safely deletes the ride and cascades child records.
+  Future<void> deleteRide(String rideId, {String? reason}) async {
+    // 1. Fetch ride details to craft informative notification
+    Ride? ride;
+    try {
+      ride = await getRideDetails(rideId);
+    } catch (e) {
+      debugPrint('Notice: Error fetching ride details before deletion: $e');
+    }
+
+    // 2. Fetch all linked passengers from ride_requests
+    List<String> linkedPassengerIds = [];
+    try {
+      final requests = await _client
+          .from('ride_requests')
+          .select('requester_id, status')
+          .eq('ride_id', rideId);
+      linkedPassengerIds = (requests as List)
+          .map((r) => r['requester_id']?.toString())
+          .whereType<String>()
+          .toSet()
+          .toList();
+    } catch (e) {
+      debugPrint('Notice: Error fetching linked passengers: $e');
+    }
+
+    // 3. Send cancellation notifications to all linked passengers
+    final origin = ride?.originCity ?? 'प्रस्थान';
+    final dest = ride?.destinationCity ?? 'गंतव्य';
+    for (final passengerId in linkedPassengerIds) {
+      try {
+        await _client.from('notifications').insert({
+          'recipient_id': passengerId,
+          'notification_type': 'trip_cancelled',
+          'title': 'यात्रा रद्द हो गई (Ride Cancelled by Driver)',
+          'body': 'चालक द्वारा $origin → $dest की यात्रा रद्द कर दी गई है। कृपया अपनी अगली व्यवस्था के लिए अन्य उपलब्ध सवारियां देखें।',
+          'reference_id': rideId,
+        });
+      } catch (e) {
+        debugPrint('Error dispatching cancellation notification: $e');
+      }
+    }
+
+    // 4. Record cancellation in trip_cancellations for backend tracking
+    final currentUserId = _client.auth.currentUser?.id;
+    if (currentUserId != null) {
+      try {
+        await _client.from('trip_cancellations').insert({
+          'user_id': currentUserId,
+          'entity_type': 'driver_ride',
+          'entity_id': rideId,
+          'reason': reason ?? 'Driver cancelled ride',
+          'affected_users_count': linkedPassengerIds.length,
+        });
+
+        // Increment cancellation count on user profile
+        final profile = await _client
+            .from('profiles')
+            .select('cancellation_count')
+            .eq('id', currentUserId)
+            .maybeSingle();
+        final currCount = (profile?['cancellation_count'] as int?) ?? 0;
+        await _client.from('profiles').update({
+          'cancellation_count': currCount + 1,
+        }).eq('id', currentUserId);
+      } catch (e) {
+        debugPrint('Error recording cancellation in database: $e');
+      }
+    }
+
+    // 5. Delete the ride
     await _client.from('rides').delete().eq('id', rideId);
   }
 }
