@@ -70,4 +70,13 @@ class AgreementRepository {
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     }).eq('id', agreementId);
   }
+
+  /// Realtime stream of the agreement for this ride request
+  Stream<RideAgreement?> streamAgreementByRequestId(String requestId) {
+    return _client
+        .from('ride_agreements')
+        .stream(primaryKey: ['id'])
+        .eq('ride_request_id', requestId)
+        .asyncMap((_) => getAgreementByRequestId(requestId));
+  }
 }

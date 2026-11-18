@@ -8,39 +8,39 @@ final notificationsRepositoryProvider = Provider<NotificationsRepository>((ref) 
   return NotificationsRepository();
 });
 
-/// Stream of unread notification count with instant Realtime triggers
-final unreadNotificationsCountProvider = StreamProvider<int>((ref) async* {
+/// Live, Realtime Stream of user notifications with instant database triggers and safety sync
+final userNotificationsProvider = StreamProvider<List<AppNotification>>((ref) async* {
   final user = ref.watch(currentUserProvider);
   if (user == null) {
-    yield 0;
+    yield [];
     return;
   }
 
   final repo = ref.watch(notificationsRepositoryProvider);
-  final controller = StreamController<int>();
+  final controller = StreamController<List<AppNotification>>();
 
-  // Fetch initial unread count
-  final initialCount = await repo.getUnreadCount(user.id);
+  // Initial fetch
+  final initialList = await repo.getNotifications(user.id);
   if (!controller.isClosed) {
-    controller.add(initialCount);
+    controller.add(initialList);
   }
 
   // Subscribe to realtime database changes for this user's notifications
   final channel = repo.subscribeToUserNotifications(
     userId: user.id,
     onChange: () async {
-      final updated = await repo.getUnreadCount(user.id);
+      final updatedList = await repo.getNotifications(user.id);
       if (!controller.isClosed) {
-        controller.add(updated);
+        controller.add(updatedList);
       }
     },
   );
 
-  // Periodic safety poll every 20 seconds as fallback
-  final timer = Timer.periodic(const Duration(seconds: 20), (_) async {
-    final count = await repo.getUnreadCount(user.id);
+  // Periodic safety poll every 5 seconds so notification count and list NEVER desync
+  final timer = Timer.periodic(const Duration(seconds: 5), (_) async {
+    final freshList = await repo.getNotifications(user.id);
     if (!controller.isClosed) {
-      controller.add(count);
+      controller.add(freshList);
     }
   });
 
@@ -53,13 +53,11 @@ final unreadNotificationsCountProvider = StreamProvider<int>((ref) async* {
   yield* controller.stream;
 });
 
-/// Notifications list provider
-final userNotificationsProvider = FutureProvider<List<AppNotification>>((ref) async {
-  final user = ref.watch(currentUserProvider);
-  if (user == null) return [];
-
-  final repo = ref.watch(notificationsRepositoryProvider);
-  return repo.getNotifications(user.id);
+/// Unread notification count derived directly from userNotificationsProvider.
+/// Guarantees count badge and notification sheet list are 100% in sync at all times.
+final unreadNotificationsCountProvider = Provider<AsyncValue<int>>((ref) {
+  final notifsAsync = ref.watch(userNotificationsProvider);
+  return notifsAsync.whenData((list) => list.where((n) => n.isUnread).length);
 });
 
 class NotificationsController extends StateNotifier<AsyncValue<void>> {

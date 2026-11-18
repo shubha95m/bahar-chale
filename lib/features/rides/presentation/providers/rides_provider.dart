@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../app/configuration/supabase_config.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../data/repositories/rides_repository.dart';
 import '../../domain/entities/ride.dart';
@@ -72,19 +75,87 @@ class BrowseRidesFilter {
   int get hashCode => (query ?? '').hashCode ^ (vehicleType ?? '').hashCode;
 }
 
-final allAvailableRidesProvider = FutureProvider.family<List<Ride>, BrowseRidesFilter>((ref, filter) async {
+/// Live Realtime stream of all available rides matching the filter.
+/// Automatically updates when new rides are created or seats change.
+final allAvailableRidesProvider = StreamProvider.family<List<Ride>, BrowseRidesFilter>((ref, filter) async* {
   final user = ref.watch(currentUserProvider);
   final repo = ref.watch(ridesRepositoryProvider);
-  return repo.getAllAvailableRides(
-    queryText: filter.query,
-    vehicleType: filter.vehicleType,
-    excludeUserId: user?.id,
-  );
+  final controller = StreamController<List<Ride>>();
+
+  Future<List<Ride>> fetch() => repo.getAllAvailableRides(
+        queryText: filter.query,
+        vehicleType: filter.vehicleType,
+        excludeUserId: user?.id,
+      );
+
+  final initial = await fetch();
+  if (!controller.isClosed) controller.add(initial);
+
+  final channel = SupabaseConfig.client
+      .channel('realtime:all_rides_feed')
+      .onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: 'public',
+        table: 'rides',
+        callback: (_) async {
+          final fresh = await fetch();
+          if (!controller.isClosed) controller.add(fresh);
+        },
+      )
+      .subscribe();
+
+  final timer = Timer.periodic(const Duration(seconds: 5), (_) async {
+    final fresh = await fetch();
+    if (!controller.isClosed) controller.add(fresh);
+  });
+
+  ref.onDispose(() {
+    timer.cancel();
+    channel.unsubscribe();
+    controller.close();
+  });
+
+  yield* controller.stream;
 });
 
-final myRidesProvider = FutureProvider.family<List<Ride>, String>((ref, userId) async {
+/// Live Realtime stream of rides published by this driver.
+final myRidesProvider = StreamProvider.family<List<Ride>, String>((ref, userId) async* {
   final repo = ref.watch(ridesRepositoryProvider);
-  return repo.getMyRides(userId);
+  final controller = StreamController<List<Ride>>();
+
+  final initial = await repo.getMyRides(userId);
+  if (!controller.isClosed) controller.add(initial);
+
+  final channel = SupabaseConfig.client
+      .channel('realtime:my_rides:$userId')
+      .onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: 'public',
+        table: 'rides',
+        filter: PostgresChangeFilter(
+          type: PostgresChangeFilterType.eq,
+          column: 'owner_id',
+          value: userId,
+        ),
+        callback: (_) async {
+          final fresh = await repo.getMyRides(userId);
+          if (!controller.isClosed) controller.add(fresh);
+        },
+      )
+      .subscribe();
+
+  final timer = Timer.periodic(const Duration(seconds: 4), (_) async {
+    final fresh = await repo.getMyRides(userId);
+    if (!controller.isClosed) controller.add(fresh);
+  });
+
+  ref.onDispose(() {
+    timer.cancel();
+    channel.unsubscribe();
+    controller.close();
+  });
+
+  yield* controller.stream;
 });
 
 final rideDetailsProvider = StreamProvider.family<Ride?, String>((ref, rideId) {

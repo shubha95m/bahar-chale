@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../app/configuration/supabase_config.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../data/repositories/passenger_requests_repository.dart';
 import '../../domain/entities/passenger_request.dart';
@@ -27,21 +30,89 @@ class BrowsePassengerFilter {
   int get hashCode => (query ?? '').hashCode ^ (vehicleType ?? '').hashCode ^ (excludeUserId ?? '').hashCode;
 }
 
+/// Live Realtime stream of open passenger travel requests (Home feed & Browse).
+/// Automatically updates when any traveler creates or deletes an itinerary.
 final allOpenPassengerRequestsProvider =
-    FutureProvider.family<List<PassengerRequest>, BrowsePassengerFilter>((ref, filter) async {
+    StreamProvider.family<List<PassengerRequest>, BrowsePassengerFilter>((ref, filter) async* {
   final user = ref.watch(currentUserProvider);
   final repo = ref.watch(passengerRequestsRepositoryProvider);
-  return repo.getAllOpenRequests(
-    queryText: filter.query,
-    vehicleType: filter.vehicleType,
-    excludeUserId: filter.excludeUserId ?? user?.id,
-  );
+  final controller = StreamController<List<PassengerRequest>>();
+
+  Future<List<PassengerRequest>> fetch() => repo.getAllOpenRequests(
+        queryText: filter.query,
+        vehicleType: filter.vehicleType,
+        excludeUserId: filter.excludeUserId ?? user?.id,
+      );
+
+  final initial = await fetch();
+  if (!controller.isClosed) controller.add(initial);
+
+  final channel = SupabaseConfig.client
+      .channel('realtime:all_passenger_requests')
+      .onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: 'public',
+        table: 'passenger_requests',
+        callback: (_) async {
+          final fresh = await fetch();
+          if (!controller.isClosed) controller.add(fresh);
+        },
+      )
+      .subscribe();
+
+  final timer = Timer.periodic(const Duration(seconds: 5), (_) async {
+    final fresh = await fetch();
+    if (!controller.isClosed) controller.add(fresh);
+  });
+
+  ref.onDispose(() {
+    timer.cancel();
+    channel.unsubscribe();
+    controller.close();
+  });
+
+  yield* controller.stream;
 });
 
+/// Live Realtime stream of itineraries posted by this user.
 final myPassengerRequestsProvider =
-    FutureProvider.family<List<PassengerRequest>, String>((ref, userId) async {
+    StreamProvider.family<List<PassengerRequest>, String>((ref, userId) async* {
   final repo = ref.watch(passengerRequestsRepositoryProvider);
-  return repo.getMyRequests(userId);
+  final controller = StreamController<List<PassengerRequest>>();
+
+  final initial = await repo.getMyRequests(userId);
+  if (!controller.isClosed) controller.add(initial);
+
+  final channel = SupabaseConfig.client
+      .channel('realtime:my_passenger_requests:$userId')
+      .onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: 'public',
+        table: 'passenger_requests',
+        filter: PostgresChangeFilter(
+          type: PostgresChangeFilterType.eq,
+          column: 'requester_id',
+          value: userId,
+        ),
+        callback: (_) async {
+          final fresh = await repo.getMyRequests(userId);
+          if (!controller.isClosed) controller.add(fresh);
+        },
+      )
+      .subscribe();
+
+  final timer = Timer.periodic(const Duration(seconds: 4), (_) async {
+    final fresh = await repo.getMyRequests(userId);
+    if (!controller.isClosed) controller.add(fresh);
+  });
+
+  ref.onDispose(() {
+    timer.cancel();
+    channel.unsubscribe();
+    controller.close();
+  });
+
+  yield* controller.stream;
 });
 
 class PassengerRequestActionNotifier extends StateNotifier<AsyncValue<void>> {
