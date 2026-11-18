@@ -401,11 +401,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 const Icon(Icons.mail_outline, color: AppTheme.primaryGreen, size: 20),
                                 const SizedBox(width: 8),
                                 Expanded(
-                                  child: Text(
-                                    s.isHindi
-                                        ? '${_signupEmailController.text.trim()} पर 6-अंकों का OTP भेजा गया है।'
-                                        : 'A 6-digit OTP was sent to ${_signupEmailController.text.trim()}',
-                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textDark),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        s.isHindi
+                                            ? '${_signupEmailController.text.trim()} पर 6-अंकों का OTP भेजा गया है।'
+                                            : 'A 6-digit OTP was sent to ${_signupEmailController.text.trim()}',
+                                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textDark),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        s.isHindi
+                                            ? '💡 इनबॉक्स में न मिलने पर स्पैम (Spam / Junk) फ़ोल्डर भी देखें।'
+                                            : '💡 If not in Primary, please check your Spam / Junk folder.',
+                                        style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
