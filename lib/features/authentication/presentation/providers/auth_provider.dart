@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../app/configuration/supabase_config.dart';
 
@@ -20,6 +22,23 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
   Future<void> signInWithGoogle() async {
     state = const AsyncValue.loading();
     try {
+      // Pre-check if Google provider is enabled on Supabase backend before redirecting
+      try {
+        final settingsUri = Uri.parse('${SupabaseConfig.defaultUrl}/auth/v1/settings');
+        final settingsRes = await http.get(settingsUri, headers: {'apikey': SupabaseConfig.defaultAnonKey});
+        if (settingsRes.statusCode == 200) {
+          final settingsData = jsonDecode(settingsRes.body) as Map<String, dynamic>;
+          final externalProviders = settingsData['external'] as Map<String, dynamic>?;
+          if (externalProviders?['google'] != true) {
+            throw const AuthException(
+              'Supabase में Google Sign-In Provider अभी सक्रिय नहीं है। कृपया Supabase Dashboard (Auth > Providers > Google) में Client ID जोड़ें, या नीचे दिए गए डेमो मोड (Driver/Rider) से तुरंत प्रवेश करें।',
+            );
+          }
+        }
+      } catch (checkErr) {
+        if (checkErr is AuthException) rethrow;
+      }
+
       if (kIsWeb) {
         // Web Google OAuth via Supabase PKCE with dynamic origin callback
         final redirectUrl = Uri.base.origin;

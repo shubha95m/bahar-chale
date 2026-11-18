@@ -154,7 +154,29 @@ class LoginPage extends ConsumerWidget {
                             ],
                           ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.info_outline_rounded, size: 16, color: AppTheme.textMuted),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Google लॉगिन के लिए Supabase में Client ID जोड़ना आवश्यक है। त्वरित परीक्षण के लिए नीचे दिए गए डेमो या ईमेल मोड का उपयोग करें।',
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade700, height: 1.3),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
 
                   // Local Preview / Demo Mode Bypass Divider
                   Row(
