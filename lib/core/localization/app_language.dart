@@ -20,8 +20,11 @@ enum AppLanguage {
 class AppLanguageNotifier extends StateNotifier<AppLanguage> {
   static const String _prefKey = 'app_language';
 
-  AppLanguageNotifier() : super(AppLanguage.hindi) {
-    _loadSavedLanguage();
+  AppLanguageNotifier({AppLanguage? initialLanguage})
+      : super(initialLanguage ?? AppLanguage.hindi) {
+    if (initialLanguage == null) {
+      _loadSavedLanguage();
+    }
   }
 
   Future<void> _loadSavedLanguage() async {

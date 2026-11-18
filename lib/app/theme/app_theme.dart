@@ -22,6 +22,13 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: surfaceLight,
       fontFamily: 'Roboto',
+      fontFamilyFallback: const [
+        'Noto Sans Devanagari',
+        'Kohinoor Devanagari',
+        'Mangal',
+        'Nirmala UI',
+        'sans-serif',
+      ],
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.white,
         elevation: 0,
