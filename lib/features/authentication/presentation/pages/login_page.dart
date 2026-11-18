@@ -5,6 +5,7 @@ import '../../../../core/localization/app_strings.dart';
 import '../../../../core/utils/snackbar_helper.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/terms_and_conditions_dialog.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -32,6 +33,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   // 1 = Enter Name & Email, 2 = Enter OTP, 3 = Create Password
   int _signupStep = 1;
+  bool _acceptedTerms = false;
 
   @override
   void dispose() {
@@ -115,6 +117,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final password = _signupPasswordController.text;
     final confirmPassword = _signupConfirmPasswordController.text;
 
+    if (!_acceptedTerms) {
+      _showSnack(
+        ref.read(stringsProvider).isHindi
+            ? 'कृपया आगे बढ़ने के लिए नियम व शर्तें स्वीकार करें।'
+            : 'Please accept Terms & Conditions to proceed.',
+        isError: true,
+      );
+      return;
+    }
+
     if (password.length < 6) {
       _showSnack('पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।', isError: true);
       return;
@@ -127,6 +139,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final success = await ref.read(authControllerProvider.notifier).completeSignupPassword(
       password: password,
       displayName: name,
+      termsAccepted: _acceptedTerms,
+      termsVersion: 'v1.0-2026',
+      termsConsentText: 'I accept the Bahar Chale Terms of Service, Privacy Policy, and Community Ride Coordination Guidelines under IT Act 2000 & DPDP Act 2023.',
     );
 
     if (success && mounted) {
@@ -512,9 +527,74 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               prefixIcon: const Icon(Icons.lock_reset, color: AppTheme.primaryGreen),
                             ),
                           ),
+                          const SizedBox(height: 14),
+
+                          // Legal Terms & Privacy Consent Checkbox
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: _acceptedTerms ? AppTheme.primaryGreen.withOpacity(0.06) : const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: _acceptedTerms ? AppTheme.primaryGreen.withOpacity(0.4) : const Color(0xFFE2E8F0),
+                              ),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: Checkbox(
+                                    value: _acceptedTerms,
+                                    activeColor: AppTheme.primaryGreen,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                    onChanged: (val) => setState(() => _acceptedTerms = val ?? false),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => setState(() => _acceptedTerms = !_acceptedTerms),
+                                    child: Text.rich(
+                                      TextSpan(
+                                        text: s.isHindi ? 'मैं ' : 'I accept the ',
+                                        style: const TextStyle(fontSize: 12, color: AppTheme.textDark),
+                                        children: [
+                                          TextSpan(
+                                            text: s.isHindi ? 'नियम व शर्तें (T&C)' : 'Terms & Conditions',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: AppTheme.primaryGreen,
+                                              decoration: TextDecoration.underline,
+                                            ),
+                                          ),
+                                          TextSpan(text: s.isHindi ? ' और ' : ' and '),
+                                          TextSpan(
+                                            text: s.isHindi ? 'गोपनीयता नीति' : 'Privacy Policy',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: AppTheme.primaryGreen,
+                                              decoration: TextDecoration.underline,
+                                            ),
+                                          ),
+                                          TextSpan(text: s.isHindi ? ' स्वीकार करता/करती हूँ।' : '.'),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: s.isHindi ? 'कानूनी शर्तें पढ़ें' : 'Read Legal Terms',
+                                  icon: const Icon(Icons.info_outline, size: 20, color: AppTheme.primaryGreen),
+                                  onPressed: () => TermsAndConditionsDialog.show(context, isHindi: s.isHindi),
+                                ),
+                              ],
+                            ),
+                          ),
                           const SizedBox(height: 18),
                           ElevatedButton.icon(
-                            onPressed: isLoading ? null : _handleCompleteSignup,
+                            onPressed: (isLoading || !_acceptedTerms) ? null : _handleCompleteSignup,
                             icon: const Icon(Icons.check_circle_rounded, size: 18),
                             label: Text(
                               s.isHindi ? 'खाता बनाएं और प्रवेश करें' : 'Create Account & Enter',
@@ -522,6 +602,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppTheme.primaryGreen,
+                              disabledBackgroundColor: Colors.grey.shade300,
                               minimumSize: const Size.fromHeight(48),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),

@@ -255,10 +255,20 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
     }
   }
 
-  /// Sets the user's chosen password and profile name after OTP verification
-  Future<bool> completeSignupPassword({required String password, required String displayName}) async {
+  /// Sets the user's chosen password and profile name after OTP verification and records legal consent
+  Future<bool> completeSignupPassword({
+    required String password,
+    required String displayName,
+    bool termsAccepted = true,
+    String termsVersion = 'v1.0-2026',
+    String? termsConsentText,
+  }) async {
     state = const AsyncValue.loading();
     try {
+      if (!termsAccepted) {
+        throw const FormatException('कृपया आगे बढ़ने के लिए नियम व शर्तें और कानूनी सहमति स्वीकार करें। (Please accept Terms & Conditions to proceed.)');
+      }
+
       if (password.length < 6) {
         throw const FormatException('पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।');
       }
@@ -267,6 +277,9 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
       if (email.isEmpty) {
         throw const FormatException('सत्यापन सत्र समाप्त हो गया। कृपया पुनः OTP भेजें।');
       }
+
+      final consentStatement = termsConsentText ??
+          'I accept the Bahar Chale Terms of Service, Privacy Policy, and Community Ride Coordination Guidelines under IT Act 2000 & DPDP Act 2023.';
 
       final uri = Uri.parse('${SupabaseConfig.defaultUrl}/functions/v1/custom-auth');
       final res = await http.post(
@@ -281,6 +294,9 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
           'password': password,
           'name': displayName.trim(),
           'verifiedToken': _verifiedToken,
+          'termsAccepted': true,
+          'termsVersion': termsVersion,
+          'termsConsentText': consentStatement,
         }),
       );
 
