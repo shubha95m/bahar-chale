@@ -4,10 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_strings.dart';
-import '../../../../core/utilities/map_launcher.dart';
+import '../../../../core/widgets/app_bottom_bar.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../../core/widgets/location_autocomplete_field.dart';
-import '../../domain/entities/ride.dart';
+import '../../../../core/widgets/passenger_request_card_widget.dart';
+import '../../../../core/widgets/ride_card_widget.dart';
+import '../../../requests/presentation/providers/passenger_requests_provider.dart';
 import '../providers/rides_provider.dart';
 
 class SearchRidesPage extends ConsumerStatefulWidget {
@@ -24,6 +26,7 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
   DateTime? _selectedDate;
 
   String _selectedVehicle = 'all'; // 'all' | 'car' | 'bike'
+  int _feedType = 0; // 0 = Driver Rides, 1 = Passenger Requests
   bool _isAdvancedOpen = false;
 
   final List<Map<String, String>> _popularRoutes = [
@@ -80,8 +83,13 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
       query: _searchQueryController.text.trim().isNotEmpty ? _searchQueryController.text.trim() : null,
       vehicleType: _selectedVehicle != 'all' ? _selectedVehicle : null,
     );
+    final passengerFilter = BrowsePassengerFilter(
+      query: _searchQueryController.text.trim().isNotEmpty ? _searchQueryController.text.trim() : null,
+      vehicleType: _selectedVehicle != 'all' ? _selectedVehicle : null,
+    );
 
     final ridesAsync = ref.watch(allAvailableRidesProvider(filter));
+    final passengerReqsAsync = ref.watch(allOpenPassengerRequestsProvider(passengerFilter));
 
     return Scaffold(
       appBar: AppBar(
@@ -181,6 +189,42 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
                     ),
                   ),
 
+                  // Dual Marketplace Feed Segmented Switcher
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SegmentedButton<int>(
+                          segments: [
+                            ButtonSegment(
+                              value: 0,
+                              icon: const Icon(Icons.directions_car_rounded, size: 16),
+                              label: Text(
+                                s.isHindi ? 'सवारियां (Driver Rides)' : 'Driver Rides',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            ButtonSegment(
+                              value: 1,
+                              icon: const Icon(Icons.people_alt_rounded, size: 16),
+                              label: Text(
+                                s.isHindi ? 'सहयात्री की जरूरतें' : 'Passenger Requests',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                          selected: {_feedType},
+                          onSelectionChanged: (set) => setState(() => _feedType = set.first),
+                          showSelectedIcon: false,
+                          style: SegmentedButton.styleFrom(
+                            selectedBackgroundColor: _feedType == 0 ? AppTheme.primaryGreen : AppTheme.accentAmber,
+                            selectedForegroundColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
                   // Collapsible Advanced Filter (Origin + Destination Autocomplete + Date)
                   if (_isAdvancedOpen) ...[
                     const Divider(height: 20),
@@ -242,64 +286,140 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
               ),
             ),
 
-            // Live Rides List Feed
+            // Live List Feed (Driver Rides vs Passenger Requests)
             Expanded(
-              child: ridesAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, _) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.error_outline_rounded, color: Colors.red, size: 40),
-                        const SizedBox(height: 12),
-                        Text('सवारियां लोड करने में त्रुटि: $err', textAlign: TextAlign.center),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () => ref.refresh(allAvailableRidesProvider(filter)),
-                          child: const Text('पुनः प्रयास करें'),
+              child: _feedType == 0
+                  // FEED 0: Driver Rides
+                  ? ridesAsync.when(
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (err, _) => Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.error_outline_rounded, color: Colors.red, size: 40),
+                              const SizedBox(height: 12),
+                              Text('सवारियां लोड करने में त्रुटि: $err', textAlign: TextAlign.center),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => ref.refresh(allAvailableRidesProvider(filter)),
+                                child: const Text('पुनः प्रयास करें'),
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-                data: (rides) {
-                  // Apply in-memory client filtering for date if set
-                  var displayedRides = rides;
-                  if (_selectedDate != null) {
-                    final dateKey = _selectedDate!.toIso8601String().split('T').first;
-                    displayedRides = displayedRides.where((r) {
-                      return r.travelDate.toIso8601String().split('T').first == dateKey;
-                    }).toList();
-                  }
+                      ),
+                      data: (rides) {
+                        var displayedRides = rides;
+                        if (_selectedDate != null) {
+                          final dateKey = _selectedDate!.toIso8601String().split('T').first;
+                          displayedRides = displayedRides.where((r) {
+                            return r.travelDate.toIso8601String().split('T').first == dateKey;
+                          }).toList();
+                        }
 
-                  if (displayedRides.isEmpty) {
-                    return _buildEmptyState(
-                      icon: Icons.travel_explore_rounded,
-                      title: 'कोई सवारी उपलब्ध नहीं है',
-                      subtitle: 'आपके चुने गए स्थान या तारीख के लिए अभी कोई सक्रिय राइड नहीं मिली। क्या आप खुद सवारी प्रस्तुत करना चाहेंगे?',
-                      actionLabel: 'सवारी प्रस्तुत करें (Offer Ride)',
-                      onAction: () => context.push('/create-ride'),
-                    );
-                  }
+                        if (displayedRides.isEmpty) {
+                          return _buildEmptyState(
+                            icon: Icons.travel_explore_rounded,
+                            title: s.noRidesFoundTitle,
+                            subtitle: s.noRidesFoundSubtitle,
+                            actionLabel: s.actionGiveRideText,
+                            onAction: () => context.push('/create-ride'),
+                          );
+                        }
 
-                  return RefreshIndicator(
-                    onRefresh: () async => ref.refresh(allAvailableRidesProvider(filter)),
-                    child: ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: displayedRides.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 14),
-                      itemBuilder: (context, index) {
-                        final ride = displayedRides[index];
-                        return _buildRideCard(context, ride);
+                        return RefreshIndicator(
+                          onRefresh: () async => ref.refresh(allAvailableRidesProvider(filter)),
+                          child: ListView.separated(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: displayedRides.length,
+                            separatorBuilder: (_, __) => const SizedBox(height: 14),
+                            itemBuilder: (context, index) {
+                              final ride = displayedRides[index];
+                              return RideCardWidget(ride: ride);
+                            },
+                          ),
+                        );
+                      },
+                    )
+                  // FEED 1: Passenger Requests
+                  : passengerReqsAsync.when(
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (err, _) => Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.error_outline_rounded, color: Colors.red, size: 40),
+                              const SizedBox(height: 12),
+                              Text('अनुरोध लोड करने में त्रुटि: $err', textAlign: TextAlign.center),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => ref.refresh(allOpenPassengerRequestsProvider(passengerFilter)),
+                                child: const Text('पुनः प्रयास करें'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      data: (passengerReqs) {
+                        var displayedReqs = passengerReqs;
+                        if (_selectedDate != null) {
+                          final dateKey = _selectedDate!.toIso8601String().split('T').first;
+                          displayedReqs = displayedReqs.where((r) {
+                            return r.travelDate.toIso8601String().split('T').first == dateKey;
+                          }).toList();
+                        }
+
+                        if (displayedReqs.isEmpty) {
+                          return _buildEmptyState(
+                            icon: Icons.person_pin_circle_outlined,
+                            title: s.isHindi ? 'कोई यात्रा अनुरोध नहीं मिला' : 'No Passenger Requests Found',
+                            subtitle: s.isHindi
+                                ? 'अभी इस रूट के लिए किसी सहयात्री ने अनुरोध पोस्ट नहीं किया है। क्या आप अपनी आवश्यकता पोस्ट करना चाहेंगे?'
+                                : 'No co-travelers posted for this route yet. Would you like to post your need?',
+                            actionLabel: s.isHindi ? 'सवारी की जरूरत पोस्ट करें' : 'Post Ride Request',
+                            onAction: () => context.push('/create-passenger-request'),
+                          );
+                        }
+
+                        return RefreshIndicator(
+                          onRefresh: () async => ref.refresh(allOpenPassengerRequestsProvider(passengerFilter)),
+                          child: ListView.separated(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: displayedReqs.length,
+                            separatorBuilder: (_, __) => const SizedBox(height: 14),
+                            itemBuilder: (context, index) {
+                              final req = displayedReqs[index];
+                              return PassengerRequestCardWidget(request: req);
+                            },
+                          ),
+                        );
                       },
                     ),
-                  );
-                },
-              ),
             ),
           ],
+        ),
+      ),
+      bottomNavigationBar: const AppBottomBar(currentIndex: 1),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          if (_feedType == 0) {
+            context.push('/create-ride');
+          } else {
+            context.push('/create-passenger-request');
+          }
+        },
+        backgroundColor: _feedType == 0 ? AppTheme.primaryGreen : AppTheme.accentAmber,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add_rounded),
+        label: Text(
+          _feedType == 0
+              ? (s.isHindi ? 'सवारी प्रस्तुत करें' : 'Offer Ride')
+              : (s.isHindi ? 'जरूरत पोस्ट करें' : 'Post Request'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -324,193 +444,6 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
       onSelected: (val) {
         if (val) setState(() => _selectedVehicle = value);
       },
-    );
-  }
-
-  Widget _buildRideCard(BuildContext context, Ride ride) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFFE2E8F0)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Driver Header
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: AppTheme.primaryGreen.withOpacity(0.12),
-                  child: Text(
-                    ride.ownerName?.isNotEmpty == true ? ride.ownerName![0].toUpperCase() : 'Y',
-                    style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              ride.ownerName ?? 'सवारी प्रदाता',
-                              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppTheme.textDark),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.shade100,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.star_rounded, size: 12, color: Colors.amber),
-                                SizedBox(width: 2),
-                                Text('सत्यापित', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.brown)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Icon(
-                            ride.vehicleType == 'bike' ? Icons.two_wheeler_rounded : Icons.directions_car_rounded,
-                            size: 14,
-                            color: AppTheme.textMuted,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            ride.vehicleLabel,
-                            style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                // Seats Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: ride.availableSeats > 0
-                        ? AppTheme.primaryGreen.withOpacity(0.12)
-                        : Colors.red.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '${ride.availableSeats} / ${ride.totalSeats} सीटें',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: ride.availableSeats > 0 ? AppTheme.primaryGreen : Colors.red.shade700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const Divider(height: 20, thickness: 0.8),
-
-            // Route Section
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.route_rounded, color: AppTheme.primaryGreen, size: 18),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          ride.routeDisplay,
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.textDark),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(Icons.event_outlined, size: 15, color: AppTheme.textMuted),
-                      const SizedBox(width: 6),
-                      Text(
-                        '${DateFormat('dd MMM yyyy').format(ride.travelDate)} • ${ride.travelTime ?? 'लचीला समय'}',
-                        style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            if (ride.notes != null && ride.notes!.trim().isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                'टिप्पणी: ${ride.notes}',
-                style: const TextStyle(fontSize: 12, color: AppTheme.textMuted, fontStyle: FontStyle.italic),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-
-            const SizedBox(height: 14),
-
-            // Actions Row: Free Google Maps Deep Link & View Details / Join
-            Row(
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.blue.shade700,
-                      side: BorderSide(color: Colors.blue.shade300),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    icon: const Icon(Icons.map_outlined, size: 16),
-                    label: const Text('Google Maps', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                    onPressed: () => MapLauncher.openDirections(
-                      origin: ride.originCity,
-                      destination: ride.destinationCity,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  flex: 2,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryGreen,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    icon: const Icon(Icons.handshake_outlined, size: 16),
-                    label: const Text('विवरण व अनुरोध', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                    onPressed: () => context.push('/ride/${ride.id}'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
 

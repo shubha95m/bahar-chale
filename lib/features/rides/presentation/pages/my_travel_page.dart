@@ -5,8 +5,11 @@ import 'package:intl/intl.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_strings.dart';
 import '../../../../core/utilities/map_launcher.dart';
+import '../../../../core/widgets/app_bottom_bar.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
+import '../../../requests/domain/entities/passenger_request.dart';
+import '../../../requests/presentation/providers/passenger_requests_provider.dart';
 import '../../../requests/presentation/providers/requests_provider.dart';
 import '../providers/rides_provider.dart';
 
@@ -22,12 +25,14 @@ class MyTravelPage extends ConsumerWidget {
       return Scaffold(
         appBar: AppBar(title: Text(s.navMyTravelText)),
         body: Center(child: Text(s.isHindi ? 'कृपया अपनी यात्राएं देखने के लिए साइन इन करें।' : 'Please sign in to view your journeys.')),
+        bottomNavigationBar: const AppBottomBar(currentIndex: 2),
       );
     }
 
     final incomingAsync = ref.watch(allIncomingRequestsProvider(user.id));
     final myRidesAsync = ref.watch(myRidesProvider(user.id));
     final myRequestsAsync = ref.watch(myRequestsProvider(user.id));
+    final myPassengerRequestsAsync = ref.watch(myPassengerRequestsProvider(user.id));
 
     return DefaultTabController(
       length: 3,
@@ -76,10 +81,11 @@ class MyTravelPage extends ConsumerWidget {
             // TAB 2: Rides posted by me
             _buildMyDrivesTab(context, ref, user.id, myRidesAsync),
 
-            // TAB 3: Requests I sent to other drivers
-            _buildMySentRequestsTab(context, ref, user.id, myRequestsAsync),
+            // TAB 3: Requests I sent to other drivers + My posted itineraries
+            _buildMySentRequestsTab(context, ref, user.id, s, myRequestsAsync, myPassengerRequestsAsync),
           ],
         ),
+        bottomNavigationBar: const AppBottomBar(currentIndex: 2),
       ),
     );
   }
@@ -531,159 +537,287 @@ class MyTravelPage extends ConsumerWidget {
   }
 
   // -------------------------------------------------------------
-  // TAB 3: Requests submitted by me (Rider)
+  // TAB 3: Requests submitted by me (Rider) + My Posted Needs
   // -------------------------------------------------------------
   Widget _buildMySentRequestsTab(
     BuildContext context,
     WidgetRef ref,
     String userId,
+    AppStrings s,
     AsyncValue<List<Map<String, dynamic>>> myRequestsAsync,
+    AsyncValue<List<PassengerRequest>> myPassengerRequestsAsync,
   ) {
-    return myRequestsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Center(child: Text('त्रुटि: $err')),
-      data: (requests) {
-        if (requests.isEmpty) {
-          return _buildEmptyTab(
-            icon: Icons.commute_outlined,
-            title: 'कोई सवारी अनुरोध नहीं मिला',
-            subtitle: 'जब आप किसी सवारी के लिए अनुरोध करेंगे, उसकी स्थिति और ड्राइवर की प्रतिक्रिया यहाँ दिखाई देगी।',
-            actionLabel: AppStrings.actionWantRide,
-            onAction: () => context.push('/search-rides'),
-          );
-        }
-
-        return RefreshIndicator(
-          onRefresh: () async => ref.refresh(myRequestsProvider(userId)),
-          child: ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: requests.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final req = requests[index];
-              final rideMap = req['rides'] as Map<String, dynamic>?;
-              final origin = rideMap?['origin_city'] ?? '';
-              final dest = rideMap?['destination_city'] ?? '';
-              final status = (req['status'] as String? ?? 'pending').toLowerCase();
-              final isAccepted = status == 'accepted';
-              final reqId = req['id'].toString();
-
-              Color statusColor;
-              String statusText;
-              switch (status) {
-                case 'accepted':
-                  statusColor = Colors.green.shade700;
-                  statusText = 'स्वीकृत (Accepted)';
-                  break;
-                case 'rejected':
-                  statusColor = Colors.red.shade700;
-                  statusText = 'अस्वीकृत (Rejected)';
-                  break;
-                case 'cancelled':
-                  statusColor = Colors.grey.shade600;
-                  statusText = 'रद्द (Cancelled)';
-                  break;
-                default:
-                  statusColor = Colors.orange.shade800;
-                  statusText = 'लंबित (Pending)';
-              }
-
-              return Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  side: const BorderSide(color: Color(0xFFE2E8F0)),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(14.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              '$origin → $dest',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              statusText,
-                              style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 12),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'मांगी गई सीटें: ${req['seats_requested']}',
-                        style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
-                      ),
-                      const Divider(height: 20),
-                      Row(
-                        children: [
-                          if (isAccepted) ...[
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.primaryGreen,
-                                  foregroundColor: Colors.white,
-                                  minimumSize: const Size.fromHeight(38),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                ),
-                                icon: const Icon(Icons.handshake_outlined, size: 16),
-                                label: const Text('सहमति पत्र', style: TextStyle(fontSize: 12)),
-                                onPressed: () => context.push('/agreement/$reqId'),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                style: OutlinedButton.styleFrom(
-                                  minimumSize: const Size.fromHeight(38),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                ),
-                                icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
-                                label: const Text('बातचीत', style: TextStyle(fontSize: 12)),
-                                onPressed: () => context.push('/chat/$reqId'),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                          ] else ...[
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                style: OutlinedButton.styleFrom(
-                                  minimumSize: const Size.fromHeight(38),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                ),
-                                icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
-                                label: const Text('बातचीत (Chat)', style: TextStyle(fontSize: 12)),
-                                onPressed: () => context.push('/chat/$reqId'),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                          IconButton(
-                            tooltip: 'Google Maps में मार्ग देखें (मुफ़्त)',
-                            icon: const Icon(Icons.map_outlined, color: Colors.blueAccent),
-                            onPressed: () => MapLauncher.openDirections(origin: origin, destination: dest),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        );
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(myRequestsProvider(userId));
+        ref.invalidate(myPassengerRequestsProvider(userId));
       },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Top action button to post new travel need
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accentAmber,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              icon: const Icon(Icons.add_location_alt_rounded, size: 18),
+              label: Text(
+                s.isHindi ? '+ नई यात्रा की जरूरत पोस्ट करें' : '+ Post New Ride Request',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+              onPressed: () => context.push('/create-passenger-request'),
+            ),
+            const SizedBox(height: 16),
+
+            // Section 1: My Posted Travel Itineraries (Passenger Requests)
+            myPassengerRequestsAsync.when(
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+              data: (myReqs) {
+                if (myReqs.isEmpty) return const SizedBox.shrink();
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      s.isHindi ? 'मेरी पोस्ट की गई यात्रा जरूरतें' : 'My Travel Itineraries',
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                    ),
+                    const SizedBox(height: 8),
+                    ...myReqs.map((req) {
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: AppTheme.accentAmber.withOpacity(0.3)),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      req.routeDisplay,
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      req.status == 'open' ? (s.isHindi ? 'सक्रिय (खुला)' : 'Active') : req.status,
+                                      style: TextStyle(color: Colors.green.shade700, fontSize: 11, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${DateFormat('dd MMM yyyy').format(req.travelDate)} • ${req.seatsNeeded} सीट • ${req.vehicleLabel}',
+                                style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                              ),
+                              const Divider(height: 16),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    s.isHindi ? 'चालक सीधे आपको संदेश भेज सकेंगे' : 'Drivers can reach out to you',
+                                    style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: AppTheme.textMuted),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      await ref.read(passengerRequestActionNotifierProvider.notifier).cancel(req.id);
+                                      ref.invalidate(myPassengerRequestsProvider(userId));
+                                    },
+                                    child: Text(s.isHindi ? 'रद्द करें' : 'Cancel', style: const TextStyle(color: Colors.red, fontSize: 12)),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 14),
+                  ],
+                );
+              },
+            ),
+
+            // Section 2: Requests I sent to Drivers
+            Text(
+              s.isHindi ? 'राइड्स में शामिल होने के लिए भेजे अनुरोध' : 'Requests Sent to Rides',
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+            ),
+            const SizedBox(height: 8),
+
+            myRequestsAsync.when(
+              loading: () => const Center(child: Padding(padding: EdgeInsets.all(24.0), child: CircularProgressIndicator())),
+              error: (err, _) => Center(child: Text('त्रुटि: $err')),
+              data: (requests) {
+                if (requests.isEmpty) {
+                  return Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Center(
+                      child: Text(
+                        s.isHindi ? 'आपने अभी किसी सवारी में शामिल होने का अनुरोध नहीं भेजा है।' : 'No ride join requests sent yet.',
+                        style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: requests.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final req = requests[index];
+                    final rideMap = req['rides'] as Map<String, dynamic>?;
+                    final origin = rideMap?['origin_city'] ?? '';
+                    final dest = rideMap?['destination_city'] ?? '';
+                    final status = (req['status'] as String? ?? 'pending').toLowerCase();
+                    final isAccepted = status == 'accepted';
+                    final reqId = req['id'].toString();
+
+                    Color statusColor;
+                    String statusText;
+                    switch (status) {
+                      case 'accepted':
+                        statusColor = Colors.green.shade700;
+                        statusText = s.isHindi ? 'स्वीकृत (Accepted)' : 'Accepted';
+                        break;
+                      case 'rejected':
+                        statusColor = Colors.red.shade700;
+                        statusText = s.isHindi ? 'अस्वीकृत (Rejected)' : 'Rejected';
+                        break;
+                      case 'cancelled':
+                        statusColor = Colors.grey.shade600;
+                        statusText = s.isHindi ? 'रद्द (Cancelled)' : 'Cancelled';
+                        break;
+                      default:
+                        statusColor = Colors.orange.shade800;
+                        statusText = s.isHindi ? 'लंबित (Pending)' : 'Pending';
+                    }
+
+                    return Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        side: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(14.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '$origin → $dest',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: statusColor.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    statusText,
+                                    style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 12),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'मांगी गई सीटें: ${req['seats_requested']}',
+                              style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                            ),
+                            const Divider(height: 20),
+                            Row(
+                              children: [
+                                if (isAccepted) ...[
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppTheme.primaryGreen,
+                                        foregroundColor: Colors.white,
+                                        minimumSize: const Size.fromHeight(38),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      ),
+                                      icon: const Icon(Icons.handshake_outlined, size: 16),
+                                      label: Text(s.agreementText, style: const TextStyle(fontSize: 12)),
+                                      onPressed: () => context.push('/agreement/$reqId'),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      style: OutlinedButton.styleFrom(
+                                        minimumSize: const Size.fromHeight(38),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      ),
+                                      icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
+                                      label: Text(s.chatText, style: const TextStyle(fontSize: 12)),
+                                      onPressed: () => context.push('/chat/$reqId'),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                ] else ...[
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      style: OutlinedButton.styleFrom(
+                                        minimumSize: const Size.fromHeight(38),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      ),
+                                      icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
+                                      label: Text(s.chatText, style: const TextStyle(fontSize: 12)),
+                                      onPressed: () => context.push('/chat/$reqId'),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                ],
+                                IconButton(
+                                  tooltip: 'Google Maps',
+                                  icon: const Icon(Icons.map_outlined, color: Colors.blueAccent),
+                                  onPressed: () => MapLauncher.openDirections(origin: origin, destination: dest),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 

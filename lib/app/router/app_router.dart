@@ -9,6 +9,7 @@ import '../../features/chat/presentation/pages/chat_page.dart';
 import '../../features/chat/presentation/pages/conversations_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/requests/presentation/pages/create_passenger_request_page.dart';
 import '../../features/rides/presentation/pages/create_ride_page.dart';
 import '../../features/rides/presentation/pages/my_travel_page.dart';
 import '../../features/rides/presentation/pages/ride_details_page.dart';
@@ -53,6 +54,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/create-ride',
         name: 'create-ride',
         builder: (context, state) => const CreateRidePage(),
+      ),
+      GoRoute(
+        path: '/create-passenger-request',
+        name: 'create-passenger-request',
+        builder: (context, state) => const CreatePassengerRequestPage(),
       ),
       GoRoute(
         path: '/search-rides',

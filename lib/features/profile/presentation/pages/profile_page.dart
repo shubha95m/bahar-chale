@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_language.dart';
 import '../../../../core/localization/app_strings.dart';
+import '../../../../core/widgets/app_bottom_bar.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 
@@ -242,6 +243,7 @@ class ProfilePage extends ConsumerWidget {
           ),
         ),
       ),
+      bottomNavigationBar: const AppBottomBar(currentIndex: 4),
     );
   }
 }

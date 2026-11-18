@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_strings.dart';
+import '../../../../core/widgets/app_bottom_bar.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../../requests/presentation/providers/requests_provider.dart';
@@ -20,6 +21,7 @@ class ConversationsPage extends ConsumerWidget {
       return Scaffold(
         appBar: AppBar(title: Text(s.conversationsTitle)),
         body: Center(child: Text(s.isHindi ? 'कृपया बातचीत देखने के लिए साइन इन करें।' : 'Please sign in to view your conversations.')),
+        bottomNavigationBar: const AppBottomBar(currentIndex: 3),
       );
     }
 
@@ -325,6 +327,7 @@ class ConversationsPage extends ConsumerWidget {
           },
         ),
       ),
+      bottomNavigationBar: const AppBottomBar(currentIndex: 3),
     );
   }
 }

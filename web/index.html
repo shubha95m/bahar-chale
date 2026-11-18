@@ -101,25 +101,21 @@
   <script>
     function removeSplash() {
       var splash = document.getElementById('loading-splash');
-      if (splash) {
+      if (splash && splash.style.opacity !== '0') {
         splash.style.opacity = '0';
         setTimeout(function () {
-          if (splash.parentNode) {
+          if (splash && splash.parentNode) {
             splash.parentNode.removeChild(splash);
           }
         }, 400);
       }
     }
 
+    // Remove splash only after Flutter paints its first real frame
     window.addEventListener('flutter-first-frame', removeSplash);
 
-    var observer = new MutationObserver(function () {
-      if (document.querySelector('flutter-view')) {
-        observer.disconnect();
-        removeSplash();
-      }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
+    // Fallback safety timeout in case the frame event is missed on slower devices
+    setTimeout(removeSplash, 6000);
   </script>
 
   <script src="flutter_bootstrap.js" async></script>
