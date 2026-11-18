@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../app/theme/app_theme.dart';
+import '../../../../core/localization/app_strings.dart';
 import '../../../../core/utilities/map_launcher.dart';
+import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../../core/widgets/location_autocomplete_field.dart';
 import '../../domain/entities/ride.dart';
 import '../providers/rides_provider.dart';
@@ -73,6 +75,7 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final s = ref.watch(stringsProvider);
     final filter = BrowseRidesFilter(
       query: _searchQueryController.text.trim().isNotEmpty ? _searchQueryController.text.trim() : null,
       vehicleType: _selectedVehicle != 'all' ? _selectedVehicle : null,
@@ -82,16 +85,17 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('सवारियां खोजें व साझा करें', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            Text('उपलब्ध सभी यात्राओं की खुली सूची', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+            Text(s.searchPageTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Text(s.searchPageSubtitle, style: const TextStyle(fontSize: 11, color: AppTheme.textMuted)),
           ],
         ),
         actions: [
+          const LanguageSwitcherButton(),
           IconButton(
-            tooltip: 'संदेश (Messages)',
+            tooltip: s.navMessagesText,
             icon: const Icon(Icons.chat_bubble_outline_rounded, color: AppTheme.primaryGreen),
             onPressed: () => context.push('/conversations'),
           ),
@@ -116,7 +120,7 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
                     controller: _searchQueryController,
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
-                      hintText: 'शहर, स्थान या मार्ग खोजें (उदा. Pune, Mumbai, Jaipur...)',
+                      hintText: s.searchBarHint,
                       hintStyle: const TextStyle(fontSize: 13, color: AppTheme.textMuted),
                       prefixIcon: const Icon(Icons.search_rounded, color: AppTheme.primaryGreen),
                       suffixIcon: _searchQueryController.text.isNotEmpty
@@ -132,7 +136,7 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
                                 _isAdvancedOpen ? Icons.tune_rounded : Icons.filter_list_rounded,
                                 color: _isAdvancedOpen ? AppTheme.primaryGreen : AppTheme.textMuted,
                               ),
-                              tooltip: 'विस्तृत फिल्टर',
+                              tooltip: s.isHindi ? 'विस्तृत फिल्टर' : 'Filters',
                               onPressed: () => setState(() => _isAdvancedOpen = !_isAdvancedOpen),
                             ),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -144,16 +148,16 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      _buildVehicleFilterChip('all', 'सभी वाहन', Icons.directions_car_filled_outlined),
+                      _buildVehicleFilterChip('all', s.allVehiclesText, Icons.directions_car_filled_outlined),
                       const SizedBox(width: 8),
-                      _buildVehicleFilterChip('car', 'कार (Car)', Icons.directions_car_rounded),
+                      _buildVehicleFilterChip('car', s.carText, Icons.directions_car_rounded),
                       const SizedBox(width: 8),
-                      _buildVehicleFilterChip('bike', 'बाइक (Bike)', Icons.two_wheeler_rounded),
+                      _buildVehicleFilterChip('bike', s.bikeText, Icons.two_wheeler_rounded),
                       const Spacer(),
                       if (_searchQueryController.text.isNotEmpty || _selectedVehicle != 'all' || _selectedDate != null)
                         TextButton(
                           onPressed: _clearFilters,
-                          child: const Text('साफ़ करें', style: TextStyle(fontSize: 12, color: Colors.red)),
+                          child: Text(s.clearFilterText, style: const TextStyle(fontSize: 12, color: Colors.red)),
                         ),
                     ],
                   ),

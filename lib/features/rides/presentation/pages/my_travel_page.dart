@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_strings.dart';
 import '../../../../core/utilities/map_launcher.dart';
+import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../../requests/presentation/providers/requests_provider.dart';
 import '../providers/rides_provider.dart';
@@ -14,12 +15,13 @@ class MyTravelPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(stringsProvider);
     final user = ref.watch(currentUserProvider);
 
     if (user == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text(AppStrings.navMyTravel)),
-        body: const Center(child: Text('कृपया अपनी यात्राएं देखने के लिए साइन इन करें।')),
+        appBar: AppBar(title: Text(s.navMyTravelText)),
+        body: Center(child: Text(s.isHindi ? 'कृपया अपनी यात्राएं देखने के लिए साइन इन करें।' : 'Please sign in to view your journeys.')),
       );
     }
 
@@ -31,36 +33,37 @@ class MyTravelPage extends ConsumerWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text(
-            'मेरी यात्राएं व समन्वय',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          title: Text(
+            s.navMyTravelText,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           actions: [
+            const LanguageSwitcherButton(),
             IconButton(
               icon: const Icon(Icons.chat_bubble_outline_rounded),
-              tooltip: 'सभी बातचीत (Messages)',
+              tooltip: s.navMessagesText,
               onPressed: () => context.push('/conversations'),
             ),
             const SizedBox(width: 8),
           ],
-          bottom: const TabBar(
+          bottom: TabBar(
             indicatorColor: AppTheme.primaryGreen,
             labelColor: AppTheme.primaryGreen,
             unselectedLabelColor: AppTheme.textMuted,
-            labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
             isScrollable: false,
             tabs: [
               Tab(
-                icon: Icon(Icons.mark_email_unread_outlined, size: 20),
-                text: 'मिले अनुरोध',
+                icon: const Icon(Icons.mark_email_unread_outlined, size: 20),
+                text: s.tabIncomingText,
               ),
               Tab(
-                icon: Icon(Icons.drive_eta_outlined, size: 20),
-                text: 'मेरी राइड्स',
+                icon: const Icon(Icons.drive_eta_outlined, size: 20),
+                text: s.tabMyDrivesText,
               ),
               Tab(
-                icon: Icon(Icons.outbox_rounded, size: 20),
-                text: 'भेजे अनुरोध',
+                icon: const Icon(Icons.outbox_rounded, size: 20),
+                text: s.tabMyRequestsText,
               ),
             ],
           ),

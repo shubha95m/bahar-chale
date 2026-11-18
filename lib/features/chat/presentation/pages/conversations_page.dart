@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../app/theme/app_theme.dart';
+import '../../../../core/localization/app_strings.dart';
+import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../../requests/presentation/providers/requests_provider.dart';
 
@@ -11,12 +13,13 @@ class ConversationsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(stringsProvider);
     final user = ref.watch(currentUserProvider);
 
     if (user == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('संदेश और बातचीत')),
-        body: const Center(child: Text('कृपया बातचीत देखने के लिए साइन इन करें।')),
+        appBar: AppBar(title: Text(s.conversationsTitle)),
+        body: Center(child: Text(s.isHindi ? 'कृपया बातचीत देखने के लिए साइन इन करें।' : 'Please sign in to view your conversations.')),
       );
     }
 
@@ -24,19 +27,23 @@ class ConversationsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'संदेश और बातचीत',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              s.conversationsTitle,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             Text(
-              'सवारी समन्वय व सहयात्रियों से संवाद',
-              style: TextStyle(fontSize: 11, color: AppTheme.textMuted),
+              s.conversationsSubtitle,
+              style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
             ),
           ],
         ),
+        actions: const [
+          LanguageSwitcherButton(),
+          SizedBox(width: 8),
+        ],
       ),
       body: SafeArea(
         child: convsAsync.when(

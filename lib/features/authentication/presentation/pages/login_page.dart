@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_strings.dart';
+import '../../../../core/widgets/language_switcher_button.dart';
 import '../providers/auth_provider.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -147,6 +148,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final s = ref.watch(stringsProvider);
     final authState = ref.watch(authControllerProvider);
     final isLoading = authState.isLoading;
 
@@ -179,6 +181,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // Language Switcher Toggle at Top
+                      const Align(
+                        alignment: Alignment.topRight,
+                        child: LanguageSwitcherButton(),
+                      ),
+                      const SizedBox(height: 8),
+
                       // Logo & App Name
                       Center(
                         child: Container(
@@ -196,10 +205,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 14),
-                      const Text(
-                        AppStrings.appNameHindi,
+                      Text(
+                        s.appTitle,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
                           color: AppTheme.textDark,
@@ -207,10 +216,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        AppStrings.tagline,
+                      Text(
+                        s.appTagline,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: AppTheme.textMuted,
@@ -241,7 +250,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                         : null,
                                   ),
                                   child: Text(
-                                    'साइन इन (लॉगिन)',
+                                    s.signInTab,
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
@@ -266,7 +275,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                         : null,
                                   ),
                                   child: Text(
-                                    'नया खाता (OTP)',
+                                    s.signUpTab,
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
@@ -497,7 +506,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 10.0),
                             child: Text(
-                              'या त्वरित परीक्षण (Quick Test)',
+                              s.quickTestHeader,
                               style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey.shade600),
                             ),
                           ),
@@ -513,7 +522,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             child: ElevatedButton.icon(
                               onPressed: isLoading ? null : () => ref.read(authControllerProvider.notifier).signInAsDemoUser(asDriver: true),
                               icon: const Icon(Icons.flash_on_rounded, size: 16, color: Colors.white),
-                              label: const Text('चालक (Driver)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                              label: Text(s.driverRole, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppTheme.primaryGreen,
                                 padding: const EdgeInsets.symmetric(vertical: 10),
@@ -525,7 +534,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             child: OutlinedButton.icon(
                               onPressed: isLoading ? null : () => ref.read(authControllerProvider.notifier).signInAsDemoUser(asDriver: false),
                               icon: const Icon(Icons.person_search_rounded, size: 16, color: AppTheme.accentAmber),
-                              label: const Text('यात्री (Rider)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.accentAmber)),
+                              label: Text(s.riderRole, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.accentAmber)),
                               style: OutlinedButton.styleFrom(
                                 side: const BorderSide(color: AppTheme.accentAmber, width: 1.5),
                                 padding: const EdgeInsets.symmetric(vertical: 10),
@@ -540,7 +549,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       OutlinedButton.icon(
                         onPressed: isLoading ? null : () => ref.read(authControllerProvider.notifier).signInWithGoogle(),
                         icon: const Icon(Icons.g_mobiledata_rounded, size: 26, color: Colors.blue),
-                        label: const Text('Google से साइन इन करें', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                        label: Text(s.googleSignInButton, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Color(0xFFCBD5E1)),
                           padding: const EdgeInsets.symmetric(vertical: 10),

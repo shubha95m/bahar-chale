@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_strings.dart';
+import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../providers/home_provider.dart';
 
@@ -19,11 +20,12 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final s = ref.watch(stringsProvider);
     final user = ref.watch(currentUserProvider);
     final userDisplayName = (user?.userMetadata?['full_name'] as String?) ??
         (user?.userMetadata?['name'] as String?) ??
         user?.email?.split('@').first ??
-        'यात्री';
+        (s.isHindi ? 'यात्री' : 'Traveler');
     final userAvatarUrl = (user?.userMetadata?['avatar_url'] as String?) ?? (user?.userMetadata?['picture'] as String?);
 
     final upcomingJourneysAsync = user != null ? ref.watch(homeUpcomingJourneysProvider(user.id)) : null;
@@ -32,20 +34,20 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              AppStrings.appNameHindi,
-              style: TextStyle(
+              s.appTitle,
+              style: const TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 22,
                 color: AppTheme.textDark,
               ),
             ),
             Text(
-              AppStrings.tagline,
-              style: TextStyle(
+              s.appTagline,
+              style: const TextStyle(
                 fontSize: 12,
                 color: AppTheme.textMuted,
                 fontWeight: FontWeight.w400,
@@ -54,28 +56,29 @@ class _HomePageState extends ConsumerState<HomePage> {
           ],
         ),
         actions: [
+          const LanguageSwitcherButton(),
           IconButton(
-            tooltip: 'संदेश व बातचीत',
+            tooltip: s.navMessagesText,
             icon: const Icon(Icons.chat_bubble_outline_rounded, color: AppTheme.primaryGreen),
             onPressed: () => context.push('/conversations'),
           ),
           IconButton(
-            tooltip: AppStrings.logout,
+            tooltip: s.logoutText,
             icon: const Icon(Icons.logout_rounded, color: AppTheme.textMuted),
             onPressed: () async {
               final confirm = await showDialog<bool>(
                 context: context,
                 builder: (ctx) => AlertDialog(
-                  title: const Text(AppStrings.logout),
-                  content: const Text(AppStrings.logoutConfirm),
+                  title: Text(s.logoutText),
+                  content: Text(s.logoutConfirmText),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text(AppStrings.cancel),
+                      child: Text(s.cancelText),
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, true),
-                      child: const Text(AppStrings.logout),
+                      child: Text(s.logoutText),
                     ),
                   ],
                 ),
@@ -154,11 +157,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ),
                 const SizedBox(height: 24),
 
-                // Primary Action 1: Want a Ride (मुझे यात्रा करनी है)
+                // Primary Action 1: Want a Ride
                 _buildActionCard(
                   context,
-                  title: AppStrings.actionWantRide,
-                  subtitle: AppStrings.actionWantRideSubtitle,
+                  title: s.actionWantRideText,
+                  subtitle: s.actionWantRideSubtitleText,
                   icon: Icons.search_rounded,
                   color: AppTheme.primaryGreen,
                   onTap: () {
@@ -167,11 +170,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Primary Action 2: Give a Ride (मैं साथ ले जा सकता हूँ)
+                // Primary Action 2: Give a Ride
                 _buildActionCard(
                   context,
-                  title: AppStrings.actionGiveRide,
-                  subtitle: AppStrings.actionGiveRideSubtitle,
+                  title: s.actionGiveRideText,
+                  subtitle: s.actionGiveRideSubtitleText,
                   icon: Icons.add_circle_outline_rounded,
                   color: AppTheme.accentAmber,
                   onTap: () {
@@ -392,26 +395,26 @@ class _HomePageState extends ConsumerState<HomePage> {
             context.push('/profile');
           }
         },
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_filled),
-            label: AppStrings.navHome,
+            icon: const Icon(Icons.home_filled),
+            label: s.navHomeText,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.search_rounded),
-            label: 'सवारी खोजें',
+            icon: const Icon(Icons.search_rounded),
+            label: s.navSearchText,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.commute_rounded),
-            label: AppStrings.navMyTravel,
+            icon: const Icon(Icons.commute_rounded),
+            label: s.navMyTravelText,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline_rounded),
-            label: 'संदेश',
+            icon: const Icon(Icons.chat_bubble_outline_rounded),
+            label: s.navMessagesText,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_rounded),
-            label: AppStrings.navProfile,
+            icon: const Icon(Icons.person_rounded),
+            label: s.navProfileText,
           ),
         ],
       ),

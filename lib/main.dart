@@ -36,9 +36,10 @@ class BaharChaleApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+    final s = ref.watch(stringsProvider);
 
     return MaterialApp.router(
-      title: AppStrings.appNameHindi,
+      title: s.appTitle,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       routerConfig: router,
