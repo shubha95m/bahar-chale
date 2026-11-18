@@ -209,6 +209,12 @@ class RideCardWidget extends ConsumerWidget {
                     onPressed: () => MapLauncher.openDirections(
                       origin: ride.originCity,
                       destination: ride.destinationCity,
+                      originArea: ride.originArea,
+                      destinationArea: ride.destinationArea,
+                      originLat: ride.originLatitude,
+                      originLon: ride.originLongitude,
+                      destinationLat: ride.destinationLatitude,
+                      destinationLon: ride.destinationLongitude,
                     ),
                   ),
                 ),

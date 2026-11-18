@@ -3,8 +3,12 @@ class PassengerRequest {
   final String requesterId;
   final String originCity;
   final String? originArea;
+  final double? originLatitude;
+  final double? originLongitude;
   final String destinationCity;
   final String? destinationArea;
+  final double? destinationLatitude;
+  final double? destinationLongitude;
   final DateTime travelDate;
   final String? travelTime;
   final bool isTimeFlexible;
@@ -22,8 +26,12 @@ class PassengerRequest {
     required this.requesterId,
     required this.originCity,
     this.originArea,
+    this.originLatitude,
+    this.originLongitude,
     required this.destinationCity,
     this.destinationArea,
+    this.destinationLatitude,
+    this.destinationLongitude,
     required this.travelDate,
     this.travelTime,
     this.isTimeFlexible = true,
@@ -66,8 +74,12 @@ class PassengerRequest {
       requesterId: map['requester_id'] as String,
       originCity: map['origin_city'] as String? ?? '',
       originArea: map['origin_area'] as String?,
+      originLatitude: map['origin_latitude'] != null ? (map['origin_latitude'] as num).toDouble() : null,
+      originLongitude: map['origin_longitude'] != null ? (map['origin_longitude'] as num).toDouble() : null,
       destinationCity: map['destination_city'] as String? ?? '',
       destinationArea: map['destination_area'] as String?,
+      destinationLatitude: map['destination_latitude'] != null ? (map['destination_latitude'] as num).toDouble() : null,
+      destinationLongitude: map['destination_longitude'] != null ? (map['destination_longitude'] as num).toDouble() : null,
       travelDate: DateTime.tryParse(map['travel_date']?.toString() ?? '') ?? DateTime.now(),
       travelTime: map['travel_time'] as String?,
       isTimeFlexible: map['is_time_flexible'] as bool? ?? true,
@@ -90,8 +102,12 @@ class PassengerRequest {
       'requester_id': requesterId,
       'origin_city': originCity.trim(),
       'origin_area': originArea?.trim(),
+      'origin_latitude': originLatitude,
+      'origin_longitude': originLongitude,
       'destination_city': destinationCity.trim(),
       'destination_area': destinationArea?.trim(),
+      'destination_latitude': destinationLatitude,
+      'destination_longitude': destinationLongitude,
       'travel_date': travelDate.toIso8601String().split('T').first,
       'travel_time': travelTime,
       'is_time_flexible': isTimeFlexible,

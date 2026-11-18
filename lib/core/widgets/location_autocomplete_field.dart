@@ -129,6 +129,7 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
   List<LocationSuggestion> _suggestions = [];
+  LocationSuggestion? _selectedSuggestion;
   bool _isOpen = false;
   bool _isLoading = false;
   bool _isSelecting = false;
@@ -289,6 +290,7 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
                               _debounceTimer?.cancel();
                               _removeOverlay();
 
+                              _selectedSuggestion = item;
                               final selectedValue = item.primaryName;
                               widget.controller.text = selectedValue;
                               widget.onSelected?.call(selectedValue);
@@ -333,7 +335,13 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
                             onPressed: () {
                               final q = widget.controller.text.trim();
                               if (q.isNotEmpty) {
-                                MapLauncher.openLocation(query: q);
+                                final firstMatch = _suggestions.isNotEmpty ? _suggestions.first : null;
+                                MapLauncher.openLocation(
+                                  query: q,
+                                  area: firstMatch?.area,
+                                  lat: firstMatch?.latitude,
+                                  lon: firstMatch?.longitude,
+                                );
                               }
                             },
                           ),
@@ -379,8 +387,19 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
                       icon: const Icon(Icons.map_outlined, size: 20, color: Colors.blueAccent),
                       tooltip: 'Google Maps पर देखें (मुफ़्त)',
                       onPressed: () {
-                        if (widget.controller.text.trim().isNotEmpty) {
-                          MapLauncher.openLocation(query: widget.controller.text.trim());
+                        final q = widget.controller.text.trim();
+                        if (q.isNotEmpty) {
+                          if (_selectedSuggestion != null &&
+                              _selectedSuggestion!.primaryName.toLowerCase() == q.toLowerCase()) {
+                            MapLauncher.openLocation(
+                              query: q,
+                              area: _selectedSuggestion!.area,
+                              lat: _selectedSuggestion!.latitude,
+                              lon: _selectedSuggestion!.longitude,
+                            );
+                          } else {
+                            MapLauncher.openLocation(query: q);
+                          }
                         }
                       },
                     ),

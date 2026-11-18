@@ -32,6 +32,10 @@ class _CreatePassengerRequestPageState extends ConsumerState<CreatePassengerRequ
   bool _isTimeFlexible = true;
   int _seatsNeeded = 1;
   String _preferredVehicle = 'any'; // 'any' | 'car' | 'bike'
+  double? _originLat;
+  double? _originLon;
+  double? _destLat;
+  double? _destLon;
 
   @override
   void dispose() {
@@ -80,8 +84,12 @@ class _CreatePassengerRequestPageState extends ConsumerState<CreatePassengerRequ
       requesterId: user.id,
       originCity: _originCityController.text.trim(),
       originArea: _originAreaController.text.trim().isNotEmpty ? _originAreaController.text.trim() : null,
+      originLatitude: _originLat,
+      originLongitude: _originLon,
       destinationCity: _destCityController.text.trim(),
       destinationArea: _destAreaController.text.trim().isNotEmpty ? _destAreaController.text.trim() : null,
+      destinationLatitude: _destLat,
+      destinationLongitude: _destLon,
       travelDate: _travelDate,
       travelTime: _travelTime != null ? '${_travelTime!.hour.toString().padLeft(2, '0')}:${_travelTime!.minute.toString().padLeft(2, '0')}' : null,
       isTimeFlexible: _isTimeFlexible,
@@ -170,6 +178,8 @@ class _CreatePassengerRequestPageState extends ConsumerState<CreatePassengerRequ
                     prefixIcon: const Icon(Icons.my_location_rounded, color: AppTheme.primaryGreen),
                     validator: (val) => val == null || val.trim().isEmpty ? 'कृपया प्रस्थान शहर दर्ज करें' : null,
                     onSuggestionSelected: (s) {
+                      _originLat = s.latitude;
+                      _originLon = s.longitude;
                       if (s.area != null && _originAreaController.text.trim().isEmpty) {
                         _originAreaController.text = s.area!;
                       }
@@ -194,6 +204,8 @@ class _CreatePassengerRequestPageState extends ConsumerState<CreatePassengerRequ
                     prefixIcon: const Icon(Icons.location_on_rounded, color: AppTheme.accentAmber),
                     validator: (val) => val == null || val.trim().isEmpty ? 'कृपया गंतव्य शहर दर्ज करें' : null,
                     onSuggestionSelected: (s) {
+                      _destLat = s.latitude;
+                      _destLon = s.longitude;
                       if (s.area != null && _destAreaController.text.trim().isEmpty) {
                         _destAreaController.text = s.area!;
                       }

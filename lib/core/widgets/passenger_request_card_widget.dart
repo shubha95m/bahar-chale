@@ -160,6 +160,12 @@ class PassengerRequestCardWidget extends ConsumerWidget {
                     onPressed: () => MapLauncher.openDirections(
                       origin: request.originCity,
                       destination: request.destinationCity,
+                      originArea: request.originArea,
+                      destinationArea: request.destinationArea,
+                      originLat: request.originLatitude,
+                      originLon: request.originLongitude,
+                      destinationLat: request.destinationLatitude,
+                      destinationLon: request.destinationLongitude,
                     ),
                   ),
                 ),

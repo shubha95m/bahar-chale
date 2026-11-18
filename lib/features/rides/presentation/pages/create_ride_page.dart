@@ -34,6 +34,10 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
   TimeOfDay? _travelTime;
   bool _isTimeFlexible = true;
   int _seats = 4;
+  double? _originLat;
+  double? _originLon;
+  double? _destLat;
+  double? _destLon;
 
   int get _maxSeatsForVehicle {
     if (_rideCategory == 'general_travel') return 6;
@@ -118,8 +122,12 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
       vehicleType: _rideCategory == 'private_vehicle' ? _vehicleType : null,
       originCity: _originCityController.text.trim(),
       originArea: _originAreaController.text.trim().isNotEmpty ? _originAreaController.text.trim() : null,
+      originLatitude: _originLat,
+      originLongitude: _originLon,
       destinationCity: _destCityController.text.trim(),
       destinationArea: _destAreaController.text.trim().isNotEmpty ? _destAreaController.text.trim() : null,
+      destinationLatitude: _destLat,
+      destinationLongitude: _destLon,
       travelDate: _travelDate,
       travelTime: formattedTime,
       isTimeFlexible: _isTimeFlexible,
@@ -351,6 +359,8 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                     prefixIcon: const Icon(Icons.location_on_outlined, color: AppTheme.primaryGreen),
                     validator: (val) => val == null || val.trim().isEmpty ? 'कृपया प्रस्थान शहर दर्ज करें' : null,
                     onSuggestionSelected: (s) {
+                      _originLat = s.latitude;
+                      _originLon = s.longitude;
                       if (s.area != null && _originAreaController.text.trim().isEmpty) {
                         _originAreaController.text = s.area!;
                       }
@@ -374,6 +384,8 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                     prefixIcon: const Icon(Icons.flag_outlined, color: AppTheme.accentAmber),
                     validator: (val) => val == null || val.trim().isEmpty ? 'कृपया गंतव्य शहर दर्ज करें' : null,
                     onSuggestionSelected: (s) {
+                      _destLat = s.latitude;
+                      _destLon = s.longitude;
                       if (s.area != null && _destAreaController.text.trim().isEmpty) {
                         _destAreaController.text = s.area!;
                       }

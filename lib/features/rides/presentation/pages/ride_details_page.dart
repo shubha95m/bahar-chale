@@ -336,6 +336,12 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                           MapLauncher.openDirections(
                             origin: ride.originCity,
                             destination: ride.destinationCity,
+                            originArea: ride.originArea,
+                            destinationArea: ride.destinationArea,
+                            originLat: ride.originLatitude,
+                            originLon: ride.originLongitude,
+                            destinationLat: ride.destinationLatitude,
+                            destinationLon: ride.destinationLongitude,
                           );
                         },
                         icon: const Icon(Icons.map_rounded, color: Colors.blueAccent),

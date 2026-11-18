@@ -177,6 +177,8 @@ class MyTravelPage extends ConsumerWidget {
 
               final origin = rideMap['origin_city'] ?? '';
               final dest = rideMap['destination_city'] ?? '';
+              final originArea = rideMap['origin_area'] as String?;
+              final destArea = rideMap['destination_area'] as String?;
               final travelDateRaw = rideMap['travel_date'];
               final travelTime = rideMap['travel_time'] ?? 'समय लचीला';
               DateTime? parsedDate;
@@ -413,7 +415,12 @@ class MyTravelPage extends ConsumerWidget {
                             IconButton(
                               tooltip: 'Google Maps में मार्ग देखें (मुफ़्त)',
                               icon: const Icon(Icons.map_outlined, color: Colors.blueAccent),
-                              onPressed: () => MapLauncher.openDirections(origin: origin, destination: dest),
+                              onPressed: () => MapLauncher.openDirections(
+                                origin: origin,
+                                destination: dest,
+                                originArea: originArea,
+                                destinationArea: destArea,
+                              ),
                             ),
                           ],
                         ),
@@ -550,6 +557,12 @@ class MyTravelPage extends ConsumerWidget {
                               onPressed: () => MapLauncher.openDirections(
                                 origin: ride.originCity,
                                 destination: ride.destinationCity,
+                                originArea: ride.originArea,
+                                destinationArea: ride.destinationArea,
+                                originLat: ride.originLatitude,
+                                originLon: ride.originLongitude,
+                                destinationLat: ride.destinationLatitude,
+                                destinationLon: ride.destinationLongitude,
                               ),
                             ),
                           ),
@@ -743,6 +756,8 @@ class MyTravelPage extends ConsumerWidget {
                     final rideMap = req['rides'] as Map<String, dynamic>?;
                     final origin = rideMap?['origin_city'] ?? '';
                     final dest = rideMap?['destination_city'] ?? '';
+                    final originArea = rideMap?['origin_area'] as String?;
+                    final destArea = rideMap?['destination_area'] as String?;
                     final status = (req['status'] as String? ?? 'pending').toLowerCase();
                     final isAccepted = status == 'accepted';
                     final reqId = req['id'].toString();
@@ -851,7 +866,12 @@ class MyTravelPage extends ConsumerWidget {
                                 IconButton(
                                   tooltip: 'Google Maps',
                                   icon: const Icon(Icons.map_outlined, color: Colors.blueAccent),
-                                  onPressed: () => MapLauncher.openDirections(origin: origin, destination: dest),
+                                  onPressed: () => MapLauncher.openDirections(
+                                origin: origin,
+                                destination: dest,
+                                originArea: originArea,
+                                destinationArea: destArea,
+                              ),
                                 ),
                               ],
                             ),
