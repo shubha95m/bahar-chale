@@ -163,7 +163,12 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
       ),
       body: rideAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('त्रुटि: ${err.toString()}')),
+        error: (err, _) => const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: Text('सवारी विवरण लोड करने में समस्या। कृपया पुनः प्रयास करें।', style: TextStyle(color: AppTheme.textMuted)),
+          ),
+        ),
         data: (ride) {
           if (ride == null) {
             return const Center(child: Text('सवारी नहीं मिली।'));
@@ -343,7 +348,7 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                       const SizedBox(height: 12),
                       incomingRequestsAsync!.when(
                         loading: () => const Center(child: CircularProgressIndicator()),
-                        error: (err, _) => Text('अनुरोध लोड करने में त्रुटि: $err'),
+                        error: (err, _) => const Text('अनुरोध लोड करने में समस्या।', style: TextStyle(color: AppTheme.textMuted)),
                         data: (requests) {
                           if (requests.isEmpty) {
                             return Container(

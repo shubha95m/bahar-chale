@@ -298,13 +298,23 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.error_outline_rounded, color: Colors.red, size: 40),
+                              const Icon(Icons.refresh_rounded, color: AppTheme.textMuted, size: 40),
                               const SizedBox(height: 12),
-                              Text('सवारियां लोड करने में त्रुटि: $err', textAlign: TextAlign.center),
+                              Text(
+                                s.isHindi ? 'सवारियां लोड करने में असमर्थ' : 'Unable to load rides',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                s.isHindi ? 'कृपया इंटरनेट जांचें या पुनः प्रयास करें।' : 'Please check your connection and retry.',
+                                style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                                textAlign: TextAlign.center,
+                              ),
                               const SizedBox(height: 16),
                               ElevatedButton(
                                 onPressed: () => ref.refresh(allAvailableRidesProvider(filter)),
-                                child: const Text('पुनः प्रयास करें'),
+                                child: Text(s.isHindi ? 'पुनः प्रयास करें' : 'Retry'),
                               ),
                             ],
                           ),
@@ -352,13 +362,23 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.error_outline_rounded, color: Colors.red, size: 40),
+                              const Icon(Icons.refresh_rounded, color: AppTheme.textMuted, size: 40),
                               const SizedBox(height: 12),
-                              Text('अनुरोध लोड करने में त्रुटि: $err', textAlign: TextAlign.center),
+                              Text(
+                                s.isHindi ? 'यात्रा अनुरोध लोड करने में असमर्थ' : 'Unable to load travel requests',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                s.isHindi ? 'कृपया इंटरनेट जांचें या पुनः प्रयास करें।' : 'Please check your connection and retry.',
+                                style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                                textAlign: TextAlign.center,
+                              ),
                               const SizedBox(height: 16),
                               ElevatedButton(
                                 onPressed: () => ref.refresh(allOpenPassengerRequestsProvider(passengerFilter)),
-                                child: const Text('पुनः प्रयास करें'),
+                                child: Text(s.isHindi ? 'पुनः प्रयास करें' : 'Retry'),
                               ),
                             ],
                           ),

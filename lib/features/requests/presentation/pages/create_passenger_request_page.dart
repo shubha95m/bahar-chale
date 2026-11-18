@@ -163,9 +163,14 @@ class _CreatePassengerRequestPageState extends ConsumerState<CreatePassengerRequ
                   LocationAutocompleteField(
                     controller: _originCityController,
                     labelText: '${AppStrings.originCity} *',
-                    hintText: 'उदा. Pune, Mumbai, Delhi',
+                    hintText: 'उदा. Pune, Hinjawadi, Delhi Airport',
                     prefixIcon: const Icon(Icons.my_location_rounded, color: AppTheme.primaryGreen),
                     validator: (val) => val == null || val.trim().isEmpty ? 'कृपया प्रस्थान शहर दर्ज करें' : null,
+                    onSuggestionSelected: (s) {
+                      if (s.area != null && _originAreaController.text.trim().isEmpty) {
+                        _originAreaController.text = s.area!;
+                      }
+                    },
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
@@ -182,9 +187,14 @@ class _CreatePassengerRequestPageState extends ConsumerState<CreatePassengerRequ
                   LocationAutocompleteField(
                     controller: _destCityController,
                     labelText: '${AppStrings.destinationCity} *',
-                    hintText: 'उदा. Mumbai, Jaipur, Bengaluru',
+                    hintText: 'उदा. Mumbai, Dadar, Bengaluru Airport',
                     prefixIcon: const Icon(Icons.location_on_rounded, color: AppTheme.accentAmber),
                     validator: (val) => val == null || val.trim().isEmpty ? 'कृपया गंतव्य शहर दर्ज करें' : null,
+                    onSuggestionSelected: (s) {
+                      if (s.area != null && _destAreaController.text.trim().isEmpty) {
+                        _destAreaController.text = s.area!;
+                      }
+                    },
                   ),
                   const SizedBox(height: 12),
                   TextFormField(

@@ -9,6 +9,7 @@ import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../../core/widgets/passenger_request_card_widget.dart';
 import '../../../../core/widgets/ride_card_widget.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
+import '../../../chat/presentation/providers/chat_provider.dart';
 import '../../../requests/presentation/providers/passenger_requests_provider.dart';
 import '../providers/home_provider.dart';
 
@@ -26,6 +27,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget build(BuildContext context) {
     final s = ref.watch(stringsProvider);
     final user = ref.watch(currentUserProvider);
+    final unreadMessagesCount = ref.watch(unreadConversationsCountProvider).value ?? 0;
     final userDisplayName = (user?.userMetadata?['full_name'] as String?) ??
         (user?.userMetadata?['name'] as String?) ??
         user?.email?.split('@').first ??
@@ -65,7 +67,12 @@ class _HomePageState extends ConsumerState<HomePage> {
           const LanguageSwitcherButton(),
           IconButton(
             tooltip: s.navMessagesText,
-            icon: const Icon(Icons.chat_bubble_outline_rounded, color: AppTheme.primaryGreen),
+            icon: Badge.count(
+              count: unreadMessagesCount,
+              isLabelVisible: unreadMessagesCount > 0,
+              backgroundColor: Colors.red.shade700,
+              child: const Icon(Icons.chat_bubble_outline_rounded, color: AppTheme.primaryGreen),
+            ),
             onPressed: () => context.push('/conversations'),
           ),
           IconButton(
@@ -460,10 +467,17 @@ class _HomePageState extends ConsumerState<HomePage> {
                       );
                     },
                     loading: () => const Center(child: Padding(padding: EdgeInsets.all(24.0), child: CircularProgressIndicator())),
-                    error: (err, _) => _buildEmptyPlaceholder(
-                      icon: Icons.error_outline_rounded,
-                      message: 'त्रुटि: $err',
-                    ),
+                    error: (err, _) {
+                      debugPrint('Recent rides error: $err');
+                      return _buildEmptyPlaceholder(
+                        icon: Icons.refresh_rounded,
+                        message: s.isHindi
+                            ? 'सवारियां लोड करने में समस्या। कृपया पुनः प्रयास करें।'
+                            : 'Unable to load rides right now. Please retry.',
+                        actionLabel: s.isHindi ? 'पुनः प्रयास करें' : 'Retry',
+                        onAction: () => ref.invalidate(recentRidesFeedProvider),
+                      );
+                    },
                   ),
                 ],
 
@@ -492,10 +506,17 @@ class _HomePageState extends ConsumerState<HomePage> {
                       );
                     },
                     loading: () => const Center(child: Padding(padding: EdgeInsets.all(24.0), child: CircularProgressIndicator())),
-                    error: (err, _) => _buildEmptyPlaceholder(
-                      icon: Icons.error_outline_rounded,
-                      message: 'त्रुटि: $err',
-                    ),
+                    error: (err, _) {
+                      debugPrint('Passenger requests error: $err');
+                      return _buildEmptyPlaceholder(
+                        icon: Icons.refresh_rounded,
+                        message: s.isHindi
+                            ? 'यात्रा अनुरोध लोड करने में समस्या। कृपया पुनः प्रयास करें।'
+                            : 'Unable to load requests right now. Please retry.',
+                        actionLabel: s.isHindi ? 'पुनः प्रयास करें' : 'Retry',
+                        onAction: () => ref.invalidate(allOpenPassengerRequestsProvider),
+                      );
+                    },
                   ),
                 ],
 

@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../app/theme/app_theme.dart';
+import '../services/location_search_service.dart';
 import '../utilities/map_launcher.dart';
 
 class IndianCity {
@@ -106,6 +108,7 @@ class LocationAutocompleteField extends StatefulWidget {
   final Widget? prefixIcon;
   final String? Function(String?)? validator;
   final void Function(String)? onSelected;
+  final void Function(LocationSuggestion)? onSuggestionSelected;
 
   const LocationAutocompleteField({
     super.key,
@@ -115,6 +118,7 @@ class LocationAutocompleteField extends StatefulWidget {
     this.prefixIcon,
     this.validator,
     this.onSelected,
+    this.onSuggestionSelected,
   });
 
   @override
@@ -124,8 +128,10 @@ class LocationAutocompleteField extends StatefulWidget {
 class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
-  List<IndianCity> _filteredCities = [];
+  List<LocationSuggestion> _suggestions = [];
   bool _isOpen = false;
+  bool _isLoading = false;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -135,33 +141,68 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     widget.controller.removeListener(_onTextChanged);
     _removeOverlay();
     super.dispose();
   }
 
   void _onTextChanged() {
-    final text = widget.controller.text.trim().toLowerCase();
+    final text = widget.controller.text.trim();
     if (text.isEmpty) {
+      _debounceTimer?.cancel();
       _removeOverlay();
       return;
     }
 
-    final matches = kTopIndianCities.where((city) {
-      return city.englishName.toLowerCase().contains(text) ||
-          city.hindiName.contains(text) ||
-          city.state.toLowerCase().contains(text);
-    }).take(6).toList();
+    // 1. Instant local matching for zero-lag display
+    final cleanLower = text.toLowerCase();
+    final localMatches = kTopIndianCities
+        .where((city) =>
+            city.englishName.toLowerCase().contains(cleanLower) ||
+            city.hindiName.contains(text) ||
+            city.state.toLowerCase().contains(cleanLower))
+        .take(5)
+        .map((c) => LocationSuggestion(
+              title: c.displayName,
+              subtitle: '${c.state}, India',
+              city: c.englishName,
+              state: c.state,
+              isCity: true,
+            ))
+        .toList();
 
-    setState(() {
-      _filteredCities = matches;
-    });
-
-    if (matches.isNotEmpty) {
+    if (localMatches.isNotEmpty) {
+      setState(() {
+        _suggestions = localMatches;
+      });
       _showOverlay();
-    } else {
-      _removeOverlay();
     }
+
+    // 2. Debounced deep place search (OpenStreetMap / Photon API)
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () async {
+      if (!mounted) return;
+      final currentQuery = widget.controller.text.trim();
+      if (currentQuery.length < 2) return;
+
+      setState(() => _isLoading = true);
+      final places = await LocationSearchService.search(currentQuery);
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+        if (places.isNotEmpty) {
+          _suggestions = places;
+        }
+      });
+
+      if (_suggestions.isNotEmpty) {
+        _showOverlay();
+      } else {
+        _removeOverlay();
+      }
+    });
   }
 
   void _showOverlay() {
@@ -173,47 +214,117 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
     final overlay = Overlay.of(context);
     _overlayEntry = OverlayEntry(
       builder: (ctx) => Positioned(
-        width: 320,
+        width: 340,
         child: CompositedTransformFollower(
           link: _layerLink,
           showWhenUnlinked: false,
           offset: const Offset(0, 56),
           child: Material(
             elevation: 8,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             color: Colors.white,
             child: Container(
-              constraints: const BoxConstraints(maxHeight: 240),
+              constraints: const BoxConstraints(maxHeight: 260),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: const Color(0xFFE2E8F0)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                shrinkWrap: true,
-                itemCount: _filteredCities.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
-                itemBuilder: (ctx, idx) {
-                  final city = _filteredCities[idx];
-                  return ListTile(
-                    dense: true,
-                    leading: const Icon(Icons.location_city_rounded, size: 20, color: AppTheme.primaryGreen),
-                    title: Text(
-                      '${city.englishName} • ${city.hindiName}',
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_isLoading)
+                    const LinearProgressIndicator(
+                      minHeight: 2,
+                      backgroundColor: Colors.transparent,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryGreen),
                     ),
-                    subtitle: Text(
-                      city.state,
-                      style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
+                  Flexible(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      shrinkWrap: true,
+                      itemCount: _suggestions.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                      itemBuilder: (ctx, idx) {
+                        final item = _suggestions[idx];
+                        return ListTile(
+                          dense: true,
+                          leading: CircleAvatar(
+                            radius: 14,
+                            backgroundColor: item.isCity
+                                ? AppTheme.primaryGreen.withOpacity(0.12)
+                                : Colors.amber.withOpacity(0.15),
+                            child: Icon(
+                              item.isCity ? Icons.location_city_rounded : Icons.place_rounded,
+                              size: 16,
+                              color: item.isCity ? AppTheme.primaryGreen : Colors.brown,
+                            ),
+                          ),
+                          title: Text(
+                            item.title,
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                          ),
+                          subtitle: Text(
+                            item.subtitle,
+                            style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          onTap: () {
+                            widget.controller.text = item.city;
+                            widget.onSelected?.call(item.city);
+                            widget.onSuggestionSelected?.call(item);
+                            _removeOverlay();
+                            FocusScope.of(context).unfocus();
+                          },
+                        );
+                      },
                     ),
-                    onTap: () {
-                      widget.controller.text = city.englishName;
-                      widget.onSelected?.call(city.englishName);
-                      _removeOverlay();
-                      FocusScope.of(context).unfocus();
-                    },
-                  );
-                },
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(14),
+                        bottomRight: Radius.circular(14),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'मुफ़्त नक्शा सुझाव (0 लागत)',
+                          style: TextStyle(fontSize: 10, color: AppTheme.textMuted),
+                        ),
+                        TextButton.icon(
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 24),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          icon: const Icon(Icons.map_outlined, size: 12, color: Colors.blueAccent),
+                          label: const Text(
+                            'Maps पर खोलें',
+                            style: TextStyle(fontSize: 10.5, color: Colors.blueAccent, fontWeight: FontWeight.bold),
+                          ),
+                          onPressed: () {
+                            final q = widget.controller.text.trim();
+                            if (q.isNotEmpty) {
+                              MapLauncher.openLocation(query: q);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

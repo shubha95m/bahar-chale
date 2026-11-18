@@ -347,9 +347,14 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                   LocationAutocompleteField(
                     controller: _originCityController,
                     labelText: '${AppStrings.originCity} *',
-                    hintText: 'शहर का नाम (उदा. Pune, Mumbai)',
+                    hintText: 'शहर या इलाके का नाम (उदा. Pune, Hinjawadi)',
                     prefixIcon: const Icon(Icons.location_on_outlined, color: AppTheme.primaryGreen),
                     validator: (val) => val == null || val.trim().isEmpty ? 'कृपया प्रस्थान शहर दर्ज करें' : null,
+                    onSuggestionSelected: (s) {
+                      if (s.area != null && _originAreaController.text.trim().isEmpty) {
+                        _originAreaController.text = s.area!;
+                      }
+                    },
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
@@ -365,9 +370,14 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
                   LocationAutocompleteField(
                     controller: _destCityController,
                     labelText: '${AppStrings.destinationCity} *',
-                    hintText: 'शहर का नाम (उदा. Delhi, Jaipur)',
+                    hintText: 'शहर या इलाके का नाम (उदा. Delhi, Airport)',
                     prefixIcon: const Icon(Icons.flag_outlined, color: AppTheme.accentAmber),
                     validator: (val) => val == null || val.trim().isEmpty ? 'कृपया गंतव्य शहर दर्ज करें' : null,
+                    onSuggestionSelected: (s) {
+                      if (s.area != null && _destAreaController.text.trim().isEmpty) {
+                        _destAreaController.text = s.area!;
+                      }
+                    },
                   ),
                   const SizedBox(height: 12),
                   TextFormField(

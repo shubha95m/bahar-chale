@@ -8,6 +8,7 @@ import '../../../../core/widgets/app_bottom_bar.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../../requests/presentation/providers/requests_provider.dart';
+import '../providers/chat_provider.dart';
 
 class ConversationsPage extends ConsumerWidget {
   const ConversationsPage({super.key});
@@ -56,13 +57,23 @@ class ConversationsPage extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline_rounded, color: Colors.red, size: 40),
+                  const Icon(Icons.refresh_rounded, color: AppTheme.textMuted, size: 40),
                   const SizedBox(height: 12),
-                  Text('बातचीत लोड करने में त्रुटि: $err', textAlign: TextAlign.center),
+                  Text(
+                    s.isHindi ? 'बातचीत लोड करने में असमर्थ' : 'Unable to load conversations',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    s.isHindi ? 'कृपया इंटरनेट जांचें या पुनः प्रयास करें।' : 'Please check your connection and retry.',
+                    style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => ref.refresh(allConversationsProvider(user.id)),
-                    child: const Text('पुनः प्रयास करें'),
+                    child: Text(s.isHindi ? 'पुनः प्रयास करें' : 'Retry'),
                   ),
                 ],
               ),
@@ -191,7 +202,11 @@ class ConversationsPage extends ConsumerWidget {
                       ),
                     ),
                     child: InkWell(
-                      onTap: () => context.push('/chat/$requestId'),
+                      onTap: () async {
+                        await context.push('/chat/$requestId');
+                        ref.invalidate(allConversationsProvider(user.id));
+                        ref.invalidate(unreadConversationsCountProvider);
+                      },
                       borderRadius: BorderRadius.circular(14),
                       child: Padding(
                         padding: const EdgeInsets.all(14.0),

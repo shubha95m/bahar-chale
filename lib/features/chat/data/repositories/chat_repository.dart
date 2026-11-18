@@ -61,4 +61,79 @@ class ChatRepository {
 
     return channel;
   }
+
+  /// Marks all incoming messages for this conversation as read
+  Future<void> markMessagesAsRead({
+    required String requestId,
+    required String currentUserId,
+  }) async {
+    try {
+      await _client
+          .from('ride_messages')
+          .update({'read_at': DateTime.now().toUtc().toIso8601String()})
+          .eq('ride_request_id', requestId)
+          .neq('sender_id', currentUserId)
+          .filter('read_at', 'is', null);
+    } catch (_) {}
+  }
+
+  /// Calculates the count of distinct conversations that have unread incoming messages
+  Future<int> getUnreadConversationsCount(String userId) async {
+    try {
+      final asRider = await _client
+          .from('ride_requests')
+          .select('id')
+          .eq('requester_id', userId);
+      final asDriver = await _client
+          .from('ride_requests')
+          .select('id, rides!inner(owner_id)')
+          .eq('rides.owner_id', userId);
+
+      final Set<String> requestIds = {};
+      for (final row in (asRider as List)) {
+        final id = row['id']?.toString();
+        if (id != null) requestIds.add(id);
+      }
+      for (final row in (asDriver as List)) {
+        final id = row['id']?.toString();
+        if (id != null) requestIds.add(id);
+      }
+
+      if (requestIds.isEmpty) return 0;
+
+      final unreadMessages = await _client
+          .from('ride_messages')
+          .select('ride_request_id')
+          .inFilter('ride_request_id', requestIds.toList())
+          .neq('sender_id', userId)
+          .filter('read_at', 'is', null);
+
+      final Set<String> unreadConversationIds = {};
+      for (final m in (unreadMessages as List)) {
+        final reqId = m['ride_request_id']?.toString();
+        if (reqId != null) unreadConversationIds.add(reqId);
+      }
+
+      return unreadConversationIds.length;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  /// Subscribes to global realtime message changes to track unread count dynamically
+  RealtimeChannel subscribeToUnreadMessages({
+    required void Function() onChange,
+  }) {
+    final channel = _client.channel('public:ride_messages_unread');
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'ride_messages',
+          callback: (_) => onChange(),
+        )
+        .subscribe();
+
+    return channel;
+  }
 }

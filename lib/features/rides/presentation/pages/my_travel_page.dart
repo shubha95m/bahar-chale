@@ -8,6 +8,7 @@ import '../../../../core/utilities/map_launcher.dart';
 import '../../../../core/widgets/app_bottom_bar.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
+import '../../../chat/presentation/providers/chat_provider.dart';
 import '../../../requests/domain/entities/passenger_request.dart';
 import '../../../requests/presentation/providers/passenger_requests_provider.dart';
 import '../../../requests/presentation/providers/requests_provider.dart';
@@ -33,6 +34,7 @@ class MyTravelPage extends ConsumerWidget {
     final myRidesAsync = ref.watch(myRidesProvider(user.id));
     final myRequestsAsync = ref.watch(myRequestsProvider(user.id));
     final myPassengerRequestsAsync = ref.watch(myPassengerRequestsProvider(user.id));
+    final unreadMessagesCount = ref.watch(unreadConversationsCountProvider).value ?? 0;
 
     return DefaultTabController(
       length: 3,
@@ -45,7 +47,12 @@ class MyTravelPage extends ConsumerWidget {
           actions: [
             const LanguageSwitcherButton(),
             IconButton(
-              icon: const Icon(Icons.chat_bubble_outline_rounded),
+              icon: Badge.count(
+                count: unreadMessagesCount,
+                isLabelVisible: unreadMessagesCount > 0,
+                backgroundColor: Colors.red.shade700,
+                child: const Icon(Icons.chat_bubble_outline_rounded),
+              ),
               tooltip: s.navMessagesText,
               onPressed: () => context.push('/conversations'),
             ),
@@ -107,9 +114,19 @@ class MyTravelPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline_rounded, color: Colors.red, size: 40),
+              const Icon(Icons.refresh_rounded, color: AppTheme.textMuted, size: 40),
               const SizedBox(height: 12),
-              Text('अनुरोध लोड करने में त्रुटि: $err', textAlign: TextAlign.center),
+              const Text(
+                'अनुरोध लोड करने में अस्थायी समस्या',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'कृपया अपना इंटरनेट कनेक्शन जांचें।',
+                style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => ref.refresh(allIncomingRequestsProvider(userId)),
@@ -402,7 +419,12 @@ class MyTravelPage extends ConsumerWidget {
   ) {
     return myRidesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Center(child: Text('त्रुटि: $err')),
+      error: (err, _) => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: Text('यात्राएं लोड करने में असमर्थ। कृपया पुनः प्रयास करें।', style: TextStyle(color: AppTheme.textMuted)),
+        ),
+      ),
       data: (rides) {
         if (rides.isEmpty) {
           return _buildEmptyTab(
@@ -665,7 +687,12 @@ class MyTravelPage extends ConsumerWidget {
 
             myRequestsAsync.when(
               loading: () => const Center(child: Padding(padding: EdgeInsets.all(24.0), child: CircularProgressIndicator())),
-              error: (err, _) => Center(child: Text('त्रुटि: $err')),
+              error: (err, _) => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: Text('यात्राएं लोड करने में असमर्थ। कृपया पुनः प्रयास करें।', style: TextStyle(color: AppTheme.textMuted)),
+        ),
+      ),
               data: (requests) {
                 if (requests.isEmpty) {
                   return Container(

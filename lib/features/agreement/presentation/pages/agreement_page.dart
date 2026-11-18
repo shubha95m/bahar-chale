@@ -29,7 +29,12 @@ class AgreementPage extends ConsumerWidget {
       ),
       body: agreementAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('त्रुटि: $err')),
+        error: (err, _) => const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: Text('समझौता लोड करने में समस्या। कृपया पुनः प्रयास करें।', style: TextStyle(color: AppTheme.textMuted)),
+          ),
+        ),
         data: (agreement) {
           if (agreement == null) {
             return const Center(child: Text('इस अनुरोध के लिए कोई यात्रा व्यवस्था नहीं मिली।'));

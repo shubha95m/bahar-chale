@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS public.passenger_requests (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    requester_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    requester_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     origin_city TEXT NOT NULL,
     origin_area TEXT,
     destination_city TEXT NOT NULL,

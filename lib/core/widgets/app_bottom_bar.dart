@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../app/theme/app_theme.dart';
+import '../../features/chat/presentation/providers/chat_provider.dart';
 import '../localization/app_strings.dart';
 
 class AppBottomBar extends ConsumerWidget {
@@ -12,6 +13,7 @@ class AppBottomBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(stringsProvider);
+    final unreadCount = ref.watch(unreadConversationsCountProvider).value ?? 0;
 
     return Container(
       decoration: BoxDecoration(
@@ -73,8 +75,18 @@ class AppBottomBar extends ConsumerWidget {
             label: s.navMyTravelText,
           ),
           BottomNavigationBarItem(
-            icon: const Icon(Icons.chat_bubble_outline_rounded),
-            activeIcon: const Icon(Icons.chat_bubble_rounded),
+            icon: Badge.count(
+              count: unreadCount,
+              isLabelVisible: unreadCount > 0,
+              backgroundColor: Colors.red.shade700,
+              child: const Icon(Icons.chat_bubble_outline_rounded),
+            ),
+            activeIcon: Badge.count(
+              count: unreadCount,
+              isLabelVisible: unreadCount > 0,
+              backgroundColor: Colors.red.shade700,
+              child: const Icon(Icons.chat_bubble_rounded),
+            ),
             label: s.navMessagesText,
           ),
           BottomNavigationBarItem(
