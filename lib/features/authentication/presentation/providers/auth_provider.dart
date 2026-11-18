@@ -19,6 +19,10 @@ final currentUserProvider = Provider<User?>((ref) {
 class AuthController extends StateNotifier<AsyncValue<void>> {
   AuthController() : super(const AsyncValue.data(null));
 
+  String? _signupToken;
+  String? _verifiedToken;
+  String? _signupEmail;
+
   Future<void> signInWithGoogle() async {
     state = const AsyncValue.loading();
     try {
@@ -165,7 +169,7 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
     return e.toString();
   }
 
-  /// Sends a 6-digit verification OTP to the user's real email
+  /// Sends a 6-digit verification OTP to the user's real email via secure Edge Service (Gmail SMTP)
   Future<bool> sendSignupOtp({required String email, required String displayName}) async {
     state = const AsyncValue.loading();
     try {
@@ -180,14 +184,29 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         throw const FormatException('अस्थाई / डमी ईमेल (Disposable email) मान्य नहीं है। कृपया अपना असली व्यक्तिगत ईमेल उपयोग करें।');
       }
 
-      await SupabaseConfig.client.auth.signInWithOtp(
-        email: cleanEmail,
-        shouldCreateUser: true,
-        data: {'full_name': displayName.trim(), 'name': displayName.trim()},
+      final uri = Uri.parse('${SupabaseConfig.defaultUrl}/functions/v1/custom-auth');
+      final res = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SupabaseConfig.defaultAnonKey,
+        },
+        body: jsonEncode({
+          'action': 'send-otp',
+          'email': cleanEmail,
+          'name': displayName.trim(),
+        }),
       );
 
-      state = const AsyncValue.data(null);
-      return true;
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      if (res.statusCode == 200 && data['success'] == true) {
+        _signupToken = data['token'] as String?;
+        _signupEmail = cleanEmail;
+        state = const AsyncValue.data(null);
+        return true;
+      } else {
+        throw FormatException(data['error']?.toString() ?? 'OTP भेजने में त्रुटि हुई।');
+      }
     } catch (e, st) {
       state = AsyncValue.error(_cleanErrorMessage(e), st);
       return false;
@@ -201,18 +220,33 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
       final cleanEmail = email.trim().toLowerCase();
       final cleanToken = token.trim();
 
-      final res = await SupabaseConfig.client.auth.verifyOTP(
-        email: cleanEmail,
-        token: cleanToken,
-        type: OtpType.email,
-      );
-
-      if (res.session == null && res.user == null) {
-        throw const AuthException('OTP सत्यापन विफल रहा। कृपया सही 6-अंकों का कोड दर्ज करें।');
+      if (cleanToken.length < 6) {
+        throw const FormatException('कृपया 6-अंकों का OTP कोड दर्ज करें।');
       }
 
-      state = const AsyncValue.data(null);
-      return true;
+      final uri = Uri.parse('${SupabaseConfig.defaultUrl}/functions/v1/custom-auth');
+      final res = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SupabaseConfig.defaultAnonKey,
+        },
+        body: jsonEncode({
+          'action': 'verify-otp',
+          'email': cleanEmail,
+          'otp': cleanToken,
+          'token': _signupToken,
+        }),
+      );
+
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      if (res.statusCode == 200 && data['success'] == true) {
+        _verifiedToken = data['verifiedToken'] as String?;
+        state = const AsyncValue.data(null);
+        return true;
+      } else {
+        throw FormatException(data['error']?.toString() ?? 'गलत OTP कोड। कृपया सही 6-अंकों का कोड दर्ज करें।');
+      }
     } catch (e, st) {
       state = AsyncValue.error(_cleanErrorMessage(e), st);
       return false;
@@ -227,26 +261,40 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         throw const FormatException('पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।');
       }
 
-      await SupabaseConfig.client.auth.updateUser(
-        UserAttributes(
-          password: password,
-          data: {'full_name': displayName.trim(), 'name': displayName.trim()},
-        ),
-      );
-
-      // Ensure profile record is immediately updated in public.profiles
-      final user = SupabaseConfig.client.auth.currentUser;
-      if (user != null) {
-        await SupabaseConfig.client.from('profiles').upsert({
-          'id': user.id,
-          'display_name': displayName.trim(),
-          'email': user.email,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        });
+      final email = _signupEmail ?? SupabaseConfig.client.auth.currentUser?.email ?? '';
+      if (email.isEmpty) {
+        throw const FormatException('सत्यापन सत्र समाप्त हो गया। कृपया पुनः OTP भेजें।');
       }
 
-      state = const AsyncValue.data(null);
-      return true;
+      final uri = Uri.parse('${SupabaseConfig.defaultUrl}/functions/v1/custom-auth');
+      final res = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SupabaseConfig.defaultAnonKey,
+        },
+        body: jsonEncode({
+          'action': 'complete-signup',
+          'email': email,
+          'password': password,
+          'name': displayName.trim(),
+          'verifiedToken': _verifiedToken,
+        }),
+      );
+
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      if (res.statusCode == 200 && data['success'] == true) {
+        // Officially establish Supabase auth session
+        await SupabaseConfig.client.auth.signInWithPassword(
+          email: email,
+          password: password,
+        );
+
+        state = const AsyncValue.data(null);
+        return true;
+      } else {
+        throw FormatException(data['error']?.toString() ?? 'पंजीकरण विफल रहा। कृपया पुनः प्रयास करें।');
+      }
     } catch (e, st) {
       state = AsyncValue.error(_cleanErrorMessage(e), st);
       return false;
