@@ -49,5 +49,19 @@ void main() {
       );
       expect(suggestionCityOnly.fullLocationText, equals('Mumbai'));
     });
+
+    test('primaryName preserves selected place name and does not get replaced by parent tehsil', () {
+      const suggestion = LocationSuggestion(
+        title: 'Suratpura',
+        subtitle: 'Samariya Khurd, Begun Tehsil, Rajasthan, India',
+        primaryName: 'Suratpura',
+        city: 'Suratpura',
+        area: 'Samariya Khurd, Begun Tehsil',
+        state: 'Rajasthan',
+      );
+      expect(suggestion.primaryName, equals('Suratpura'));
+      expect(suggestion.city, equals('Suratpura'));
+      expect(suggestion.area, equals('Samariya Khurd, Begun Tehsil'));
+    });
   });
 }

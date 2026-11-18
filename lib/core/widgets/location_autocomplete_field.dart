@@ -131,6 +131,7 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
   List<LocationSuggestion> _suggestions = [];
   bool _isOpen = false;
   bool _isLoading = false;
+  bool _isSelecting = false;
   Timer? _debounceTimer;
 
   @override
@@ -148,6 +149,8 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
   }
 
   void _onTextChanged() {
+    if (_isSelecting) return;
+
     final text = widget.controller.text.trim();
     if (text.isEmpty) {
       _debounceTimer?.cancel();
@@ -166,6 +169,7 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
         .map((c) => LocationSuggestion(
               title: c.displayName,
               subtitle: '${c.state}, India',
+              primaryName: c.englishName,
               city: c.englishName,
               state: c.state,
               isCity: true,
@@ -182,13 +186,13 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
     // 2. Debounced deep place search (OpenStreetMap / Photon API)
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 300), () async {
-      if (!mounted) return;
+      if (!mounted || _isSelecting) return;
       final currentQuery = widget.controller.text.trim();
       if (currentQuery.length < 2) return;
 
       setState(() => _isLoading = true);
       final places = await LocationSearchService.search(currentQuery);
-      if (!mounted) return;
+      if (!mounted || _isSelecting) return;
 
       setState(() {
         _isLoading = false;
@@ -197,7 +201,7 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
         }
       });
 
-      if (_suggestions.isNotEmpty) {
+      if (_suggestions.isNotEmpty && !_isSelecting) {
         _showOverlay();
       } else {
         _removeOverlay();
@@ -206,6 +210,8 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
   }
 
   void _showOverlay() {
+    if (_isSelecting) return;
+
     if (_isOpen) {
       _overlayEntry?.markNeedsBuild();
       return;
@@ -219,112 +225,123 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
           link: _layerLink,
           showWhenUnlinked: false,
           offset: const Offset(0, 56),
-          child: Material(
-            elevation: 8,
-            borderRadius: BorderRadius.circular(14),
-            color: Colors.white,
-            child: Container(
-              constraints: const BoxConstraints(maxHeight: 260),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (_isLoading)
-                    const LinearProgressIndicator(
-                      minHeight: 2,
-                      backgroundColor: Colors.transparent,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryGreen),
+          child: TapRegion(
+            onTapOutside: (_) => _removeOverlay(),
+            child: Material(
+              elevation: 8,
+              borderRadius: BorderRadius.circular(14),
+              color: Colors.white,
+              child: Container(
+                constraints: const BoxConstraints(maxHeight: 260),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
-                  Flexible(
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      shrinkWrap: true,
-                      itemCount: _suggestions.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                      itemBuilder: (ctx, idx) {
-                        final item = _suggestions[idx];
-                        return ListTile(
-                          dense: true,
-                          leading: CircleAvatar(
-                            radius: 14,
-                            backgroundColor: item.isCity
-                                ? AppTheme.primaryGreen.withOpacity(0.12)
-                                : Colors.amber.withOpacity(0.15),
-                            child: Icon(
-                              item.isCity ? Icons.location_city_rounded : Icons.place_rounded,
-                              size: 16,
-                              color: item.isCity ? AppTheme.primaryGreen : Colors.brown,
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_isLoading)
+                      const LinearProgressIndicator(
+                        minHeight: 2,
+                        backgroundColor: Colors.transparent,
+                        valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryGreen),
+                      ),
+                    Flexible(
+                      child: ListView.separated(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        shrinkWrap: true,
+                        itemCount: _suggestions.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                        itemBuilder: (ctx, idx) {
+                          final item = _suggestions[idx];
+                          return ListTile(
+                            dense: true,
+                            leading: CircleAvatar(
+                              radius: 14,
+                              backgroundColor: item.isCity
+                                  ? AppTheme.primaryGreen.withOpacity(0.12)
+                                  : Colors.amber.withOpacity(0.15),
+                              child: Icon(
+                                item.isCity ? Icons.location_city_rounded : Icons.place_rounded,
+                                size: 16,
+                                color: item.isCity ? AppTheme.primaryGreen : Colors.brown,
+                              ),
                             ),
-                          ),
-                          title: Text(
-                            item.title,
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                          ),
-                          subtitle: Text(
-                            item.subtitle,
-                            style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          onTap: () {
-                            widget.controller.text = item.city;
-                            widget.onSelected?.call(item.city);
-                            widget.onSuggestionSelected?.call(item);
-                            _removeOverlay();
-                            FocusScope.of(context).unfocus();
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(14),
-                        bottomRight: Radius.circular(14),
+                            title: Text(
+                              item.title,
+                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                            ),
+                            subtitle: Text(
+                              item.subtitle,
+                              style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            onTap: () {
+                              _isSelecting = true;
+                              _debounceTimer?.cancel();
+                              _removeOverlay();
+
+                              final selectedValue = item.primaryName;
+                              widget.controller.text = selectedValue;
+                              widget.onSelected?.call(selectedValue);
+                              widget.onSuggestionSelected?.call(item);
+                              FocusScope.of(context).unfocus();
+
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                _isSelecting = false;
+                              });
+                            },
+                          );
+                        },
                       ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'स्थान सुझाव (Live Suggestions)',
-                          style: TextStyle(fontSize: 10, color: AppTheme.textMuted),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(14),
+                          bottomRight: Radius.circular(14),
                         ),
-                        TextButton.icon(
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: const Size(0, 24),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'स्थान सुझाव (Live Suggestions)',
+                            style: TextStyle(fontSize: 10, color: AppTheme.textMuted),
                           ),
-                          icon: const Icon(Icons.map_outlined, size: 12, color: Colors.blueAccent),
-                          label: const Text(
-                            'Google Maps ↗',
-                            style: TextStyle(fontSize: 10.5, color: Colors.blueAccent, fontWeight: FontWeight.bold),
+                          TextButton.icon(
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(0, 24),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            icon: const Icon(Icons.map_outlined, size: 12, color: Colors.blueAccent),
+                            label: const Text(
+                              'Google Maps ↗',
+                              style: TextStyle(fontSize: 10.5, color: Colors.blueAccent, fontWeight: FontWeight.bold),
+                            ),
+                            onPressed: () {
+                              final q = widget.controller.text.trim();
+                              if (q.isNotEmpty) {
+                                MapLauncher.openLocation(query: q);
+                              }
+                            },
                           ),
-                          onPressed: () {
-                            final q = widget.controller.text.trim();
-                            if (q.isNotEmpty) {
-                              MapLauncher.openLocation(query: q);
-                            }
-                          },
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -370,8 +387,13 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
                     IconButton(
                       icon: const Icon(Icons.clear_rounded, size: 18),
                       onPressed: () {
-                        widget.controller.clear();
+                        _isSelecting = true;
+                        _debounceTimer?.cancel();
                         _removeOverlay();
+                        widget.controller.clear();
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          _isSelecting = false;
+                        });
                       },
                     ),
                   ],

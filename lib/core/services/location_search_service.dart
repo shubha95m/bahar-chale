@@ -6,6 +6,7 @@ import '../widgets/location_autocomplete_field.dart' show kTopIndianCities;
 class LocationSuggestion {
   final String title;
   final String subtitle;
+  final String primaryName;
   final String city;
   final String? area;
   final String? state;
@@ -16,19 +17,20 @@ class LocationSuggestion {
   const LocationSuggestion({
     required this.title,
     required this.subtitle,
+    String? primaryName,
     required this.city,
     this.area,
     this.state,
     this.latitude,
     this.longitude,
     this.isCity = false,
-  });
+  }) : primaryName = primaryName ?? city;
 
   String get fullLocationText {
-    if (area != null && area!.isNotEmpty && area != city) {
-      return '$city ($area)';
+    if (area != null && area!.isNotEmpty && area != primaryName && area != city) {
+      return '$primaryName ($area)';
     }
-    return city;
+    return primaryName;
   }
 }
 
@@ -55,6 +57,7 @@ class LocationSearchService {
           results.add(LocationSuggestion(
             title: c.displayName,
             subtitle: '${c.state}, India',
+            primaryName: c.englishName,
             city: c.englishName,
             state: c.state,
             isCity: true,
@@ -91,15 +94,33 @@ class LocationSearchService {
             final name = (props['name'] as String?)?.trim() ?? '';
             if (name.isEmpty) continue;
 
-            final city = (props['city'] as String?) ??
-                (props['district'] as String?) ??
-                (props['county'] as String?) ??
-                name;
-            final state = props['state'] as String?;
-            final street = props['street'] as String?;
-            final locality = (props['locality'] as String?) ?? (props['district'] as String?);
+            final osmCity = (props['city'] as String?)?.trim();
+            final osmDistrict = (props['district'] as String?)?.trim();
+            final osmCounty = (props['county'] as String?)?.trim();
+            final state = (props['state'] as String?)?.trim();
+            final street = (props['street'] as String?)?.trim();
+            final locality = (props['locality'] as String?)?.trim();
 
-            final area = (name != city) ? name : (street ?? locality);
+            // The primary place name the user searched for and wants to select
+            final primaryPlace = name;
+
+            // Collect parent context areas (e.g. Samariya Khurd, Begun Tehsil, street, etc.)
+            final parentParts = <String>[];
+            if (street != null && street.isNotEmpty && street != primaryPlace) parentParts.add(street);
+            if (locality != null && locality.isNotEmpty && locality != primaryPlace && !parentParts.contains(locality)) {
+              parentParts.add(locality);
+            }
+            if (osmCity != null && osmCity.isNotEmpty && osmCity != primaryPlace && !parentParts.contains(osmCity)) {
+              parentParts.add(osmCity);
+            }
+            if (osmCounty != null && osmCounty.isNotEmpty && osmCounty != primaryPlace && !parentParts.contains(osmCounty)) {
+              parentParts.add(osmCounty);
+            }
+            if (osmDistrict != null && osmDistrict.isNotEmpty && osmDistrict != primaryPlace && !parentParts.contains(osmDistrict)) {
+              parentParts.add(osmDistrict);
+            }
+
+            final area = parentParts.isNotEmpty ? parentParts.join(', ') : null;
 
             final geometry = f['geometry'] as Map<String, dynamic>?;
             final coords = geometry?['coordinates'] as List<dynamic>?;
@@ -111,20 +132,20 @@ class LocationSearchService {
             }
 
             final subParts = <String>[];
-            if (area != null && area.isNotEmpty && area != name && area != city) subParts.add(area);
-            if (city.isNotEmpty && city != name) subParts.add(city);
+            if (area != null && area.isNotEmpty) subParts.add(area);
             if (state != null && state.isNotEmpty) subParts.add(state);
             subParts.add('India');
 
             final subtitle = subParts.join(', ');
-            final key = '$name-$city-$state'.toLowerCase();
+            final key = '$primaryPlace-$area-$state'.toLowerCase();
 
             if (seen.add(key)) {
               results.add(LocationSuggestion(
-                title: name,
+                title: primaryPlace,
                 subtitle: subtitle,
-                city: city,
-                area: area != city ? area : null,
+                primaryName: primaryPlace,
+                city: primaryPlace, // ALWAYS the entered/selected place name!
+                area: area,
                 state: state,
                 latitude: lat,
                 longitude: lon,
