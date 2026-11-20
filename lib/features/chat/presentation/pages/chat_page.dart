@@ -211,7 +211,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         ],
       ),
       body: SafeArea(
-        child: Center(
+        child: Align(
+          alignment: Alignment.topCenter,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 700),
             child: Column(

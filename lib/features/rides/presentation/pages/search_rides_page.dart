@@ -134,10 +134,12 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
         ],
       ),
       body: SafeArea(
-        child: Center(
+        child: Align(
+          alignment: Alignment.topCenter,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 720),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
             // Top Search & Filter Bar
             Container(

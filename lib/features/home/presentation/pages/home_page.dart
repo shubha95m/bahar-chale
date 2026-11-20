@@ -126,7 +126,8 @@ class _HomePageState extends ConsumerState<HomePage> {
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 14.0, bottom: 90.0),
-          child: Center(
+          child: Align(
+            alignment: Alignment.topCenter,
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 650),
               child: Column(
