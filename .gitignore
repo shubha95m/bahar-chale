@@ -53,7 +53,9 @@ app.*.map.json
 !.env.example
 *.env
 *.keystore
+!android/app/release.keystore
 *.jks
+!android/key.properties
 *.apk
 *.aab
 
