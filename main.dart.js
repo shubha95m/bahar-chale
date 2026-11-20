@@ -56413,9 +56413,9 @@ q=q===B.dO?A.b([new A.ve(A.b6("[a-zA-Z0-9]",!0,!1,!1),!0,"")],p):A.b([new A.ve(A
 l=p===B.d6
 if(l)k=16
 else k=p===B.dO?10:18
-if(l)p=c?"\u0909\u0926\u093e. 8201 4019 3698":"e.g. 8201 4019 3698"
-else if(p===B.dO)p=c?"\u0909\u0926\u093e. GIJPS9957M":"e.g. GIJPS9957M"
-else p=c?"\u0909\u0926\u093e. RJ09 20200005545":"e.g. RJ09 20200005545"
+if(l)p=c?"\u0909\u0926\u093e. 1234 5678 9012":"e.g. 1234 5678 9012"
+else if(p===B.dO)p=c?"\u0909\u0926\u093e. ABCDE1234F":"e.g. ABCDE1234F"
+else p=c?"\u0909\u0926\u093e. DL01 20240001234":"e.g. DL01 20240001234"
 n=A.lp(i,B.bu,!1,i,!0,B.O,i,A.mP(),j.x,i,i,i,i,i,2,A.fb(i,new A.fe(4,A.a7(10),B.jN),i,B.o7,i,i,"",i,!0,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,p,i,i,i,i,i,i,i,i,i,!0,!0,!1,i,B.Tb,i,i,i,i,i,i,i,i,i,i,i,i),B.N,!0,i,!0,i,!1,i,B.bz,i,i,q,i,m,i,k,i,1,i,i,!1,"\u2022",i,i,i,i,i,!1,i,i,!1,i,!0,i,B.bn,i,i,i,i,i,i,i,i,i,i,i,i,!0,B.ac,i,n,i,i,i,i)
 if(j.y===B.d6)q=c?"\u092a\u0939\u091a\u093e\u0928 \u092a\u0924\u094d\u0930 \u0915\u0940 \u0926\u094b\u0928\u094b\u0902 \u0924\u0930\u092b \u0915\u0940 \u092b\u094b\u091f\u094b *":"Upload ID Photos (Front & Back Required) *"
 else q=c?"\u092a\u0939\u091a\u093e\u0928 \u092a\u0924\u094d\u0930 \u0915\u0940 \u092b\u094b\u091f\u094b (\u0938\u093e\u092e\u0928\u0947 \u0915\u093e \u092d\u093e\u0917) *":"Upload ID Photo (Front Side) *"
@@ -129479,7 +129479,7 @@ B.Qp=new A.l1(!1,"\u0915\u0943\u092a\u092f\u093e 12-\u0905\u0902\u0915\u094b\u09
 B.Qq=new A.l1(!1,"\u0915\u0943\u092a\u092f\u093e 10-\u0905\u0915\u094d\u0937\u0930\u094b\u0902 \u0915\u093e \u092a\u0948\u0928 (PAN) \u0928\u0902\u092c\u0930 \u0926\u0930\u094d\u091c \u0915\u0930\u0947\u0902\u0964","Please enter 10-character PAN number.",null,null)
 B.Qr=new A.l1(!1,"\u0906\u0927\u093e\u0930 \u0928\u0902\u092c\u0930 \u0915\u0947\u0935\u0932 12 \u0905\u0902\u0915\u094b\u0902 \u0915\u093e \u0939\u094b\u0928\u093e \u091a\u093e\u0939\u093f\u090f\u0964","Aadhaar number must be exactly 12 digits.",null,null)
 B.Qs=new A.l1(!1,"\u0915\u0943\u092a\u092f\u093e \u0921\u094d\u0930\u093e\u0907\u0935\u093f\u0902\u0917 \u0932\u093e\u0907\u0938\u0947\u0902\u0938 (DL) \u0928\u0902\u092c\u0930 \u0926\u0930\u094d\u091c \u0915\u0930\u0947\u0902\u0964","Please enter Driving License number.",null,null)
-B.Qt=new A.l1(!1,"\u0921\u094d\u0930\u093e\u0907\u0935\u093f\u0902\u0917 \u0932\u093e\u0907\u0938\u0947\u0902\u0938 10 \u0938\u0947 16 \u0905\u0915\u094d\u0937\u0930\u094b\u0902 \u0915\u093e \u0939\u094b\u0928\u093e \u091a\u093e\u0939\u093f\u090f (\u0909\u0926\u093e: RJ09 20200005545)\u0964","Driving License must be 10 to 16 alphanumeric characters (e.g. RJ09 20200005545).",null,null)
+B.Qt=new A.l1(!1,"\u0921\u094d\u0930\u093e\u0907\u0935\u093f\u0902\u0917 \u0932\u093e\u0907\u0938\u0947\u0902\u0938 10 \u0938\u0947 16 \u0905\u0915\u094d\u0937\u0930\u094b\u0902 \u0915\u093e \u0939\u094b\u0928\u093e \u091a\u093e\u0939\u093f\u090f (\u0909\u0926\u093e: DL01 20240001234)\u0964","Driving License must be 10 to 16 alphanumeric characters (e.g. DL01 20240001234).",null,null)
 B.Qu=new A.VO(null)
 B.kQ=new A.VP(0,"forward")
 B.vi=new A.VP(1,"reverse")
