@@ -10,6 +10,8 @@ import '../../features/authentication/presentation/services/auth_registration_st
 import '../../features/chat/presentation/pages/chat_page.dart';
 import '../../features/chat/presentation/pages/conversations_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/legal/presentation/pages/privacy_page.dart';
+import '../../features/legal/presentation/pages/terms_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/requests/presentation/pages/create_passenger_request_page.dart';
 import '../../features/rides/presentation/pages/create_ride_page.dart';
@@ -158,14 +160,31 @@ final routerProvider = Provider<GoRouter>((ref) {
           child: const ProfilePage(),
         ),
       ),
+      GoRoute(
+        path: '/terms',
+        name: 'terms',
+        pageBuilder: (context, state) => _buildFadePage(
+          key: state.pageKey,
+          child: const TermsPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/privacy',
+        name: 'privacy',
+        pageBuilder: (context, state) => _buildFadePage(
+          key: state.pageKey,
+          child: const PrivacyPage(),
+        ),
+      ),
     ],
     redirect: (context, state) {
       final session = SupabaseConfig.client.auth.currentSession;
       final user = session?.user ?? SupabaseConfig.client.auth.currentUser;
       final loggingIn = state.matchedLocation == '/login';
+      final isPublicRoute = state.matchedLocation == '/terms' || state.matchedLocation == '/privacy';
       final isLoggedIn = user != null;
 
-      if (!isLoggedIn && !loggingIn) {
+      if (!isLoggedIn && !loggingIn && !isPublicRoute) {
         return '/login';
       }
       if (isLoggedIn && loggingIn) {

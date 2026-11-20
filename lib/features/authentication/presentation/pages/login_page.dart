@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -597,33 +598,36 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
-                                  child: GestureDetector(
-                                    onTap: () => setState(() => _acceptedTerms = !_acceptedTerms),
-                                    child: Text.rich(
-                                      TextSpan(
-                                        text: s.isHindi ? 'मैं ' : 'I accept the ',
-                                        style: const TextStyle(fontSize: 12, color: AppTheme.textDark),
-                                        children: [
-                                          TextSpan(
-                                            text: s.isHindi ? 'नियम व शर्तें (T&C)' : 'Terms & Conditions',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: AppTheme.primaryGreen,
-                                              decoration: TextDecoration.underline,
-                                            ),
+                                  child: Text.rich(
+                                    TextSpan(
+                                      text: s.isHindi ? 'मैं ' : 'I accept the ',
+                                      style: const TextStyle(fontSize: 12, color: AppTheme.textDark),
+                                      children: [
+                                        TextSpan(
+                                          text: s.isHindi ? 'नियम व शर्तें (T&C)' : 'Terms & Conditions',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppTheme.primaryGreen,
+                                            decoration: TextDecoration.underline,
                                           ),
-                                          TextSpan(text: s.isHindi ? ' और ' : ' and '),
-                                          TextSpan(
-                                            text: s.isHindi ? 'गोपनीयता नीति' : 'Privacy Policy',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: AppTheme.primaryGreen,
-                                              decoration: TextDecoration.underline,
-                                            ),
+                                          recognizer: TapGestureRecognizer()..onTap = () {
+                                            context.push('/terms');
+                                          },
+                                        ),
+                                        TextSpan(text: s.isHindi ? ' और ' : ' and '),
+                                        TextSpan(
+                                          text: s.isHindi ? 'गोपनीयता नीति' : 'Privacy Policy',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppTheme.primaryGreen,
+                                            decoration: TextDecoration.underline,
                                           ),
-                                          TextSpan(text: s.isHindi ? ' स्वीकार करता/करती हूँ।' : '.'),
-                                        ],
-                                      ),
+                                          recognizer: TapGestureRecognizer()..onTap = () {
+                                            context.push('/privacy');
+                                          },
+                                        ),
+                                        TextSpan(text: s.isHindi ? ' स्वीकार करता/करती हूँ।' : '.'),
+                                      ],
                                     ),
                                   ),
                                 ),

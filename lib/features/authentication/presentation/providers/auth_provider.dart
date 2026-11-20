@@ -375,6 +375,43 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
       state = AsyncValue.error(e, st);
     }
   }
+
+  /// Removes/suspends user account, cancels active rides, and logs out safely
+  Future<bool> removeAccount({String? reason}) async {
+    state = const AsyncValue.loading();
+    try {
+      final user = SupabaseConfig.client.auth.currentUser;
+      if (user == null) {
+        throw FormatException(isHindi ? 'उपयोगकर्ता सत्र नहीं मिला।' : 'User session not found.');
+      }
+
+      final uri = Uri.parse('${SupabaseConfig.defaultUrl}/functions/v1/custom-auth');
+      final res = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SupabaseConfig.defaultAnonKey,
+        },
+        body: jsonEncode({
+          'action': 'remove-account',
+          'userId': user.id,
+          'email': user.email ?? '',
+          'reason': reason ?? 'User requested account removal from profile',
+        }),
+      );
+
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      if (res.statusCode == 200 && data['success'] == true) {
+        await signOut();
+        return true;
+      } else {
+        throw FormatException(data['error']?.toString() ?? (isHindi ? 'खाता हटाने में त्रुटि।' : 'Failed to remove account.'));
+      }
+    } catch (e, st) {
+      state = AsyncValue.error(_cleanErrorMessage(e), st);
+      return false;
+    }
+  }
 }
 
 final authControllerProvider = StateNotifierProvider<AuthController, AsyncValue<void>>((ref) {

@@ -154,76 +154,143 @@ class ProfilePage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // Government ID Verification Card
+                  // Reliability & Government ID Verification Card (Responsive & Un-squished)
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
-                      color: isIdVerified ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC),
+                      color: isIdVerified ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isIdVerified ? const Color(0xFF86EFAC) : const Color(0xFFCBD5E1),
+                        color: isIdVerified ? const Color(0xFF86EFAC) : const Color(0xFFFDE68A),
+                        width: 1.2,
                       ),
                     ),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: isIdVerified ? Colors.green.shade100 : Colors.blue.shade50,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            isIdVerified ? Icons.verified_user_rounded : Icons.badge_outlined,
-                            color: isIdVerified ? Colors.green.shade700 : Colors.blue.shade700,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
+                        // Top Header Row: Icon + Title + Status Chip
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                color: isIdVerified ? Colors.green.shade100 : Colors.amber.shade100,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                isIdVerified ? Icons.verified_user_rounded : Icons.shield_outlined,
+                                color: isIdVerified ? Colors.green.shade800 : Colors.amber.shade900,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
                                 isIdVerified
-                                    ? (s.isHindi ? 'सरकारी पहचान पत्र सत्यापित' : 'Government ID Verified')
-                                    : (s.isHindi ? 'पहचान पत्र सत्यापित करें' : 'Verify Government ID'),
+                                    ? (s.isHindi ? 'नागरिक विश्वसनीयता सत्यापन' : 'Reliability Verification')
+                                    : (s.isHindi ? 'विश्वसनीयता सत्यापन (लंबित)' : 'Reliability Verification (Pending)'),
                                 style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14.5,
-                                  color: isIdVerified ? Colors.green.shade900 : AppTheme.textDark,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 15,
+                                  color: isIdVerified ? Colors.green.shade900 : Colors.amber.shade900,
                                 ),
                               ),
-                              const SizedBox(height: 2),
-                              Text(
-                                isIdVerified
-                                    ? '${idType?.toUpperCase()}: $idMasked'
-                                    : (s.isHindi
-                                        ? 'आधार / पैन / DL जोड़कर अन्य यात्रियों में विश्वास बढ़ाएं'
-                                        : 'Add Aadhaar, PAN, or DL for 100% trusted travel'),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: isIdVerified ? Colors.green.shade800 : AppTheme.textMuted,
-                                ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                              decoration: BoxDecoration(
+                                color: isIdVerified ? Colors.green.shade600 : Colors.amber.shade600,
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                            ],
-                          ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    isIdVerified ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
+                                    color: Colors.white,
+                                    size: 12,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    isIdVerified
+                                        ? (s.isHindi ? 'पूर्ण (Done)' : 'Done')
+                                        : (s.isHindi ? 'लंबित (Pending)' : 'Pending'),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 10.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        if (!isIdVerified)
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.primaryGreen,
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        const SizedBox(height: 12),
+
+                        // Body description
+                        if (isIdVerified) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.green.shade200),
                             ),
-                            onPressed: () => context.push('/verify-id'),
-                            child: Text(
-                              s.isHindi ? 'सत्यापित करें' : 'Verify Now',
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.badge_outlined, size: 16, color: Colors.green),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '${idType?.toUpperCase() ?? "GOVT ID"}: $idMasked',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13,
+                                    color: Colors.green.shade900,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
                             ),
-                          )
-                        else
-                          const Icon(Icons.check_circle_rounded, color: Colors.green, size: 22),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            s.isHindi
+                                ? '✓ आपकी पहचान व प्रोफ़ाइल सत्यापित है। सहयात्री व चालक आप पर पूर्ण विश्वास कर सकते हैं।'
+                                : '✓ Your identity and profile photo are verified. Co-travelers and drivers can travel with you with 100% trust.',
+                            style: TextStyle(fontSize: 12.5, color: Colors.green.shade800, height: 1.35),
+                          ),
+                        ] else ...[
+                          Text(
+                            s.isHindi
+                                ? 'सुरक्षित यात्रा व आपसी विश्वास हेतु अपना सरकारी पहचान पत्र (आधार कार्ड, पैन कार्ड या ड्राइविंग लाइसेंस) सत्यापित करें।'
+                                : 'Verify your Indian Government ID (Aadhaar, PAN, or Driving License) to earn verified community trust.',
+                            style: TextStyle(fontSize: 12.5, color: Colors.amber.shade900, height: 1.35),
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () => context.push('/verify-id'),
+                              icon: const Icon(Icons.verified_user_rounded, size: 16),
+                              label: Text(
+                                s.isHindi
+                                    ? 'पहचान सत्यापन पूरा करें (Aadhaar / PAN / DL)'
+                                    : 'Complete ID Verification (Aadhaar / PAN / DL)',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primaryGreen,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 11),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -262,6 +329,22 @@ class ProfilePage extends ConsumerWidget {
                         ),
                         const Divider(height: 1),
                         ListTile(
+                          leading: const Icon(Icons.description_outlined, color: AppTheme.primaryGreen),
+                          title: Text(s.isHindi ? 'नियम व शर्तें (Terms & Conditions)' : 'Terms & Conditions'),
+                          subtitle: Text(s.isHindi ? 'आईटी एक्ट 2000 व मोटर वाहन अधिनियम' : 'IT Act 2000 & Motor Vehicles Act'),
+                          trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppTheme.textMuted),
+                          onTap: () => context.push('/terms'),
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.privacy_tip_outlined, color: AppTheme.primaryGreen),
+                          title: Text(s.isHindi ? 'गोपनीयता नीति (Privacy Policy)' : 'Privacy Policy'),
+                          subtitle: Text(s.isHindi ? 'डीपीडीपी अधिनियम 2023 (DPDP Act)' : 'DPDP Act 2023 Compliant'),
+                          trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppTheme.textMuted),
+                          onTap: () => context.push('/privacy'),
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
                           leading: const Icon(Icons.security_rounded, color: AppTheme.primaryGreen),
                           title: Text(s.isHindi ? 'डेटा गोपनीयता व सुरक्षा' : 'Data Privacy & Security'),
                           subtitle: Text(s.isHindi ? '100% RLS एन्क्रिप्टेड क्लाउड डेटाबेस' : '100% RLS Encrypted Cloud Database'),
@@ -283,7 +366,7 @@ class ProfilePage extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
 
                   // Logout Action
                   OutlinedButton.icon(
@@ -319,6 +402,88 @@ class ProfilePage extends ConsumerWidget {
                       side: const BorderSide(color: Colors.red, width: 1.2),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Danger Zone: Remove / Delete Account
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.red.shade200),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.warning_rounded, color: Colors.red.shade700, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              s.isHindi ? 'खाता प्रबंधन (Danger Zone)' : 'Danger Zone',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Colors.red.shade900),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          s.isHindi
+                              ? 'खाता हटाने पर आपका प्रोफाइल निलंबित हो जाएगा और सक्रिय राइड्स रद्द हो जाएंगी। भविष्य में इसी ईमेल से नया साइन अप कर सकेंगे।'
+                              : 'Removing your account will suspend your profile and cancel active rides. You may register fresh in the future using this email.',
+                          style: TextStyle(fontSize: 12, color: Colors.red.shade800, height: 1.35),
+                        ),
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: Text(s.isHindi ? 'खाता हटाएं / निलंबित करें?' : 'Delete / Suspend Account?'),
+                                content: Text(
+                                  s.isHindi
+                                      ? 'क्या आप वाकई अपना खाता हटाना चाहते हैं?\n\n• आपकी सभी सक्रिय राइड्स और अनुरोध रद्द हो जाएंगे।\n• आपका खाता निष्क्रिय/निलंबित कर दिया जाएगा।\n• भविष्य में इसी ईमेल से आप पुनः नया खाता बना सकेंगे।'
+                                      : 'Are you sure you want to remove your account?\n\n• All your active rides and requests will be cancelled.\n• Your profile will be marked inactive.\n• If you return in the future, you can sign up again fresh with this email.',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, false),
+                                    child: Text(s.cancelText),
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                    child: Text(
+                                      s.isHindi ? 'हाँ, खाता हटाएं' : 'Yes, Delete Account',
+                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (confirm == true) {
+                              final success = await ref.read(authControllerProvider.notifier).removeAccount();
+                              if (context.mounted) {
+                                if (success) {
+                                  context.go('/login');
+                                }
+                              }
+                            }
+                          },
+                          icon: const Icon(Icons.delete_forever_rounded, color: Colors.red, size: 18),
+                          label: Text(
+                            s.isHindi ? 'खाता हटाएं (Delete Account)' : 'Delete Account',
+                            style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: Colors.red.shade400),
+                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_theme.dart';
 
 class TermsAndConditionsDialog extends StatelessWidget {
@@ -64,25 +65,58 @@ class TermsAndConditionsDialog extends StatelessWidget {
               ),
             ),
 
-            // Footer / Close Button
+            // Footer with Full Page navigation + Close Button
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 border: Border(top: BorderSide(color: Colors.grey.shade200)),
               ),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryGreen,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          context.push('/terms');
+                        },
+                        icon: const Icon(Icons.open_in_new_rounded, size: 14),
+                        label: Text(
+                          isHindi ? 'पूरी सेवा शर्तें (Terms)' : 'Full Terms Page',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          context.push('/privacy');
+                        },
+                        icon: const Icon(Icons.open_in_new_rounded, size: 14),
+                        label: Text(
+                          isHindi ? 'गोपनीयता नीति (Privacy)' : 'Full Privacy Page',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    isHindi ? 'मैं समझ गया / स्वीकार करता हूँ' : 'I Understand & Agree',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  const SizedBox(height: 6),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryGreen,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: Text(
+                        isHindi ? 'मैं समझ गया / स्वीकार करता हूँ' : 'I Understand & Agree',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ],
