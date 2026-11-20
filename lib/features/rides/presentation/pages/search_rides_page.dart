@@ -134,8 +134,11 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: Column(
+              children: [
             // Top Search & Filter Bar
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -449,6 +452,8 @@ class _SearchRidesPageState extends ConsumerState<SearchRidesPage> {
           ],
         ),
       ),
+    ),
+  ),
       bottomNavigationBar: const AppBottomBar(currentIndex: 1),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {

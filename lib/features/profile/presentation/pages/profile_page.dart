@@ -6,6 +6,7 @@ import '../../../../core/localization/app_language.dart';
 import '../../../../core/localization/app_strings.dart';
 import '../../../../core/widgets/app_bottom_bar.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
+import '../../../../core/providers/app_version_provider.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 
 class ProfilePage extends ConsumerWidget {
@@ -34,6 +35,8 @@ class ProfilePage extends ConsumerWidget {
     final s = ref.watch(stringsProvider);
     final currentLang = ref.watch(appLanguageProvider);
     final langNotifier = ref.read(appLanguageProvider.notifier);
+    final versionAsync = ref.watch(appVersionProvider);
+    final versionText = versionAsync.value ?? 'v1.0.1 (Build 2)';
 
     final user = ref.watch(currentUserProvider);
     final meta = user?.userMetadata;
@@ -174,7 +177,7 @@ class ProfilePage extends ConsumerWidget {
                         ListTile(
                           leading: const Icon(Icons.info_outline_rounded, color: AppTheme.primaryGreen),
                           title: Text(s.isHindi ? 'संस्करण (Version)' : 'Version'),
-                          trailing: const Text('v1.0.0 (Production)', style: TextStyle(color: AppTheme.textMuted)),
+                          trailing: Text(versionText, style: const TextStyle(color: AppTheme.textMuted)),
                         ),
                       ],
                     ),

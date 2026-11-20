@@ -27,7 +27,10 @@ class AppBottomBar extends ConsumerWidget {
         ],
         border: const Border(top: BorderSide(color: Color(0xFFE2E8F0), width: 0.8)),
       ),
-      child: BottomNavigationBar(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 650),
+          child: BottomNavigationBar(
         currentIndex: currentIndex,
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
@@ -96,6 +99,8 @@ class AppBottomBar extends ConsumerWidget {
             label: s.navProfileText,
           ),
         ],
+          ),
+        ),
       ),
     );
   }

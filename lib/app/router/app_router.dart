@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../configuration/supabase_config.dart';
@@ -32,6 +32,17 @@ class GoRouterRefreshStream extends ChangeNotifier {
   }
 }
 
+CustomTransitionPage<void> _buildFadePage({required LocalKey key, required Widget child}) {
+  return CustomTransitionPage<void>(
+    key: key,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(opacity: animation, child: child);
+    },
+    transitionDuration: const Duration(milliseconds: 180),
+  );
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
   final refreshStream = GoRouterRefreshStream(SupabaseConfig.client.auth.onAuthStateChange);
   ref.onDispose(refreshStream.dispose);
@@ -43,66 +54,99 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/login',
         name: 'login',
-        builder: (context, state) => const LoginPage(),
+        pageBuilder: (context, state) => NoTransitionPage<void>(
+          key: state.pageKey,
+          child: const LoginPage(),
+        ),
       ),
       GoRoute(
         path: '/',
         name: 'home',
-        builder: (context, state) => const HomePage(),
+        pageBuilder: (context, state) => NoTransitionPage<void>(
+          key: state.pageKey,
+          child: const HomePage(),
+        ),
       ),
       GoRoute(
         path: '/create-ride',
         name: 'create-ride',
-        builder: (context, state) => const CreateRidePage(),
+        pageBuilder: (context, state) => _buildFadePage(
+          key: state.pageKey,
+          child: const CreateRidePage(),
+        ),
       ),
       GoRoute(
         path: '/create-passenger-request',
         name: 'create-passenger-request',
-        builder: (context, state) => const CreatePassengerRequestPage(),
+        pageBuilder: (context, state) => _buildFadePage(
+          key: state.pageKey,
+          child: const CreatePassengerRequestPage(),
+        ),
       ),
       GoRoute(
         path: '/search-rides',
         name: 'search-rides',
-        builder: (context, state) => const SearchRidesPage(),
+        pageBuilder: (context, state) => NoTransitionPage<void>(
+          key: state.pageKey,
+          child: const SearchRidesPage(),
+        ),
       ),
       GoRoute(
         path: '/ride/:id',
         name: 'ride-details',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
-          return RideDetailsPage(rideId: id);
+          return _buildFadePage(
+            key: state.pageKey,
+            child: RideDetailsPage(rideId: id),
+          );
         },
       ),
       GoRoute(
         path: '/my-travel',
         name: 'my-travel',
-        builder: (context, state) => const MyTravelPage(),
+        pageBuilder: (context, state) => NoTransitionPage<void>(
+          key: state.pageKey,
+          child: const MyTravelPage(),
+        ),
       ),
       GoRoute(
         path: '/agreement/:id',
         name: 'agreement',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
-          return AgreementPage(requestId: id);
+          return _buildFadePage(
+            key: state.pageKey,
+            child: AgreementPage(requestId: id),
+          );
         },
       ),
       GoRoute(
         path: '/chat/:id',
         name: 'chat',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
-          return ChatPage(requestId: id);
+          return _buildFadePage(
+            key: state.pageKey,
+            child: ChatPage(requestId: id),
+          );
         },
       ),
       GoRoute(
         path: '/conversations',
         name: 'conversations',
-        builder: (context, state) => const ConversationsPage(),
+        pageBuilder: (context, state) => NoTransitionPage<void>(
+          key: state.pageKey,
+          child: const ConversationsPage(),
+        ),
       ),
       GoRoute(
         path: '/profile',
         name: 'profile',
-        builder: (context, state) => const ProfilePage(),
+        pageBuilder: (context, state) => NoTransitionPage<void>(
+          key: state.pageKey,
+          child: const ProfilePage(),
+        ),
       ),
     ],
     redirect: (context, state) {

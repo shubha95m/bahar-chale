@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../app/theme/app_theme.dart';
-import '../../../../core/localization/app_strings.dart';
 
 class TermsAndConditionsDialog extends StatelessWidget {
   final bool isHindi;

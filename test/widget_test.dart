@@ -20,7 +20,7 @@ void main() {
     expect(englishStrings.actionGiveRideText, 'Offer a Ride');
   });
 
-  testWidgets('LoginPage renders brand identity and Google Sign-In action', (WidgetTester tester) async {
+  testWidgets('LoginPage renders brand identity and core login actions', (WidgetTester tester) async {
     await tester.pumpWidget(
       const ProviderScope(
         child: MaterialApp(
@@ -30,8 +30,8 @@ void main() {
     );
 
     const s = AppStrings(AppLanguage.hindi);
-    // Verify brand identity
+    // Verify brand identity and auth tabs
     expect(find.text(s.appTitle), findsOneWidget);
-    expect(find.text(s.googleSignInButton), findsOneWidget);
+    expect(find.text(s.signInTab), findsOneWidget);
   });
 }

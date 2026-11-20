@@ -31,7 +31,7 @@ void main() {
       ),
     );
 
-    final s = AppStrings(AppLanguage.hindi);
+    const s = AppStrings(AppLanguage.hindi);
 
     // Verify title and main labels
     expect(find.text(s.createRidePageTitle), findsOneWidget);

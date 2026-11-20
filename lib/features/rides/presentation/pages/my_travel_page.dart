@@ -99,17 +99,22 @@ class MyTravelPage extends ConsumerWidget {
             ],
           ),
         ),
-        body: TabBarView(
-          children: [
-            // TAB 1: Incoming requests for my rides
-            _buildIncomingTab(context, ref, user.id, s, incomingAsync),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: TabBarView(
+              children: [
+                // TAB 1: Incoming requests for my rides
+                _buildIncomingTab(context, ref, user.id, s, incomingAsync),
 
-            // TAB 2: Rides posted by me
-            _buildMyDrivesTab(context, ref, user.id, s, myRidesAsync),
+                // TAB 2: Rides posted by me
+                _buildMyDrivesTab(context, ref, user.id, s, myRidesAsync),
 
-            // TAB 3: Requests I sent to other drivers + My posted itineraries
-            _buildMySentRequestsTab(context, ref, user.id, s, myRequestsAsync, myPassengerRequestsAsync),
-          ],
+                // TAB 3: Requests I sent to other drivers + My posted itineraries
+                _buildMySentRequestsTab(context, ref, user.id, s, myRequestsAsync, myPassengerRequestsAsync),
+              ],
+            ),
+          ),
         ),
         bottomNavigationBar: const AppBottomBar(currentIndex: 2),
       ),

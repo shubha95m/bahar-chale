@@ -62,7 +62,10 @@ class ConversationsPage extends ConsumerWidget {
         ],
       ),
       body: SafeArea(
-        child: convsAsync.when(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 700),
+            child: convsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (err, _) => Center(
             child: Padding(
@@ -357,6 +360,8 @@ class ConversationsPage extends ConsumerWidget {
           },
         ),
       ),
+    ),
+  ),
       bottomNavigationBar: const AppBottomBar(currentIndex: 3),
     );
   }

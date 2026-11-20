@@ -15,6 +15,9 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
+  // Feature flags
+  static const bool _enableGoogleSignIn = false;
+
   // Tab: 0 = Sign In (Email+Password), 1 = Sign Up with OTP
   int _selectedTab = 0;
 
@@ -647,32 +650,35 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
                       const SizedBox(height: 24),
 
-                      // Optional Google OAuth
-                      Row(
-                        children: [
-                          const Expanded(child: Divider(color: Color(0xFFCBD5E1))),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                            child: Text(
-                              s.isHindi ? 'या' : 'OR',
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey.shade600),
+                      // Optional Google OAuth (Temporarily hidden until OAuth provider enabled)
+                      if (_enableGoogleSignIn) ...[
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            const Expanded(child: Divider(color: Color(0xFFCBD5E1))),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                              child: Text(
+                                s.isHindi ? 'या' : 'OR',
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey.shade600),
+                              ),
                             ),
-                          ),
-                          const Expanded(child: Divider(color: Color(0xFFCBD5E1))),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-
-                      OutlinedButton.icon(
-                        onPressed: isLoading ? null : () => ref.read(authControllerProvider.notifier).signInWithGoogle(),
-                        icon: const Icon(Icons.g_mobiledata_rounded, size: 28, color: Colors.blue),
-                        label: Text(s.googleSignInButton, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFCBD5E1)),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            const Expanded(child: Divider(color: Color(0xFFCBD5E1))),
+                          ],
                         ),
-                      ),
+                        const SizedBox(height: 14),
+
+                        OutlinedButton.icon(
+                          onPressed: isLoading ? null : () => ref.read(authControllerProvider.notifier).signInWithGoogle(),
+                          icon: const Icon(Icons.g_mobiledata_rounded, size: 28, color: Colors.blue),
+                          label: Text(s.googleSignInButton, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFFCBD5E1)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

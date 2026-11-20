@@ -173,8 +173,9 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 16.0, bottom: 90.0),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
             child: Form(
               key: _formKey,
               child: Column(
@@ -569,6 +570,7 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }

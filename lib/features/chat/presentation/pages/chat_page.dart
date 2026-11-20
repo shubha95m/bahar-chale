@@ -211,8 +211,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 700),
+            child: Column(
+              children: [
             // Messages List
             Expanded(
               child: chatState.isLoading
@@ -349,6 +352,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ],
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 }
