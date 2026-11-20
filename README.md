@@ -32,6 +32,14 @@
 
 ---
 
+## 🔐 Permanent Android Release Keystore & In-Place Updates
+To prevent Android's `"App not installed as package conflicts with an existing package"` error:
+- **Permanent Keystore**: `android/app/release.keystore` (Alias: `baharchale`, validity: 10,000 days until 2054) is tracked and configured.
+- **Consistent Signing**: Both local builds and CI/CD pipeline sign release APKs with this exact cryptographic certificate (`SHA-256: C4:35:CD:FA:64:B4:B4:8F...`).
+- **Seamless In-Place Updates**: Users can install newly released APKs directly over their existing installed app without uninstalling, preserving all local databases and login states.
+
+---
+
 ## Tech Stack
 
 - **Frontend:** Flutter 3.50+ / Dart 3.14+ (Material 3)
