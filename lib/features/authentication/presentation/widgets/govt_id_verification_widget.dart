@@ -310,12 +310,13 @@ class _GovtIdVerificationWidgetState extends ConsumerState<GovtIdVerificationWid
               ChoiceChip(
                 selectedColor: AppTheme.primaryGreen.withOpacity(0.15),
                 checkmarkColor: AppTheme.primaryGreen,
-                label: Text(s.isHindi ? 'आधार (Aadhaar)' : 'Aadhaar Card'),
+                label: Text(s.isHindi ? 'आधार कार्ड (Aadhaar)' : 'Aadhaar Card'),
                 selected: _selectedIdType == GovtIdType.aadhaar,
                 onSelected: (val) {
-                  if (val) {
+                  if (val && _selectedIdType != GovtIdType.aadhaar) {
                     setState(() {
                       _selectedIdType = GovtIdType.aadhaar;
+                      _idNumberController.clear();
                       _validationError = null;
                     });
                   }
@@ -324,12 +325,13 @@ class _GovtIdVerificationWidgetState extends ConsumerState<GovtIdVerificationWid
               ChoiceChip(
                 selectedColor: AppTheme.primaryGreen.withOpacity(0.15),
                 checkmarkColor: AppTheme.primaryGreen,
-                label: Text(s.isHindi ? 'पैन (PAN)' : 'PAN Card'),
+                label: Text(s.isHindi ? 'पैन कार्ड (PAN)' : 'PAN Card'),
                 selected: _selectedIdType == GovtIdType.pan,
                 onSelected: (val) {
-                  if (val) {
+                  if (val && _selectedIdType != GovtIdType.pan) {
                     setState(() {
                       _selectedIdType = GovtIdType.pan;
+                      _idNumberController.clear();
                       _validationError = null;
                     });
                   }
@@ -341,9 +343,10 @@ class _GovtIdVerificationWidgetState extends ConsumerState<GovtIdVerificationWid
                 label: Text(s.isHindi ? 'ड्राइविंग लाइसेंस (DL)' : 'Driving License'),
                 selected: _selectedIdType == GovtIdType.dl,
                 onSelected: (val) {
-                  if (val) {
+                  if (val && _selectedIdType != GovtIdType.dl) {
                     setState(() {
                       _selectedIdType = GovtIdType.dl;
+                      _idNumberController.clear();
                       _validationError = null;
                     });
                   }
@@ -371,10 +374,16 @@ class _GovtIdVerificationWidgetState extends ConsumerState<GovtIdVerificationWid
             keyboardType: _selectedIdType == GovtIdType.aadhaar
                 ? TextInputType.number
                 : TextInputType.text,
+            maxLength: _selectedIdType == GovtIdType.aadhaar
+                ? 14
+                : (_selectedIdType == GovtIdType.pan ? 10 : 16),
             decoration: InputDecoration(
+              counterText: '',
               hintText: _selectedIdType == GovtIdType.aadhaar
-                  ? 'उदा. 3675 9834 5212'
-                  : (_selectedIdType == GovtIdType.pan ? 'उदा. ABCPK1234F' : 'उदा. DL-1420110012345'),
+                  ? (s.isHindi ? 'उदा. 8201 4019 3698' : 'e.g. 8201 4019 3698')
+                  : (_selectedIdType == GovtIdType.pan
+                      ? (s.isHindi ? 'उदा. GIJPS9957M' : 'e.g. GIJPS9957M')
+                      : (s.isHindi ? 'उदा. RJ09 20200005545' : 'e.g. RJ09 20200005545')),
               prefixIcon: const Icon(Icons.credit_card_rounded, color: AppTheme.primaryGreen),
               contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -398,6 +407,7 @@ class _GovtIdVerificationWidgetState extends ConsumerState<GovtIdVerificationWid
             bytes: _frontDocBytes,
             filename: _frontDocName,
             onPick: _pickFrontDoc,
+            isHindi: s.isHindi,
           ),
 
           // Back Upload Card (If Aadhaar)
@@ -409,6 +419,7 @@ class _GovtIdVerificationWidgetState extends ConsumerState<GovtIdVerificationWid
               bytes: _backDocBytes,
               filename: _backDocName,
               onPick: _pickBackDoc,
+              isHindi: s.isHindi,
             ),
           ],
 
@@ -468,6 +479,7 @@ class _GovtIdVerificationWidgetState extends ConsumerState<GovtIdVerificationWid
     required Uint8List? bytes,
     required String? filename,
     required VoidCallback onPick,
+    required bool isHindi,
   }) {
     final hasUploaded = bytes != null;
 
@@ -529,7 +541,9 @@ class _GovtIdVerificationWidgetState extends ConsumerState<GovtIdVerificationWid
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    hasUploaded ? (filename ?? 'Document uploaded') : subtitle,
+                    hasUploaded
+                        ? (filename ?? (isHindi ? 'दस्तावेज़ अपलोड हो गया' : 'Document uploaded'))
+                        : subtitle,
                     style: TextStyle(
                       fontSize: 11,
                       color: hasUploaded ? AppTheme.textDark : AppTheme.textMuted,
@@ -543,7 +557,12 @@ class _GovtIdVerificationWidgetState extends ConsumerState<GovtIdVerificationWid
             const SizedBox(width: 8),
             TextButton(
               onPressed: onPick,
-              child: Text(hasUploaded ? 'बदलें (Change)' : 'अपलोड (Upload)', style: const TextStyle(fontSize: 12)),
+              child: Text(
+                hasUploaded
+                    ? (isHindi ? 'बदलें (Change)' : 'Change')
+                    : (isHindi ? 'अपलोड करें (Upload)' : 'Upload'),
+                style: const TextStyle(fontSize: 12),
+              ),
             ),
           ],
         ),

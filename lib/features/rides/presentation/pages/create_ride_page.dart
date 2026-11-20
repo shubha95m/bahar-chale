@@ -9,6 +9,7 @@ import '../../../../core/utils/snackbar_helper.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../../core/widgets/location_autocomplete_field.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
+import '../../../authentication/presentation/widgets/govt_document_gate_dialog.dart';
 import '../../domain/entities/ride.dart';
 import '../providers/rides_provider.dart';
 
@@ -99,6 +100,9 @@ class _CreateRidePageState extends ConsumerState<CreateRidePage> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final allowed = await GovtDocumentGateDialog.ensureVerified(context, ref);
+    if (!allowed || !mounted) return;
 
     final user = ref.read(currentUserProvider);
     if (user == null) {

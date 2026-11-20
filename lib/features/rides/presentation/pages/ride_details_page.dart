@@ -8,6 +8,7 @@ import '../../../../core/utilities/map_launcher.dart';
 import '../../../../core/utils/snackbar_helper.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
+import '../../../authentication/presentation/widgets/govt_document_gate_dialog.dart';
 import '../../../home/presentation/providers/home_provider.dart';
 import '../../../requests/presentation/providers/requests_provider.dart';
 import '../providers/rides_provider.dart';
@@ -37,15 +38,45 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
     bool hasLinkedTravelers = false,
     String route = '',
   }) async {
-    final confirmed = await CancellationWarningDialog.show(
-      context,
-      s: s,
-      title: s.isHindi ? 'सवारी रद्द / हटाएं?' : 'Cancel / Delete Ride?',
-      tripDescription: route,
-      hasLinkedTravelers: hasLinkedTravelers,
-      role: 'driver',
-      remainingCancellations: 2,
-    );
+    final bool confirmed;
+    if (hasLinkedTravelers) {
+      confirmed = await CancellationWarningDialog.show(
+        context,
+        s: s,
+        title: s.isHindi ? 'सवारी रद्द / हटाएं?' : 'Cancel / Delete Ride?',
+        tripDescription: route,
+        hasLinkedTravelers: true,
+        role: 'driver',
+        remainingCancellations: 2,
+      );
+    } else {
+      confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(s.isHindi ? 'सवारी हटाएं?' : 'Delete Ride?'),
+          content: Text(
+            s.isHindi
+                ? 'क्या आप इस सवारी को हटाना चाहते हैं? कोई सहयात्री अभी जुड़ा नहीं है।'
+                : 'Are you sure you want to delete this ride? No co-travelers are linked to it.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(s.cancelText),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade700,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(s.isHindi ? 'हटाएं' : 'Delete'),
+            ),
+          ],
+        ),
+      ) ?? false;
+    }
 
     if (confirmed == true) {
       final success = await ref.read(rideActionNotifierProvider.notifier).deleteRide(widget.rideId);
@@ -53,7 +84,9 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
       AppSnackBar.show(
         context,
         message: success
-            ? (s.isHindi ? 'सवारी रद्द कर दी गई एवं यात्रियों को सूचित कर दिया गया।' : 'Ride cancelled and passengers notified.')
+            ? (hasLinkedTravelers
+                ? (s.isHindi ? 'सवारी रद्द कर दी गई एवं यात्रियों को सूचित कर दिया गया।' : 'Ride cancelled and passengers notified.')
+                : (s.isHindi ? 'सवारी हटा दी गई।' : 'Ride deleted successfully.'))
             : (s.isHindi ? 'सवारी हटाने में त्रुटि।' : 'Failed to delete ride.'),
         isSuccess: success,
         isError: !success,
@@ -73,8 +106,13 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
     }
   }
 
-  void _showRequestDialog(BuildContext dialogContext, String currentUserId, int availableSeats, String? vehicleType) {
+  Future<void> _showRequestDialog(String currentUserId, int availableSeats, String? vehicleType) async {
     if (availableSeats <= 0) return;
+
+    // Check mandatory government document record gate
+    final allowed = await GovtDocumentGateDialog.ensureVerified(context, ref);
+    if (!allowed || !mounted) return;
+
     if (_seatsToRequest > availableSeats) {
       _seatsToRequest = availableSeats;
     }
@@ -86,7 +124,7 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
             : (s.isHindi ? '🛺 अन्य / साझा (Other)' : '🛺 Other / Shared'));
 
     showDialog(
-      context: dialogContext,
+      context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           title: Text(s.isHindi ? 'सवारी के लिए अनुरोध भेजें' : 'Send Ride Request'),
@@ -686,7 +724,7 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: ride.availableSeats > 0 && ride.status == 'open'
-                            ? () => _showRequestDialog(context, currentUser.id, ride.availableSeats, ride.vehicleType)
+                            ? () => _showRequestDialog(currentUser.id, ride.availableSeats, ride.vehicleType)
                             : null,
                         child: Text(
                           ride.availableSeats > 0

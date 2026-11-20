@@ -21,7 +21,7 @@ void main() {
     expect(find.text('Terms & Conditions'), findsOneWidget);
     expect(find.text('Bahar Chale Terms of Service'), findsOneWidget);
     expect(find.text('1. Nature of Platform & Intermediary Status'), findsOneWidget);
-    expect(find.text('3. Citizen Reliability & Government ID Verification System'), findsOneWidget);
+    expect(find.text('3. Mandatory Government Document Record & Community Trust Gate'), findsOneWidget);
   });
 
   testWidgets('PrivacyPage renders DPDP Act 2023 sections cleanly', (tester) async {
@@ -39,6 +39,6 @@ void main() {
     expect(find.text('Privacy Policy'), findsOneWidget);
     expect(find.text('Bahar Chale Privacy Policy'), findsOneWidget);
     expect(find.text('Digital Personal Data Protection Act 2023 Compliant'), findsOneWidget);
-    expect(find.text('3. Government ID Verification & Algorithmic Security'), findsOneWidget);
+    expect(find.text('3. Government Document Record & Data Security'), findsOneWidget);
   });
 }

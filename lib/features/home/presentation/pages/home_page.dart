@@ -14,6 +14,7 @@ import '../../../notifications/presentation/providers/notifications_provider.dar
 import '../../../notifications/presentation/widgets/notifications_sheet.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 import '../../../requests/presentation/providers/passenger_requests_provider.dart';
+import '../../../authentication/presentation/widgets/govt_document_gate_dialog.dart';
 import '../providers/home_provider.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -255,7 +256,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                         // Primary Action 1: Offer a Ride (चालक)
                         Expanded(
                           child: InkWell(
-                            onTap: () => context.push('/create-ride'),
+                            onTap: () async {
+                              final allowed = await GovtDocumentGateDialog.ensureVerified(context, ref);
+                              if (allowed && context.mounted) {
+                                context.push('/create-ride');
+                              }
+                            },
                             borderRadius: BorderRadius.circular(16),
                             child: Container(
                               padding: const EdgeInsets.all(16),
@@ -327,7 +333,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                         // Primary Action 2: Post Passenger Need (यात्री)
                         Expanded(
                           child: InkWell(
-                            onTap: () => context.push('/create-passenger-request'),
+                            onTap: () async {
+                              final allowed = await GovtDocumentGateDialog.ensureVerified(context, ref);
+                              if (allowed && context.mounted) {
+                                context.push('/create-passenger-request');
+                              }
+                            },
                             borderRadius: BorderRadius.circular(16),
                             child: Container(
                               padding: const EdgeInsets.all(16),

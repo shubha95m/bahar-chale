@@ -109,35 +109,35 @@ class PrivacyPage extends ConsumerWidget {
                       ),
 
                       _buildSection(
-                        title: isHindi ? '3. सरकारी पहचान सत्यापन और डेटा सुरक्षा' : '3. Government ID Verification & Algorithmic Security',
+                        title: isHindi ? '3. सरकारी दस्तावेज रिकॉर्ड और डेटा सुरक्षा (Govt Document Record & Security)' : '3. Government Document Record & Data Security',
                         content: isHindi
-                            ? 'पहचान सत्यापन प्रणाली कैसे कार्य करती है:\n'
-                              '• आधार: UIDAI Verhoeff Checksum अल्गोरिदम द्वारा संख्या की सत्यता परखी जाती है।\n'
-                              '• पैन एवं DL: आयकर विभाग एवं राज्य आरटीओ प्रारूप कोड की जांच की जाती है।\n'
-                              '• एन्क्रिप्शन एवं मास्किंग: पहचान पत्र की संख्या को अन्य यात्रियों से पूरी तरह छिपाया (Mask) जाता है (उदा. XXXX XXXX 1234, ABCDE****F)। कच्चा आधार नंबर डेटाबेस में सार्वजनिक नहीं होता।\n'
+                            ? 'सरकारी दस्तावेज रिकॉर्ड प्रणाली कैसे कार्य करती है:\n'
+                              '• आधार: 12-अंकों के संख्या प्रारूप की वैधता जांची जाती है। सामने और पीछे दोनों तरफ की फोटो सुरक्षित संग्रहीत की जाती है।\n'
+                              '• पैन एवं DL: आयकर विभाग एवं राज्य आरटीओ 10 से 16 अक्षरों के प्रारूप मानकों की जांच की जाती है।\n'
+                              '• एन्क्रिप्शन एवं मास्किंग: पहचान पत्र की संख्या को अन्य यात्रियों से पूरी तरह छिपाया (Mask) जाता है (उदा. XXXX XXXX 1234, ABCDE****F, RJ09****5545)। कच्चा नंबर डेटाबेस से अन्य उपयोगकर्ताओं को कभी नहीं दिखाया जाता।\n'
                               '• हैश तकनीक: डुप्लिकेट और फर्जी खातों को रोकने के लिए आईडी नंबर का SHA-256 वन-वे क्रिप्टोग्राफिक हैश संग्रहीत किया जाता है।\n'
-                              '• आरएलएस (Row Level Security): डेटाबेस स्तर पर सुरक्षित नीतियां (RLS Policies) सुनिश्चित करती हैं कि अनधिकृत व्यक्ति आपके दस्तावेजों तक न पहुंच सकें।'
-                            : 'How our Government ID Verification protects users:\n'
-                              '• Aadhaar Integrity: Checked via the mathematical UIDAI Verhoeff Checksum algorithm.\n'
-                              '• PAN & DL Structure: Evaluated against Indian Income Tax and State RTO standards.\n'
-                              '• Full Masking: All UI views display only masked IDs (e.g., "XXXX XXXX 1234", "ABCDE****F"). Raw government ID numbers are never displayed in the open community interface.\n'
+                              '• आरएलएस (Row Level Security): डेटाबेस स्तर पर सुरक्षित नीतियां (RLS Policies) सुनिश्चित करती हैं कि केवल अधिकृत सिस्टम ही डेटा तक पहुंच सके।'
+                            : 'How our Government Document Record protects users:\n'
+                              '• Aadhaar Integrity: Checked for 12-digit format validity. Both front and back photos securely retained in protected storage.\n'
+                              '• PAN & DL Structure: Evaluated against Indian Income Tax and State RTO standards (10 to 16 alphanumeric characters).\n'
+                              '• Full Masking: All UI views display only masked IDs (e.g., "XXXX XXXX 1234", "ABCDE****F", "RJ09****5545"). Raw government ID numbers are never displayed in the open community interface.\n'
                               '• Cryptographic Hashing: We compute one-way SHA-256 cryptographic hashes of ID numbers to prevent duplicate registrations without storing plaintext identifiers.\n'
                               '• Row Level Security (RLS): Supabase enterprise Postgres RLS policies ensure document storage is strictly isolated and inaccessible to unauthorized actors.',
                       ),
 
                       _buildSection(
-                        title: isHindi ? '4. डेटा उपयोग का उद्देश्य' : '4. Purpose of Data Processing',
+                        title: isHindi ? '4. डेटा उपयोग का उद्देश्य एवं रीयल-टाइम सूचनाएं' : '4. Purpose of Data Processing & Real-Time Alerts',
                         content: isHindi
-                            ? 'आपके डेटा का उपयोग केवल निम्नलिखित उद्देश्यों के लिए किया जाता है:\n'
+                            ? 'आपके डेटा का उपयोग केवल निम्नलिखित आवश्यक उद्देश्यों के लिए किया जाता है:\n'
                               '• सहयात्रियों और चालकों के बीच सुरक्षित यात्रा समन्वय स्थापित करना।\n'
-                              '• फर्जी, रोबोटिक या दुर्भावनापूर्ण प्रोफाइल से समुदाय की रक्षा करना।\n'
-                              '• सत्यापन बैज (🛡️ ID Verified) प्रदर्शित कर विश्वास का निर्माण करना।\n'
-                              '• यात्रा संबंधी महत्वपूर्ण सूचनाएं और संदेश प्रेषित करना।'
+                              '• फर्जी, रोबोटिक या असामाजिक प्रोफाइल से समुदाय की रक्षा करना।\n'
+                              '• सत्यापित सरकारी दस्तावेज रिकॉर्ड स्थिति (✓ Govt Document Record) प्रदर्शित कर विश्वास का निर्माण करना।\n'
+                              '• रीयल-टाइम यात्रा सूचनाएं: यात्रा रद्दीकरण, सीट पुष्टि अथवा महत्वपूर्ण यात्रा परिवर्तनों की त्वरित सूचना वेब और डिवाइस पर भेजना (बिना किसी विपणन या विज्ञापन ट्रैकिंग के)।'
                             : 'Your information is processed strictly for legitimate interests under DPDP Act 2023:\n'
                               '• Facilitating mutual communication and travel coordination between verified members.\n'
                               '• Preventing impersonation, fraudulent accounts, or automated bot usage.\n'
-                              '• Displaying trust badges ("🛡️ ID Verified") to help passengers and drivers make informed choices.\n'
-                              '• Sending critical ride updates, OTP codes, and travel agreements.',
+                              '• Displaying trust indicators ("✓ Govt Document Record") to help travelers make informed choices.\n'
+                              '• Real-time Trip Notifications: Instant push/web notification delivery for trip cancellations, seat confirmations, and route alerts without any third-party ad tracking or telemetry abuse.',
                       ),
 
                       _buildSection(

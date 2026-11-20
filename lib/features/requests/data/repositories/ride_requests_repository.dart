@@ -159,15 +159,15 @@ class RideRequestsRepository {
       }
     }
 
-    // 3. Record in trip_cancellations
+    // 3. Record in trip_cancellations and update profile only if seat was accepted
     final currentUserId = _client.auth.currentUser?.id;
-    if (currentUserId != null) {
+    if (currentUserId != null && status == 'accepted') {
       try {
         await _client.from('trip_cancellations').insert({
           'user_id': currentUserId,
           'entity_type': 'ride_request',
           'entity_id': requestId,
-          'reason': 'Passenger cancelled ride request',
+          'reason': 'Passenger cancelled accepted ride reservation',
           'affected_users_count': driverId != null ? 1 : 0,
         });
 

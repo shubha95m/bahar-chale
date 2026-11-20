@@ -973,7 +973,7 @@ class MyTravelPage extends ConsumerWidget {
                                     reqId,
                                     userId,
                                     s,
-                                    hasLinkedTravelers: true,
+                                    hasLinkedTravelers: isAccepted,
                                     route: '$origin → $dest',
                                   ),
                                 ),
@@ -1002,15 +1002,45 @@ class MyTravelPage extends ConsumerWidget {
     bool hasLinkedTravelers = false,
     String route = '',
   }) async {
-    final confirmed = await CancellationWarningDialog.show(
-      context,
-      s: s,
-      title: s.isHindi ? 'सवारी रद्द / हटाएं?' : 'Cancel / Delete Ride?',
-      tripDescription: route,
-      hasLinkedTravelers: hasLinkedTravelers,
-      role: 'driver',
-      remainingCancellations: 2,
-    );
+    final bool confirmed;
+    if (hasLinkedTravelers) {
+      confirmed = await CancellationWarningDialog.show(
+        context,
+        s: s,
+        title: s.isHindi ? 'सवारी रद्द / हटाएं?' : 'Cancel / Delete Ride?',
+        tripDescription: route,
+        hasLinkedTravelers: true,
+        role: 'driver',
+        remainingCancellations: 2,
+      );
+    } else {
+      confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(s.isHindi ? 'सवारी हटाएं?' : 'Delete Ride?'),
+          content: Text(
+            s.isHindi
+                ? 'क्या आप इस सवारी को हटाना चाहते हैं? कोई सहयात्री अभी जुड़ा नहीं है।'
+                : 'Are you sure you want to delete this ride? No co-travelers are linked to it.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(s.cancelText),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade700,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(s.isHindi ? 'हटाएं' : 'Delete'),
+            ),
+          ],
+        ),
+      ) ?? false;
+    }
 
     if (confirmed == true) {
       final success = await ref.read(rideActionNotifierProvider.notifier).deleteRide(rideId);
@@ -1018,7 +1048,9 @@ class MyTravelPage extends ConsumerWidget {
         AppSnackBar.show(
           context,
           message: success
-              ? (s.isHindi ? 'सवारी रद्द कर दी गई एवं यात्रियों को सूचित कर दिया गया।' : 'Ride cancelled and passengers notified.')
+              ? (hasLinkedTravelers
+                  ? (s.isHindi ? 'सवारी रद्द कर दी गई एवं यात्रियों को सूचित कर दिया गया।' : 'Ride cancelled and passengers notified.')
+                  : (s.isHindi ? 'सवारी हटा दी गई।' : 'Ride deleted successfully.'))
               : (s.isHindi ? 'सवारी हटाने में त्रुटि।' : 'Failed to delete ride.'),
           isSuccess: success,
           isError: !success,
@@ -1037,15 +1069,32 @@ class MyTravelPage extends ConsumerWidget {
     AppStrings s, {
     String route = '',
   }) async {
-    final confirmed = await CancellationWarningDialog.show(
-      context,
-      s: s,
-      title: s.isHindi ? 'यात्रा आवश्यकता रद्द करें?' : 'Cancel Travel Request?',
-      tripDescription: route,
-      hasLinkedTravelers: false,
-      role: 'passenger',
-      remainingCancellations: 2,
-    );
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(s.isHindi ? 'यात्रा आवश्यकता हटाएं?' : 'Delete Travel Request?'),
+        content: Text(
+          s.isHindi
+              ? 'क्या आप इस यात्रा आवश्यकता को हटाना चाहते हैं?'
+              : 'Are you sure you want to delete this travel request?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(s.cancelText),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade700,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(s.isHindi ? 'हटाएं' : 'Delete'),
+          ),
+        ],
+      ),
+    ) ?? false;
 
     if (confirmed == true) {
       final success = await ref.read(passengerRequestActionNotifierProvider.notifier).delete(reqId);
@@ -1053,7 +1102,7 @@ class MyTravelPage extends ConsumerWidget {
         AppSnackBar.show(
           context,
           message: success
-              ? (s.isHindi ? 'यात्रा अनुरोध रद्द कर दिया गया।' : 'Travel request cancelled.')
+              ? (s.isHindi ? 'यात्रा आवश्यकता हटा दी गई।' : 'Travel request deleted.')
               : (s.isHindi ? 'अनुरोध हटाने में त्रुटि।' : 'Failed to delete request.'),
           isSuccess: success,
           isError: !success,
@@ -1073,15 +1122,45 @@ class MyTravelPage extends ConsumerWidget {
     bool hasLinkedTravelers = true,
     String route = '',
   }) async {
-    final confirmed = await CancellationWarningDialog.show(
-      context,
-      s: s,
-      title: s.isHindi ? 'सवारी अनुरोध रद्द करें?' : 'Cancel Ride Request?',
-      tripDescription: route,
-      hasLinkedTravelers: hasLinkedTravelers,
-      role: 'passenger',
-      remainingCancellations: 2,
-    );
+    final bool confirmed;
+    if (hasLinkedTravelers) {
+      confirmed = await CancellationWarningDialog.show(
+        context,
+        s: s,
+        title: s.isHindi ? 'सवारी आरक्षण रद्द करें?' : 'Cancel Seat Reservation?',
+        tripDescription: route,
+        hasLinkedTravelers: true,
+        role: 'passenger',
+        remainingCancellations: 2,
+      );
+    } else {
+      confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(s.isHindi ? 'सीट अनुरोध वापस लें?' : 'Withdraw Seat Request?'),
+          content: Text(
+            s.isHindi
+                ? 'क्या आप यह सीट अनुरोध वापस लेना चाहते हैं? चालक ने अभी इसे स्वीकार नहीं किया है।'
+                : 'Are you sure you want to withdraw this seat request? The driver has not accepted it yet.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(s.cancelText),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade700,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(s.isHindi ? 'वापस लें' : 'Withdraw'),
+            ),
+          ],
+        ),
+      ) ?? false;
+    }
 
     if (confirmed == true) {
       final success = await ref.read(requestActionNotifierProvider.notifier).delete(reqId);
@@ -1089,7 +1168,9 @@ class MyTravelPage extends ConsumerWidget {
         AppSnackBar.show(
           context,
           message: success
-              ? (s.isHindi ? 'अनुरोध रद्द कर दिया गया एवं चालक को सूचित किया गया।' : 'Request cancelled and driver notified.')
+              ? (hasLinkedTravelers
+                  ? (s.isHindi ? 'अनुरोध रद्द कर दिया गया एवं चालक को सूचित किया गया।' : 'Request cancelled and driver notified.')
+                  : (s.isHindi ? 'अनुरोध वापस ले लिया गया।' : 'Seat request withdrawn.'))
               : (s.isHindi ? 'अनुरोध हटाने में त्रुटि।' : 'Failed to delete request.'),
           isSuccess: success,
           isError: !success,

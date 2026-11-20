@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../app/configuration/supabase_config.dart';
 import '../../domain/entities/passenger_request.dart';
@@ -73,33 +72,8 @@ class PassengerRequestsRepository {
   }
 
   /// Permanently deletes an owned passenger request.
-  /// Records cancellation in `trip_cancellations` for backend tracking and abuse prevention.
+  /// No other members are linked to an open bulletin post, so no strike or penalty is applied.
   Future<void> deleteRequest(String requestId) async {
-    final currentUserId = _client.auth.currentUser?.id;
-    if (currentUserId != null) {
-      try {
-        await _client.from('trip_cancellations').insert({
-          'user_id': currentUserId,
-          'entity_type': 'passenger_request',
-          'entity_id': requestId,
-          'reason': 'Passenger cancelled travel itinerary',
-          'affected_users_count': 0,
-        });
-
-        final profile = await _client
-            .from('profiles')
-            .select('cancellation_count')
-            .eq('id', currentUserId)
-            .maybeSingle();
-        final currCount = (profile?['cancellation_count'] as int?) ?? 0;
-        await _client.from('profiles').update({
-          'cancellation_count': currCount + 1,
-        }).eq('id', currentUserId);
-      } catch (e) {
-        debugPrint('Error recording passenger cancellation in database: $e');
-      }
-    }
-
     await _client.from('passenger_requests').delete().eq('id', requestId);
   }
 

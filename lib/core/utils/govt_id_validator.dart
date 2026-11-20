@@ -37,47 +37,9 @@ class GovtIdValidator {
     'SK', 'TN', 'TR', 'TS', 'UK', 'UP', 'WB'
   };
 
-  // Verhoeff algorithm multiplication table
-  static const List<List<int>> _d = [
-    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-    [1, 2, 3, 4, 0, 6, 7, 8, 9, 5],
-    [2, 3, 4, 0, 1, 7, 8, 9, 5, 6],
-    [3, 4, 0, 1, 2, 8, 9, 5, 6, 7],
-    [4, 0, 1, 2, 3, 9, 5, 6, 7, 8],
-    [5, 9, 8, 7, 6, 0, 4, 3, 2, 1],
-    [6, 5, 9, 8, 7, 1, 0, 4, 3, 2],
-    [7, 6, 5, 9, 8, 2, 1, 0, 4, 3],
-    [8, 7, 6, 5, 9, 3, 2, 1, 0, 4],
-    [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
-  ];
-
-  // Verhoeff algorithm permutation table
-  static const List<List<int>> _p = [
-    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-    [1, 5, 7, 6, 2, 8, 3, 0, 9, 4],
-    [5, 8, 0, 3, 7, 9, 6, 1, 4, 2],
-    [8, 9, 1, 6, 0, 4, 3, 5, 2, 7],
-    [9, 4, 5, 3, 1, 2, 6, 8, 7, 0],
-    [4, 2, 8, 6, 5, 7, 3, 9, 0, 1],
-    [2, 7, 9, 3, 8, 0, 6, 4, 1, 5],
-    [7, 0, 4, 6, 9, 1, 3, 2, 5, 8],
-  ];
-
-  /// Verhoeff algorithm validation for Aadhaar 12-digit number
-  static bool _validateVerhoeff(String numStr) {
-    int c = 0;
-    final reversed = numStr.split('').reversed.toList();
-    for (int i = 0; i < reversed.length; i++) {
-      final digit = int.tryParse(reversed[i]);
-      if (digit == null) return false;
-      c = _d[c][_p[i % 8][digit]];
-    }
-    return c == 0;
-  }
-
-  /// Validates Aadhaar card number
+  /// Validates Aadhaar card number (strictly checks 12 digits per user requirement)
   static GovtIdValidationResult validateAadhaar(String rawInput) {
-    final clean = rawInput.replaceAll(RegExp(r'\s+|-'), '').trim();
+    final clean = rawInput.replaceAll(RegExp(r'[\s\-]+'), '').trim();
     if (clean.isEmpty) {
       return const GovtIdValidationResult(
         isValid: false,
@@ -92,22 +54,6 @@ class GovtIdValidator {
         errorMessageEn: 'Aadhaar number must be exactly 12 digits.',
       );
     }
-    if (clean.startsWith('0') || clean.startsWith('1')) {
-      return const GovtIdValidationResult(
-        isValid: false,
-        errorMessageHi: 'वैध आधार नंबर 0 या 1 से शुरू नहीं हो सकता।',
-        errorMessageEn: 'Valid Aadhaar number cannot start with 0 or 1.',
-      );
-    }
-
-    // UIDAI Verhoeff Checksum
-    if (!_validateVerhoeff(clean)) {
-      return const GovtIdValidationResult(
-        isValid: false,
-        errorMessageHi: 'अमान्य आधार नंबर। कृपया सही आधार कार्ड नंबर जांचें।',
-        errorMessageEn: 'Invalid Aadhaar number checksum. Please re-check.',
-      );
-    }
 
     final masked = 'XXXX XXXX ${clean.substring(8)}';
     return GovtIdValidationResult(
@@ -119,7 +65,7 @@ class GovtIdValidator {
 
   /// Validates Income Tax PAN card number
   static GovtIdValidationResult validatePan(String rawInput) {
-    final clean = rawInput.replaceAll(RegExp(r'\s+|-'), '').trim().toUpperCase();
+    final clean = rawInput.replaceAll(RegExp(r'[\s\-]+'), '').trim().toUpperCase();
     if (clean.isEmpty) {
       return const GovtIdValidationResult(
         isValid: false,
@@ -135,17 +81,6 @@ class GovtIdValidator {
       );
     }
 
-    // 4th character validation for Individual/Person
-    final entityChar = clean[3];
-    const validEntityChars = {'P', 'C', 'H', 'F', 'A', 'T', 'B', 'L', 'J', 'G'};
-    if (!validEntityChars.contains(entityChar)) {
-      return const GovtIdValidationResult(
-        isValid: false,
-        errorMessageHi: 'पैन का चौथा अक्षर अमान्य नागरिक कोड दर्शाता है।',
-        errorMessageEn: 'Invalid 4th character for Indian PAN.',
-      );
-    }
-
     final masked = '${clean.substring(0, 5)}****${clean.substring(9)}';
     return GovtIdValidationResult(
       isValid: true,
@@ -154,7 +89,7 @@ class GovtIdValidator {
     );
   }
 
-  /// Validates Indian Driving License (DL) number
+  /// Validates Indian Driving License (DL) number (10 to 16 alphanumeric characters)
   static GovtIdValidationResult validateDl(String rawInput) {
     final clean = rawInput.replaceAll(RegExp(r'[\s\-_/]+'), '').trim().toUpperCase();
     if (clean.isEmpty) {
@@ -164,16 +99,16 @@ class GovtIdValidator {
         errorMessageEn: 'Please enter Driving License number.',
       );
     }
-    if (clean.length < 13 || clean.length > 16) {
+    if (clean.length < 10 || clean.length > 16 || !RegExp(r'^[A-Z0-9]{10,16}$').hasMatch(clean)) {
       return const GovtIdValidationResult(
         isValid: false,
-        errorMessageHi: 'ड्राइविंग लाइसेंस 13 से 16 अक्षरों का होना चाहिए (उदा: DL-1420110012345)।',
-        errorMessageEn: 'Driving License must be 13 to 16 characters (e.g. DL-1420110012345).',
+        errorMessageHi: 'ड्राइविंग लाइसेंस 10 से 16 अक्षरों का होना चाहिए (उदा: RJ09 20200005545)।',
+        errorMessageEn: 'Driving License must be 10 to 16 alphanumeric characters (e.g. RJ09 20200005545).',
       );
     }
 
     final stateCode = clean.substring(0, 2);
-    if (!_indianStateCodes.contains(stateCode)) {
+    if (RegExp(r'^[A-Z]{2}$').hasMatch(stateCode) && !_indianStateCodes.contains(stateCode)) {
       return GovtIdValidationResult(
         isValid: false,
         errorMessageHi: 'अमान्य राज्य कोड "$stateCode"। सही भारतीय राज्य कोड से शुरू होना चाहिए।',

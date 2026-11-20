@@ -114,37 +114,66 @@ class ProfilePage extends ConsumerWidget {
                                 user?.email ?? '',
                                 style: const TextStyle(fontSize: 13.5, color: AppTheme.textMuted),
                               ),
-                              const SizedBox(height: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: isIdVerified ? Colors.green.shade50 : AppTheme.primaryGreen.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: isIdVerified ? Border.all(color: Colors.green.shade200) : null,
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      isIdVerified ? Icons.verified_user_rounded : Icons.check_circle_outline,
-                                      size: 13,
-                                      color: isIdVerified ? Colors.green.shade700 : AppTheme.primaryGreen,
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 6,
+                                children: [
+                                  // Email Verified Badge
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.shade50,
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: Colors.green.shade200),
                                     ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      isIdVerified
-                                          ? (s.isHindi
-                                              ? 'सत्यापित नागरिक (${idType?.toUpperCase() ?? "ID"})'
-                                              : 'Verified Citizen (${idType?.toUpperCase() ?? "ID"})')
-                                          : (s.isHindi ? 'सत्यापित सदस्य' : 'Verified Member'),
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: isIdVerified ? Colors.green.shade700 : AppTheme.primaryGreen,
-                                      ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.check_circle_rounded, size: 13, color: Colors.green.shade700),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          s.isHindi ? 'ईमेल सत्यापित ✓' : 'Email Verified ✓',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.green.shade700,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                  // Govt Document Record Badge
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                                    decoration: BoxDecoration(
+                                      color: isIdVerified ? Colors.green.shade50 : Colors.amber.shade50,
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: isIdVerified ? Colors.green.shade200 : Colors.amber.shade300),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          isIdVerified ? Icons.check_circle_rounded : Icons.pending_outlined,
+                                          size: 13,
+                                          color: isIdVerified ? Colors.green.shade700 : Colors.amber.shade800,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          isIdVerified
+                                              ? (s.isHindi ? 'सरकारी दस्तावेज रिकॉर्ड ✓' : 'Govt Document Record ✓')
+                                              : (s.isHindi ? 'सरकारी दस्तावेज रिकॉर्ड (लंबित)' : 'Govt Document Record (Pending)'),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: isIdVerified ? Colors.green.shade700 : Colors.amber.shade800,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -154,7 +183,7 @@ class ProfilePage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // Reliability & Government ID Verification Card (Responsive & Un-squished)
+                  // Government Document Record Card (Responsive & Un-squished)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(18),
@@ -181,7 +210,7 @@ class ProfilePage extends ConsumerWidget {
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
-                                isIdVerified ? Icons.verified_user_rounded : Icons.shield_outlined,
+                                isIdVerified ? Icons.badge_outlined : Icons.shield_outlined,
                                 color: isIdVerified ? Colors.green.shade800 : Colors.amber.shade900,
                                 size: 22,
                               ),
@@ -189,9 +218,7 @@ class ProfilePage extends ConsumerWidget {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                isIdVerified
-                                    ? (s.isHindi ? 'नागरिक विश्वसनीयता सत्यापन' : 'Reliability Verification')
-                                    : (s.isHindi ? 'विश्वसनीयता सत्यापन (लंबित)' : 'Reliability Verification (Pending)'),
+                                s.isHindi ? 'सरकारी दस्तावेज रिकॉर्ड' : 'Govt Document Record',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w800,
                                   fontSize: 15,
@@ -209,14 +236,14 @@ class ProfilePage extends ConsumerWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    isIdVerified ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
+                                    isIdVerified ? Icons.check_circle_rounded : Icons.pending_outlined,
                                     color: Colors.white,
                                     size: 12,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     isIdVerified
-                                        ? (s.isHindi ? 'पूर्ण (Done)' : 'Done')
+                                        ? (s.isHindi ? 'रिकॉर्डेड ✓' : 'Recorded ✓')
                                         : (s.isHindi ? 'लंबित (Pending)' : 'Pending'),
                                     style: const TextStyle(
                                       color: Colors.white,
@@ -259,15 +286,15 @@ class ProfilePage extends ConsumerWidget {
                           const SizedBox(height: 8),
                           Text(
                             s.isHindi
-                                ? '✓ आपकी पहचान व प्रोफ़ाइल सत्यापित है। सहयात्री व चालक आप पर पूर्ण विश्वास कर सकते हैं।'
-                                : '✓ Your identity and profile photo are verified. Co-travelers and drivers can travel with you with 100% trust.',
+                                ? '✓ आपका सरकारी दस्तावेज रिकॉर्ड सुरक्षित रूप से दर्ज है। सहयात्री व चालक आप पर पूर्ण विश्वास कर सकते हैं।'
+                                : '✓ Your Government Document Record is securely recorded. Co-travelers and drivers can travel with you with 100% trust.',
                             style: TextStyle(fontSize: 12.5, color: Colors.green.shade800, height: 1.35),
                           ),
                         ] else ...[
                           Text(
                             s.isHindi
-                                ? 'सुरक्षित यात्रा व आपसी विश्वास हेतु अपना सरकारी पहचान पत्र (आधार कार्ड, पैन कार्ड या ड्राइविंग लाइसेंस) सत्यापित करें।'
-                                : 'Verify your Indian Government ID (Aadhaar, PAN, or Driving License) to earn verified community trust.',
+                                ? 'सुरक्षित यात्रा व आपसी विश्वास हेतु अपना सरकारी पहचान पत्र (आधार कार्ड, पैन कार्ड या ड्राइविंग लाइसेंस) रिकॉर्ड दर्ज करें।'
+                                : 'Record your Indian Government Document (Aadhaar, PAN, or Driving License) for trusted community travel.',
                             style: TextStyle(fontSize: 12.5, color: Colors.amber.shade900, height: 1.35),
                           ),
                           const SizedBox(height: 12),
@@ -275,11 +302,11 @@ class ProfilePage extends ConsumerWidget {
                             width: double.infinity,
                             child: ElevatedButton.icon(
                               onPressed: () => context.push('/verify-id'),
-                              icon: const Icon(Icons.verified_user_rounded, size: 16),
+                              icon: const Icon(Icons.badge_outlined, size: 16),
                               label: Text(
                                 s.isHindi
-                                    ? 'पहचान सत्यापन पूरा करें (Aadhaar / PAN / DL)'
-                                    : 'Complete ID Verification (Aadhaar / PAN / DL)',
+                                    ? 'सरकारी दस्तावेज रिकॉर्ड दर्ज करें (Aadhaar / PAN / DL)'
+                                    : 'Record Govt Document (Aadhaar / PAN / DL)',
                                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                               ),
                               style: ElevatedButton.styleFrom(

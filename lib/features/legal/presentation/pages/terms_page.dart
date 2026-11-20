@@ -97,20 +97,20 @@ class TermsPage extends ConsumerWidget {
                       ),
 
                       _buildSection(
-                        title: isHindi ? '3. नागरिक विश्वसनीयता सत्यापन (Reliability & Govt ID Verification)' : '3. Citizen Reliability & Government ID Verification System',
+                        title: isHindi ? '3. सरकारी दस्तावेज रिकॉर्ड एवं अनिवार्य सुरक्षा द्वार (Govt Document Record Requirement)' : '3. Mandatory Government Document Record & Community Trust Gate',
                         content: isHindi
-                            ? 'यात्रियों और वाहन चालकों की आपसी सुरक्षा और विश्वास के लिए, प्लेटफॉर्म प्रथम बार साइन अप या प्रोफ़ाइल के माध्यम से पहचान सत्यापन की सुविधा प्रदान करता है:\n'
-                              '• आधार कार्ड: UIDAI Verhoeff कलनविधि (Checksum) द्वारा 12-अंकों के नंबर की तकनीकी वैधता जांची जाती है। सामने और पीछे दोनों तरफ की फोटो ली जाती है। सार्वजनिक प्रदर्शन में नंबर पूरी तरह गुप्त (XXXX XXXX 1234) रहता है।\n'
-                              '• पैन कार्ड: आयकर विभाग के प्रारूप एवं व्यक्तिगत करदाता कोड (P) की जांच की जाती है।\n'
-                              '• ड्राइविंग लाइसेंस: 36 भारतीय राज्यों/केंद्रशासित प्रदेशों के आरटीओ कोड और संख्या प्रारूप का सत्यापन किया जाता है।\n'
-                              '• फोटो मिलान व हैशिंग: डुप्लिकेट पंजीकरण रोकने के लिए SHA-256 क्रिप्टोग्राफिक हैश का उपयोग किया जाता है। पहचान पत्रों की संवेदनशील संख्या कभी किसी अन्य यूजर को नहीं दिखाई जाती।\n'
-                              'सत्यापन केवल गणितीय प्रारूप और प्रामाणिकता की तकनीकी जांच है; यह कोई सरकारी गारंटी या वारंटी नहीं है। उपयोगकर्ता यात्रा के दौरान अपनी सामान्य सूझबूझ और सावधानी बरतने के लिए स्वयं जिम्मेदार हैं।'
-                            : 'To foster mutual safety and transparency, Bahar Chale provides algorithmic identity verification:\n'
-                              '• Aadhaar Card: Validated using the UIDAI Verhoeff checksum algorithm to verify 12-digit mathematical validity. Both front and back photos are securely processed. The raw Aadhaar is strictly masked (XXXX XXXX 1234) on all views.\n'
-                              '• PAN Card: Validated against Income Tax Department individual taxpayer structure and entity code.\n'
-                              '• Driving License (DL): Verified against valid Indian State RTO codes and regulatory length formats.\n'
-                              '• Cryptographic Hashing: ID numbers are hashed using SHA-256 to prevent duplicate registrations while keeping raw IDs private. Verified travelers receive a "🛡️ ID Verified" badge.\n'
-                              'Disclaimer: Algorithmic verification validates mathematical format and document authenticity; it does not constitute a government police guarantee. Users remain personally responsible for exercising reasonable personal caution.',
+                            ? 'यात्रियों और वाहन चालकों की आपसी सुरक्षा और विश्वसनीयता के लिए, प्लेटफॉर्म पर सवारी प्रस्तुत करने (Driver Offer) अथवा सवारी अनुरोध / सीट बुक करने (Passenger Request/Booking) से पूर्व सरकारी दस्तावेज रिकॉर्ड दर्ज करना अनिवार्य है:\n'
+                              '• आधार कार्ड: 12-अंकों के संख्या प्रारूप की वैधता जांची जाती है। सामने और पीछे दोनों तरफ की फोटो अपलोड की जाती है। सार्वजनिक प्रदर्शन में नंबर पूरी तरह सुरक्षित व गुप्त (XXXX XXXX 1234) रहता है।\n'
+                              '• पैन कार्ड: 10-अक्षरों के मानक प्रारूप की जांच की जाती है।\n'
+                              '• ड्राइविंग लाइसेंस: 10 से 16 अक्षरों के वैध भारतीय राज्य आरटीओ प्रारूप की जांच की जाती है।\n'
+                              '• फोटो मिलान व हैशिंग: डुप्लिकेट पंजीकरण रोकने के लिए SHA-256 क्रिप्टोग्राफिक हैश का उपयोग किया जाता है। संवेदनशील संख्या कभी किसी अन्य सहयात्री को नहीं दिखाई जाती।\n'
+                              'यदि उपयोगकर्ता साइन अप के समय इसे छोड़ते हैं (Skip), तो पहली बार सवारी प्रस्तुत करने या खोजने/बुक करने पर अनिवार्य दस्तावेज रिकॉर्ड पूरा करना आवश्यक होगा।'
+                            : 'To guarantee mutual safety, physical transparency, and trusted rides, recording a valid Indian Government Document Record is a mandatory prerequisite before offering a ride (Driver) or booking/requesting seats (Passenger):\n'
+                              '• Aadhaar Card: Validated for 12-digit format. Front and back photos required. Strictly masked (XXXX XXXX 1234) in all traveler views.\n'
+                              '• PAN Card: Validated for 10-character standard format. Masked (ABCDE****F).\n'
+                              '• Driving License (DL): Validated for 10 to 16 alphanumeric characters across Indian RTO codes. Masked (RJ09****5545).\n'
+                              '• Cryptographic Security: ID numbers are hashed with one-way SHA-256 to prevent duplicate identities while guaranteeing raw ID numbers remain strictly private.\n'
+                              'Users who skipped document upload at initial signup must complete this Government Document Record before creating or reserving community trips.',
                       ),
 
                       _buildSection(
@@ -158,21 +158,34 @@ class TermsPage extends ConsumerWidget {
                       ),
 
                       _buildSection(
-                        title: isHindi ? '8. देयता की सीमा एवं दायित्व मुक्ति (Limitation of Liability)' : '8. Limitation of Liability & Disclaimers',
+                        title: isHindi ? '8. निष्पक्ष रद्दीकरण नीति एवं रीयल-टाइम सूचना (Fair Cancellation & Real-Time Alerts)' : '8. Fair Cancellation & Real-Time Notifications Policy',
+                        content: isHindi
+                            ? 'सामुदायिक विश्वसनीयता बनाए रखने हेतु रद्दीकरण नियम निम्नवत हैं:\n'
+                              '• असंबद्ध यात्राएं (No Linked Members): यदि किसी सवारी या यात्रा अनुरोध से कोई अन्य सहयात्री नहीं जुड़ा है, तो उपयोगकर्ता उसे बिना किसी चेतावनी या पेनल्टी स्ट्राइक के तत्काल हटा सकते हैं।\n'
+                              '• संबद्ध यात्राएं (Linked Travelers): यदि सहयात्रियों ने सीट आरक्षित की है, तो रद्दीकरण पर चेतावनी दिखाई जाती है और प्लेटफॉर्म से जुड़े सभी प्रभावित सदस्यों को तत्काल रीयल-टाइम सूचना भेजी जाती है ताकि वे समय रहते वैकल्पिक यात्रा व्यवस्था कर सकें।\n'
+                              '• दुरुपयोग रोकथाम: संबद्ध यात्राओं को बार-बार अंतिम समय पर रद्द करने पर विश्वसनीयता समीक्षा अथवा खाता अस्थायी रूप से निलंबित किया जा सकता है।'
+                            : 'To balance convenience with mutual community reliability:\n'
+                              '• Unlinked Trips: If no other co-travelers are joined or booked on a ride or travel request, the creator may delete it immediately without penalty, strike, or warning dialog.\n'
+                              '• Linked Trips: If fellow travelers have confirmed seats, cancellation triggers a cautionary policy prompt and immediately dispatches real-time automated notifications to all affected co-travelers to arrange alternative transit.\n'
+                              '• Abuse Prevention: Habitual short-notice cancellations of confirmed bookings with linked passengers may result in account trust review or temporary suspension.',
+                      ),
+
+                      _buildSection(
+                        title: isHindi ? '9. देयता की सीमा एवं दायित्व मुक्ति (Limitation of Liability)' : '9. Limitation of Liability & Disclaimers',
                         content: isHindi
                             ? 'बाहर चलें एक निःशुल्क प्रौद्योगिकी संचार मंच है। उपयोगकर्ताओं के बीच यात्रा के दौरान होने वाली किसी भी दुर्घटना, व्यक्तिगत चोट, संपत्ति की हानि, देरी या विवाद के लिए प्लेटफॉर्म, उसके डेवलपर या संचालक कानूनी रूप से उत्तरदायी नहीं होंगे। उपयोगकर्ता अपनी स्वेच्छा और आपसी सहमति से यात्रा करते हैं।'
                             : 'Bahar Chale provides free community coordination software on an "as is" and "as available" basis. To the maximum extent permitted under applicable law, Bahar Chale, its creators, and operators shall not be liable for any direct, indirect, incidental, or consequential damages resulting from road incidents, accidents, vehicle breakdowns, delays, theft, personal injury, or user disputes. Members travel voluntarily by mutual consent.',
                       ),
 
                       _buildSection(
-                        title: isHindi ? '9. विवाद निवारण एवं क्षेत्राधिकार' : '9. Governing Law & Dispute Resolution',
+                        title: isHindi ? '10. विवाद निवारण एवं क्षेत्राधिकार' : '10. Governing Law & Dispute Resolution',
                         content: isHindi
                             ? 'ये शर्तें भारत के कानूनों द्वारा शासित होंगी। किसी भी कानूनी विवाद की स्थिति में अनन्य क्षेत्राधिकार नई दिल्ली, भारत की अदालतों का होगा।'
                             : 'These Terms of Service are governed by and construed in accordance with the laws of the Republic of India. The courts of competent jurisdiction at New Delhi, India shall have exclusive jurisdiction over all disputes arising out of or related to these Terms.',
                       ),
 
                       _buildSection(
-                        title: isHindi ? '10. शिकायत अधिकारी (Grievance Officer)' : '10. Grievance Officer & Contact',
+                        title: isHindi ? '11. शिकायत अधिकारी (Grievance Officer)' : '11. Grievance Officer & Contact',
                         content: isHindi
                             ? 'आईटी (मध्यवर्ती दिशानिर्देश) नियम, 2021 के अनुपालन में, किसी भी शिकायत या कानूनी प्रश्न के लिए संपर्क करें:\n'
                               'ईमेल: baharchale20@gmail.com\n'

@@ -210,15 +210,15 @@ class RidesRepository {
       }
     }
 
-    // 4. Record cancellation in trip_cancellations for backend tracking
+    // 4. Record cancellation in trip_cancellations and update profile only if other members were linked
     final currentUserId = _client.auth.currentUser?.id;
-    if (currentUserId != null) {
+    if (currentUserId != null && linkedPassengerIds.isNotEmpty) {
       try {
         await _client.from('trip_cancellations').insert({
           'user_id': currentUserId,
           'entity_type': 'driver_ride',
           'entity_id': rideId,
-          'reason': reason ?? 'Driver cancelled ride',
+          'reason': reason ?? 'Driver cancelled ride with linked passengers',
           'affected_users_count': linkedPassengerIds.length,
         });
 
