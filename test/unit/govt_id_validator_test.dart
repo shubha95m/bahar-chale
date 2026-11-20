@@ -5,13 +5,13 @@ import 'package:bahar_chale/core/utils/govt_id_validator.dart';
 void main() {
   group('GovtIdValidator Unit Tests', () {
     test('Aadhaar validation accepts valid 12-digit number and formats mask', () {
-      // User real uploaded Aadhaar number
-      final valid = GovtIdValidator.validateAadhaar('8201 4019 3698');
+      // Standard synthetic 12-digit Aadhaar test number
+      final valid = GovtIdValidator.validateAadhaar('1234 5678 9012');
       expect(valid.isValid, isTrue);
-      expect(valid.maskedNumber, 'XXXX XXXX 3698');
-      expect(valid.normalizedNumber, '820140193698');
+      expect(valid.maskedNumber, 'XXXX XXXX 9012');
+      expect(valid.normalizedNumber, '123456789012');
 
-      // Standard 12-digit Aadhaar test number
+      // Another 12-digit Aadhaar test number
       final standard = GovtIdValidator.validateAadhaar('3675 9834 5212');
       expect(standard.isValid, isTrue);
       expect(standard.maskedNumber, 'XXXX XXXX 5212');
@@ -26,19 +26,19 @@ void main() {
     });
 
     test('PAN card validation verifies 10 characters', () {
-      // User real uploaded PAN number
-      final userPan = GovtIdValidator.validatePan('GIJPS9957M');
+      // Synthetic PAN test number
+      final userPan = GovtIdValidator.validatePan('ABCDE1234F');
       expect(userPan.isValid, isTrue);
-      expect(userPan.maskedNumber, 'GIJPS****M');
-      expect(userPan.normalizedNumber, 'GIJPS9957M');
+      expect(userPan.maskedNumber, 'ABCDE****F');
+      expect(userPan.normalizedNumber, 'ABCDE1234F');
 
-      final validPan = GovtIdValidator.validatePan('ABCPK1234F');
+      final validPan = GovtIdValidator.validatePan('XYZPK5678Q');
       expect(validPan.isValid, isTrue);
-      expect(validPan.maskedNumber, 'ABCPK****F');
+      expect(validPan.maskedNumber, 'XYZPK****Q');
 
-      final lowercasePan = GovtIdValidator.validatePan('abcpk1234f');
+      final lowercasePan = GovtIdValidator.validatePan('xyzpk5678q');
       expect(lowercasePan.isValid, isTrue);
-      expect(lowercasePan.normalizedNumber, 'ABCPK1234F');
+      expect(lowercasePan.normalizedNumber, 'XYZPK5678Q');
 
       // Invalid format (too short / wrong structure)
       final invalidPan = GovtIdValidator.validatePan('12345ABCDE');
@@ -46,10 +46,10 @@ void main() {
     });
 
     test('Driving License validation checks state code and length', () {
-      // User real uploaded DL number
-      final userDl = GovtIdValidator.validateDl('RJ09 20200005545');
+      // Synthetic DL test number
+      final userDl = GovtIdValidator.validateDl('DL01 20240001234');
       expect(userDl.isValid, isTrue);
-      expect(userDl.maskedNumber, 'RJ09****5545');
+      expect(userDl.maskedNumber, 'DL01****1234');
 
       final validDl = GovtIdValidator.validateDl('DL-1420110012345');
       expect(validDl.isValid, isTrue);

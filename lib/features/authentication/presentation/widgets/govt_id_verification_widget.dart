@@ -457,10 +457,10 @@ class _GovtIdVerificationWidgetState extends ConsumerState<GovtIdVerificationWid
             decoration: InputDecoration(
               counterText: '',
               hintText: _selectedIdType == GovtIdType.aadhaar
-                  ? (s.isHindi ? 'उदा. 8201 4019 3698' : 'e.g. 8201 4019 3698')
+                  ? (s.isHindi ? 'उदा. 1234 5678 9012' : 'e.g. 1234 5678 9012')
                   : (_selectedIdType == GovtIdType.pan
-                      ? (s.isHindi ? 'उदा. GIJPS9957M' : 'e.g. GIJPS9957M')
-                      : (s.isHindi ? 'उदा. RJ09 20200005545' : 'e.g. RJ09 20200005545')),
+                      ? (s.isHindi ? 'उदा. ABCDE1234F' : 'e.g. ABCDE1234F')
+                      : (s.isHindi ? 'उदा. DL01 20240001234' : 'e.g. DL01 20240001234')),
               prefixIcon: const Icon(Icons.credit_card_rounded, color: AppTheme.primaryGreen),
               contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),

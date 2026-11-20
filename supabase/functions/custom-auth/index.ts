@@ -493,8 +493,8 @@ Deno.serve(async (req: Request) => {
             JSON.stringify({
               success: false,
               errorCode: "INVALID_PAN_FORMAT",
-              messageEn: "Invalid PAN format. Standard Indian PAN must have 5 letters followed by 4 digits and 1 letter (e.g. GIJPS9957M).",
-              messageHi: "पैन कार्ड प्रारूप अमान्य है। सही प्रारूप 5 अक्षर, 4 अंक और 1 अक्षर होना चाहिए (उदा. GIJPS9957M)।",
+              messageEn: "Invalid PAN format. Standard Indian PAN must have 5 letters followed by 4 digits and 1 letter (e.g. ABCDE1234F).",
+              messageHi: "पैन कार्ड प्रारूप अमान्य है। सही प्रारूप 5 अक्षर, 4 अंक और 1 अक्षर होना चाहिए (उदा. ABCDE1234F)।",
             }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
@@ -518,8 +518,8 @@ Deno.serve(async (req: Request) => {
             JSON.stringify({
               success: false,
               errorCode: "INVALID_DL_FORMAT",
-              messageEn: "Driving License number must be 10 to 16 alphanumeric characters (e.g. RJ09 20200005545).",
-              messageHi: "ड्राइविंग लाइसेंस 10 से 16 अक्षरों का होना चाहिए (उदा. RJ09 20200005545)।",
+              messageEn: "Driving License number must be 10 to 16 alphanumeric characters (e.g. DL01 20240001234).",
+              messageHi: "ड्राइविंग लाइसेंस 10 से 16 अक्षरों का होना चाहिए (उदा. DL01 20240001234)।",
             }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );

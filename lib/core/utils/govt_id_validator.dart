@@ -102,8 +102,8 @@ class GovtIdValidator {
     if (clean.length < 10 || clean.length > 16 || !RegExp(r'^[A-Z0-9]{10,16}$').hasMatch(clean)) {
       return const GovtIdValidationResult(
         isValid: false,
-        errorMessageHi: 'ड्राइविंग लाइसेंस 10 से 16 अक्षरों का होना चाहिए (उदा: RJ09 20200005545)।',
-        errorMessageEn: 'Driving License must be 10 to 16 alphanumeric characters (e.g. RJ09 20200005545).',
+        errorMessageHi: 'ड्राइविंग लाइसेंस 10 से 16 अक्षरों का होना चाहिए (उदा: DL01 20240001234)।',
+        errorMessageEn: 'Driving License must be 10 to 16 alphanumeric characters (e.g. DL01 20240001234).',
       );
     }
 
