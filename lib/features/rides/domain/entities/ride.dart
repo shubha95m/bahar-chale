@@ -23,6 +23,9 @@ class Ride {
   final DateTime updatedAt;
   final String? ownerName;
   final String? ownerAvatar;
+  final bool isOwnerVerified;
+  final String? ownerIdType;
+  final String? ownerIdMasked;
 
   const Ride({
     required this.id,
@@ -49,6 +52,9 @@ class Ride {
     required this.updatedAt,
     this.ownerName,
     this.ownerAvatar,
+    this.isOwnerVerified = false,
+    this.ownerIdType,
+    this.ownerIdMasked,
   });
 
   String get routeDisplay {
@@ -142,6 +148,9 @@ class Ride {
       updatedAt: DateTime.parse(map['updated_at'] as String),
       ownerName: ownerName ?? (map['profiles'] as Map<String, dynamic>?)?['display_name'] as String?,
       ownerAvatar: ownerAvatar ?? (map['profiles'] as Map<String, dynamic>?)?['avatar_url'] as String?,
+      isOwnerVerified: (map['profiles'] as Map<String, dynamic>?)?['id_verified'] as bool? ?? false,
+      ownerIdType: (map['profiles'] as Map<String, dynamic>?)?['id_type'] as String?,
+      ownerIdMasked: (map['profiles'] as Map<String, dynamic>?)?['id_number_masked'] as String?,
     );
   }
 }

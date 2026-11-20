@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../configuration/supabase_config.dart';
 import '../../features/agreement/presentation/pages/agreement_page.dart';
 import '../../features/authentication/presentation/pages/login_page.dart';
+import '../../features/authentication/presentation/pages/govt_id_verification_page.dart';
+import '../../features/authentication/presentation/services/auth_registration_state.dart';
 import '../../features/chat/presentation/pages/chat_page.dart';
 import '../../features/chat/presentation/pages/conversations_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
@@ -57,6 +59,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) => NoTransitionPage<void>(
           key: state.pageKey,
           child: const LoginPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/verify-id',
+        name: 'verify-id',
+        pageBuilder: (context, state) => _buildFadePage(
+          key: state.pageKey,
+          child: const GovtIdVerificationPage(),
         ),
       ),
       GoRoute(
@@ -159,6 +169,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/login';
       }
       if (isLoggedIn && loggingIn) {
+        if (AuthRegistrationState.isCompletingVerification) {
+          // Let the user stay on the onboarding step to finish photo & ID verification
+          return null;
+        }
         return '/';
       }
       return null;

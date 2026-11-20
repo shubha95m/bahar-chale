@@ -40,27 +40,62 @@ class PassengerRequestCardWidget extends ConsumerWidget {
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: AppTheme.accentAmber.withOpacity(0.15),
-                  child: Text(
-                    request.requesterName?.isNotEmpty == true ? request.requesterName![0].toUpperCase() : 'Y',
-                    style: const TextStyle(
-                      color: AppTheme.accentAmber,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
+                  backgroundImage: (request.requesterAvatar != null && request.requesterAvatar!.isNotEmpty)
+                      ? NetworkImage(request.requesterAvatar!)
+                      : null,
+                  child: (request.requesterAvatar == null || request.requesterAvatar!.isEmpty)
+                      ? Text(
+                          request.requesterName?.isNotEmpty == true ? request.requesterName![0].toUpperCase() : 'Y',
+                          style: const TextStyle(
+                            color: AppTheme.accentAmber,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        )
+                      : null,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        request.requesterName ?? (s.isHindi ? 'सहयात्री (Passenger)' : 'Co-traveler'),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                          color: AppTheme.textDark,
-                        ),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              request.requesterName ?? (s.isHindi ? 'सहयात्री (Passenger)' : 'Co-traveler'),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                                color: AppTheme.textDark,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          if (request.isRequesterVerified)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE8F5E9),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: const Color(0xFFA5D6A7)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.verified_user_rounded, size: 11, color: Color(0xFF2E7D32)),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    s.isHindi
+                                        ? 'आईडी सत्यापित (${request.requesterIdType?.toUpperCase() ?? "GOVT"})'
+                                        : 'ID Verified (${request.requesterIdType?.toUpperCase() ?? "GOVT"})',
+                                    style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: Color(0xFF2E7D32)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
                       ),
                       const SizedBox(height: 2),
                       Text(

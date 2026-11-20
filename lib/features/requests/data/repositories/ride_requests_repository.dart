@@ -24,7 +24,7 @@ class RideRequestsRepository {
           'status': 'pending',
           'message': message,
         })
-        .select('*, profiles:requester_id(display_name, avatar_url, home_city)')
+        .select('*, profiles:requester_id(display_name, avatar_url, home_city, id_verified, id_type, id_number_masked)')
         .single();
 
     final created = RideRequest.fromMap(response);
@@ -55,7 +55,7 @@ class RideRequestsRepository {
   Future<List<Map<String, dynamic>>> getMyRequestsWithRide(String userId) async {
     final response = await _client
         .from('ride_requests')
-        .select('*, rides(*, profiles:owner_id(display_name, avatar_url))')
+        .select('*, rides(*, profiles:owner_id(display_name, avatar_url, id_verified, id_type, id_number_masked))')
         .eq('requester_id', userId)
         .order('created_at', ascending: false);
 
@@ -66,7 +66,7 @@ class RideRequestsRepository {
   Future<List<RideRequest>> getIncomingRequestsForRide(String rideId) async {
     final response = await _client
         .from('ride_requests')
-        .select('*, profiles:requester_id(display_name, avatar_url, home_city)')
+        .select('*, profiles:requester_id(display_name, avatar_url, home_city, id_verified, id_type, id_number_masked)')
         .eq('ride_id', rideId)
         .order('created_at', ascending: false);
 
@@ -77,7 +77,7 @@ class RideRequestsRepository {
   Future<Map<String, dynamic>?> getRequestWithDetails(String requestId) async {
     final response = await _client
         .from('ride_requests')
-        .select('*, rides(*, profiles:owner_id(display_name, avatar_url)), profiles:requester_id(display_name, avatar_url)')
+        .select('*, rides(*, profiles:owner_id(display_name, avatar_url, id_verified, id_type, id_number_masked)), profiles:requester_id(display_name, avatar_url, id_verified, id_type, id_number_masked)')
         .eq('id', requestId)
         .maybeSingle();
 
@@ -193,7 +193,7 @@ class RideRequestsRepository {
   Future<List<Map<String, dynamic>>> getAllIncomingRequestsForDriver(String driverId) async {
     final response = await _client
         .from('ride_requests')
-        .select('*, rides!inner(*, profiles:owner_id(display_name, avatar_url)), profiles:requester_id(display_name, avatar_url, home_city)')
+        .select('*, rides!inner(*, profiles:owner_id(display_name, avatar_url, id_verified, id_type, id_number_masked)), profiles:requester_id(display_name, avatar_url, home_city)')
         .eq('rides.owner_id', driverId)
         .order('created_at', ascending: false);
 
@@ -204,13 +204,13 @@ class RideRequestsRepository {
   Future<List<Map<String, dynamic>>> getAllConversationsForUser(String userId) async {
     final asRider = await _client
         .from('ride_requests')
-        .select('*, rides(*, profiles:owner_id(display_name, avatar_url)), profiles:requester_id(display_name, avatar_url)')
+        .select('*, rides(*, profiles:owner_id(display_name, avatar_url, id_verified, id_type, id_number_masked)), profiles:requester_id(display_name, avatar_url, id_verified, id_type, id_number_masked)')
         .eq('requester_id', userId)
         .order('created_at', ascending: false);
 
     final asDriver = await _client
         .from('ride_requests')
-        .select('*, rides!inner(*, profiles:owner_id(display_name, avatar_url)), profiles:requester_id(display_name, avatar_url)')
+        .select('*, rides!inner(*, profiles:owner_id(display_name, avatar_url, id_verified, id_type, id_number_masked)), profiles:requester_id(display_name, avatar_url, id_verified, id_type, id_number_masked)')
         .eq('rides.owner_id', userId)
         .order('created_at', ascending: false);
 

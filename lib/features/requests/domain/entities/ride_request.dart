@@ -10,6 +10,9 @@ class RideRequest {
   final String? requesterName;
   final String? requesterAvatar;
   final String? requesterCity;
+  final bool isRequesterVerified;
+  final String? requesterIdType;
+  final String? requesterIdMasked;
 
   const RideRequest({
     required this.id,
@@ -23,6 +26,9 @@ class RideRequest {
     this.requesterName,
     this.requesterAvatar,
     this.requesterCity,
+    this.isRequesterVerified = false,
+    this.requesterIdType,
+    this.requesterIdMasked,
   });
 
   Map<String, dynamic> toMap() {
@@ -39,6 +45,7 @@ class RideRequest {
   }
 
   factory RideRequest.fromMap(Map<String, dynamic> map, {String? requesterName, String? requesterAvatar, String? requesterCity}) {
+    final profiles = map['profiles'] as Map<String, dynamic>?;
     return RideRequest(
       id: map['id'] as String,
       rideId: map['ride_id'] as String,
@@ -48,9 +55,12 @@ class RideRequest {
       message: map['message'] as String?,
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
-      requesterName: requesterName ?? (map['profiles'] as Map<String, dynamic>?)?['display_name'] as String?,
-      requesterAvatar: requesterAvatar ?? (map['profiles'] as Map<String, dynamic>?)?['avatar_url'] as String?,
-      requesterCity: requesterCity ?? (map['profiles'] as Map<String, dynamic>?)?['home_city'] as String?,
+      requesterName: requesterName ?? profiles?['display_name'] as String?,
+      requesterAvatar: requesterAvatar ?? profiles?['avatar_url'] as String?,
+      requesterCity: requesterCity ?? profiles?['home_city'] as String?,
+      isRequesterVerified: profiles?['id_verified'] as bool? ?? false,
+      requesterIdType: profiles?['id_type'] as String?,
+      requesterIdMasked: profiles?['id_number_masked'] as String?,
     );
   }
 }

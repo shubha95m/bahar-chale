@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../app/configuration/supabase_config.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_strings.dart';
 import '../../../../core/utils/snackbar_helper.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
 import '../providers/auth_provider.dart';
+import '../services/auth_registration_state.dart';
+import '../widgets/govt_id_verification_widget.dart';
 import '../widgets/terms_and_conditions_dialog.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -40,6 +44,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   void dispose() {
+    AuthRegistrationState.isCompletingVerification = false;
     _loginEmailController.dispose();
     _loginPasswordController.dispose();
     _signupNameController.dispose();
@@ -171,6 +176,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       return;
     }
 
+    AuthRegistrationState.isCompletingVerification = true;
     final success = await ref.read(authControllerProvider.notifier).completeSignupPassword(
       password: password,
       displayName: name,
@@ -180,10 +186,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
 
     if (success && mounted) {
-      _showSnack(
-        s.isHindi ? 'पंजीकरण सफल! आपका स्वागत है।' : 'Registration successful! Welcome.',
-        isSuccess: true,
-      );
+      setState(() => _signupStep = 4);
+    } else {
+      AuthRegistrationState.isCompletingVerification = false;
     }
   }
 
@@ -633,9 +638,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           const SizedBox(height: 18),
                           ElevatedButton.icon(
                             onPressed: (isLoading || !_acceptedTerms) ? null : _handleCompleteSignup,
-                            icon: const Icon(Icons.check_circle_rounded, size: 18),
+                            icon: const Icon(Icons.arrow_forward_rounded, size: 18),
                             label: Text(
-                              s.isHindi ? 'खाता बनाएं और प्रवेश करें' : 'Create Account & Enter',
+                              s.isHindi ? 'आगे बढ़ें: पहचान व फ़ोटो सत्यापन' : 'Continue: Photo & ID Verification',
                               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                             ),
                             style: ElevatedButton.styleFrom(
@@ -643,6 +648,40 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               disabledBackgroundColor: Colors.grey.shade300,
                               minimumSize: const Size.fromHeight(48),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                        ],
+
+                        // Step 4: First-time Profile Picture & Indian Govt ID Verification
+                        if (_signupStep == 4) ...[
+                          GovtIdVerificationWidget(
+                            userId: SupabaseConfig.client.auth.currentUser?.id ?? '',
+                            userName: _signupNameController.text.trim().isNotEmpty
+                                ? _signupNameController.text.trim()
+                                : (s.isHindi ? 'यात्री' : 'Traveler'),
+                            onCompleted: () {
+                              AuthRegistrationState.isCompletingVerification = false;
+                              if (mounted) {
+                                context.go('/');
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 14),
+                          Center(
+                            child: TextButton.icon(
+                              onPressed: () {
+                                AuthRegistrationState.isCompletingVerification = false;
+                                if (mounted) {
+                                  context.go('/');
+                                }
+                              },
+                              icon: const Icon(Icons.arrow_forward_rounded, size: 16, color: AppTheme.textMuted),
+                              label: Text(
+                                s.isHindi
+                                    ? 'अभी छोड़ें (बाद में प्रोफ़ाइल से सत्यापित करें)'
+                                    : 'Skip for now (verify later from Profile)',
+                                style: const TextStyle(fontSize: 12.5, color: AppTheme.textMuted),
+                              ),
                             ),
                           ),
                         ],

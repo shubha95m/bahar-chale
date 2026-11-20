@@ -14,7 +14,7 @@ class PassengerRequestsRepository {
     final response = await _client
         .from('passenger_requests')
         .insert(request.toMap())
-        .select('*, profiles:requester_id(display_name, avatar_url)')
+        .select('*, profiles:requester_id(display_name, avatar_url, id_verified, id_type, id_number_masked)')
         .single();
 
     return PassengerRequest.fromMap(response);
@@ -31,7 +31,7 @@ class PassengerRequestsRepository {
 
     var query = _client
         .from('passenger_requests')
-        .select('*, profiles:requester_id(display_name, avatar_url)')
+        .select('*, profiles:requester_id(display_name, avatar_url, id_verified, id_type, id_number_masked)')
         .eq('status', 'open')
         .gte('travel_date', today);
 
@@ -57,7 +57,7 @@ class PassengerRequestsRepository {
   Future<List<PassengerRequest>> getMyRequests(String userId) async {
     final response = await _client
         .from('passenger_requests')
-        .select('*, profiles:requester_id(display_name, avatar_url)')
+        .select('*, profiles:requester_id(display_name, avatar_url, id_verified, id_type, id_number_masked)')
         .eq('requester_id', userId)
         .order('travel_date', ascending: false);
 

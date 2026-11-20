@@ -239,19 +239,55 @@ class MyTravelPage extends ConsumerWidget {
                           CircleAvatar(
                             radius: 18,
                             backgroundColor: AppTheme.primaryGreen.withOpacity(0.12),
-                            child: Text(
-                              requesterName.isNotEmpty ? requesterName[0].toUpperCase() : 'Y',
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
-                            ),
+                            backgroundImage: (requesterMap['avatar_url'] as String?)?.isNotEmpty == true
+                                ? NetworkImage(requesterMap['avatar_url'] as String)
+                                : null,
+                            child: (requesterMap['avatar_url'] as String?)?.isNotEmpty != true
+                                ? Text(
+                                    requesterName.isNotEmpty ? requesterName[0].toUpperCase() : 'Y',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                                  )
+                                : null,
                           ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  requesterName,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        requesterName,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    if (requesterMap['id_verified'] == true) ...[
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFE8F5E9),
+                                          borderRadius: BorderRadius.circular(4),
+                                          border: Border.all(color: const Color(0xFFA5D6A7)),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.verified_user_rounded, size: 10, color: Color(0xFF2E7D32)),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              s.isHindi
+                                                  ? 'सत्यापित (${(requesterMap['id_type'] as String?)?.toUpperCase() ?? "GOVT"})'
+                                                  : 'Verified (${(requesterMap['id_type'] as String?)?.toUpperCase() ?? "GOVT"})',
+                                              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF2E7D32)),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
                                 Text(
                                   s.isHindi

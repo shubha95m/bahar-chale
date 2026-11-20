@@ -282,20 +282,57 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                           CircleAvatar(
                             radius: 26,
                             backgroundColor: AppTheme.primaryGreen.withOpacity(0.12),
-                            child: Text(
-                              ride.ownerName?.isNotEmpty == true ? ride.ownerName![0].toUpperCase() : (s.isHindi ? 'य' : 'U'),
-                              style: const TextStyle(fontSize: 20, color: AppTheme.primaryGreen, fontWeight: FontWeight.bold),
-                            ),
+                            backgroundImage: (ride.ownerAvatar != null && ride.ownerAvatar!.isNotEmpty)
+                                ? NetworkImage(ride.ownerAvatar!)
+                                : null,
+                            child: (ride.ownerAvatar == null || ride.ownerAvatar!.isEmpty)
+                                ? Text(
+                                    ride.ownerName?.isNotEmpty == true ? ride.ownerName![0].toUpperCase() : (s.isHindi ? 'य' : 'U'),
+                                    style: const TextStyle(fontSize: 20, color: AppTheme.primaryGreen, fontWeight: FontWeight.bold),
+                                  )
+                                : null,
                           ),
                           const SizedBox(width: 14),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  ride.ownerName ?? (s.isHindi ? 'सवारी प्रदाता (Driver)' : 'Ride Provider'),
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        ride.ownerName ?? (s.isHindi ? 'सवारी प्रदाता (Driver)' : 'Ride Provider'),
+                                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    if (ride.isOwnerVerified) ...[
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFE8F5E9),
+                                          borderRadius: BorderRadius.circular(4),
+                                          border: Border.all(color: const Color(0xFFA5D6A7)),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.verified_user_rounded, size: 12, color: Color(0xFF2E7D32)),
+                                            const SizedBox(width: 3),
+                                            Text(
+                                              s.isHindi
+                                                  ? 'आईडी सत्यापित (${ride.ownerIdType?.toUpperCase() ?? "GOVT"})'
+                                                  : 'ID Verified (${ride.ownerIdType?.toUpperCase() ?? "GOVT"})',
+                                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF2E7D32)),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
+                                const SizedBox(height: 2),
                                 Text(
                                   ride.localizedVehicleLabel(isHindi: s.isHindi),
                                   style: const TextStyle(fontSize: 14, color: AppTheme.textMuted),
@@ -476,21 +513,57 @@ class _RideDetailsPageState extends ConsumerState<RideDetailsPage> {
                                           CircleAvatar(
                                             radius: 18,
                                             backgroundColor: AppTheme.primaryGreen.withOpacity(0.12),
-                                            child: Text(
-                                              req.requesterName?.isNotEmpty == true
-                                                  ? req.requesterName![0].toUpperCase()
-                                                  : (s.isHindi ? 'य' : 'P'),
-                                              style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold),
-                                            ),
+                                            backgroundImage: (req.requesterAvatar != null && req.requesterAvatar!.isNotEmpty)
+                                                ? NetworkImage(req.requesterAvatar!)
+                                                : null,
+                                            child: (req.requesterAvatar == null || req.requesterAvatar!.isEmpty)
+                                                ? Text(
+                                                    req.requesterName?.isNotEmpty == true
+                                                        ? req.requesterName![0].toUpperCase()
+                                                        : (s.isHindi ? 'य' : 'P'),
+                                                    style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold),
+                                                  )
+                                                : null,
                                           ),
                                           const SizedBox(width: 10),
                                           Expanded(
                                             child: Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                Text(
-                                                  req.requesterName ?? (s.isHindi ? 'यात्री (Passenger)' : 'Passenger'),
-                                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                                Row(
+                                                  children: [
+                                                    Flexible(
+                                                      child: Text(
+                                                        req.requesterName ?? (s.isHindi ? 'यात्री (Passenger)' : 'Passenger'),
+                                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    ),
+                                                    if (req.isRequesterVerified) ...[
+                                                      const SizedBox(width: 6),
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                                        decoration: BoxDecoration(
+                                                          color: const Color(0xFFE8F5E9),
+                                                          borderRadius: BorderRadius.circular(4),
+                                                          border: Border.all(color: const Color(0xFFA5D6A7)),
+                                                        ),
+                                                        child: Row(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          children: [
+                                                            const Icon(Icons.verified_user_rounded, size: 10, color: Color(0xFF2E7D32)),
+                                                            const SizedBox(width: 2),
+                                                            Text(
+                                                              s.isHindi
+                                                                  ? 'सत्यापित (${req.requesterIdType?.toUpperCase() ?? "GOVT"})'
+                                                                  : 'Verified (${req.requesterIdType?.toUpperCase() ?? "GOVT"})',
+                                                              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF2E7D32)),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ],
                                                 ),
                                                 Text(
                                                   '${req.seatsRequested} ${s.isHindi ? "सीट मांगी" : (req.seatsRequested == 1 ? "seat requested" : "seats requested")} • ${s.isHindi ? "स्थिति" : "Status"}: ${req.status}',

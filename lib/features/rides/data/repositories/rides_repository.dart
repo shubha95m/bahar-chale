@@ -14,7 +14,7 @@ class RidesRepository {
     final response = await _client
         .from('rides')
         .insert(ride.toMap())
-        .select('*, profiles:owner_id(display_name, avatar_url)')
+        .select('*, profiles:owner_id(display_name, avatar_url, id_verified, id_type, id_number_masked)')
         .single();
 
     final createdRide = Ride.fromMap(response);
@@ -69,7 +69,7 @@ class RidesRepository {
 
     var query = _client
         .from('rides')
-        .select('*, profiles:owner_id(display_name, avatar_url)')
+        .select('*, profiles:owner_id(display_name, avatar_url, id_verified, id_type, id_number_masked)')
         .ilike('origin_city', '%$normalizedOrigin%')
         .ilike('destination_city', '%$normalizedDest%')
         .eq('travel_date', dateString)
@@ -102,7 +102,7 @@ class RidesRepository {
 
     var query = _client
         .from('rides')
-        .select('*, profiles:owner_id(display_name, avatar_url)')
+        .select('*, profiles:owner_id(display_name, avatar_url, id_verified, id_type, id_number_masked)')
         .eq('status', 'open')
         .gt('available_seats', 0)
         .gte('travel_date', today);
@@ -128,7 +128,7 @@ class RidesRepository {
   Future<List<Ride>> getMyRides(String userId) async {
     final response = await _client
         .from('rides')
-        .select('*, profiles:owner_id(display_name, avatar_url)')
+        .select('*, profiles:owner_id(display_name, avatar_url, id_verified, id_type, id_number_masked)')
         .eq('owner_id', userId)
         .order('travel_date', ascending: false);
 
@@ -139,7 +139,7 @@ class RidesRepository {
   Future<Ride?> getRideDetails(String rideId) async {
     final response = await _client
         .from('rides')
-        .select('*, profiles:owner_id(display_name, avatar_url)')
+        .select('*, profiles:owner_id(display_name, avatar_url, id_verified, id_type, id_number_masked)')
         .eq('id', rideId)
         .maybeSingle();
 

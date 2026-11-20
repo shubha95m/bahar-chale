@@ -8,6 +8,7 @@ import '../../../../core/widgets/app_bottom_bar.dart';
 import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../../core/providers/app_version_provider.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
+import '../providers/profile_provider.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -40,8 +41,16 @@ class ProfilePage extends ConsumerWidget {
 
     final user = ref.watch(currentUserProvider);
     final meta = user?.userMetadata;
-    final name = formatUserName(user, isHindi: s.isHindi);
-    final avatarUrl = (meta?['avatar_url'] as String?) ?? (meta?['picture'] as String?);
+    final profileData = ref.watch(userProfileProvider).valueOrNull;
+    final name = (profileData?['display_name'] as String?)?.isNotEmpty == true
+        ? (profileData!['display_name'] as String)
+        : formatUserName(user, isHindi: s.isHindi);
+    final avatarUrl = (profileData?['avatar_url'] as String?) ??
+        (meta?['avatar_url'] as String?) ??
+        (meta?['picture'] as String?);
+    final isIdVerified = profileData?['id_verified'] == true;
+    final idType = profileData?['id_type'] as String?;
+    final idMasked = profileData?['id_number_masked'] as String?;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -109,16 +118,32 @@ class ProfilePage extends ConsumerWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primaryGreen.withOpacity(0.1),
+                                  color: isIdVerified ? Colors.green.shade50 : AppTheme.primaryGreen.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(6),
+                                  border: isIdVerified ? Border.all(color: Colors.green.shade200) : null,
                                 ),
-                                child: Text(
-                                  s.isHindi ? 'सत्यापित खाता (Verified)' : 'Verified Member',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.primaryGreen,
-                                  ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      isIdVerified ? Icons.verified_user_rounded : Icons.check_circle_outline,
+                                      size: 13,
+                                      color: isIdVerified ? Colors.green.shade700 : AppTheme.primaryGreen,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      isIdVerified
+                                          ? (s.isHindi
+                                              ? 'सत्यापित नागरिक (${idType?.toUpperCase() ?? "ID"})'
+                                              : 'Verified Citizen (${idType?.toUpperCase() ?? "ID"})')
+                                          : (s.isHindi ? 'सत्यापित सदस्य' : 'Verified Member'),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: isIdVerified ? Colors.green.shade700 : AppTheme.primaryGreen,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -127,7 +152,82 @@ class ProfilePage extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+
+                  // Government ID Verification Card
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isIdVerified ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isIdVerified ? const Color(0xFF86EFAC) : const Color(0xFFCBD5E1),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: isIdVerified ? Colors.green.shade100 : Colors.blue.shade50,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isIdVerified ? Icons.verified_user_rounded : Icons.badge_outlined,
+                            color: isIdVerified ? Colors.green.shade700 : Colors.blue.shade700,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isIdVerified
+                                    ? (s.isHindi ? 'सरकारी पहचान पत्र सत्यापित' : 'Government ID Verified')
+                                    : (s.isHindi ? 'पहचान पत्र सत्यापित करें' : 'Verify Government ID'),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14.5,
+                                  color: isIdVerified ? Colors.green.shade900 : AppTheme.textDark,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                isIdVerified
+                                    ? '${idType?.toUpperCase()}: $idMasked'
+                                    : (s.isHindi
+                                        ? 'आधार / पैन / DL जोड़कर अन्य यात्रियों में विश्वास बढ़ाएं'
+                                        : 'Add Aadhaar, PAN, or DL for 100% trusted travel'),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isIdVerified ? Colors.green.shade800 : AppTheme.textMuted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (!isIdVerified)
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryGreen,
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            onPressed: () => context.push('/verify-id'),
+                            child: Text(
+                              s.isHindi ? 'सत्यापित करें' : 'Verify Now',
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
+                          )
+                        else
+                          const Icon(Icons.check_circle_rounded, color: Colors.green, size: 22),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
 
                   // Information List
                   Container(

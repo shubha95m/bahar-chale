@@ -42,14 +42,19 @@ class RideCardWidget extends ConsumerWidget {
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: AppTheme.primaryGreen.withOpacity(0.12),
-                  child: Text(
-                    ride.ownerName?.isNotEmpty == true ? ride.ownerName![0].toUpperCase() : 'Y',
-                    style: const TextStyle(
-                      color: AppTheme.primaryGreen,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
+                  backgroundImage: (ride.ownerAvatar != null && ride.ownerAvatar!.isNotEmpty)
+                      ? NetworkImage(ride.ownerAvatar!)
+                      : null,
+                  child: (ride.ownerAvatar == null || ride.ownerAvatar!.isEmpty)
+                      ? Text(
+                          ride.ownerName?.isNotEmpty == true ? ride.ownerName![0].toUpperCase() : 'Y',
+                          style: const TextStyle(
+                            color: AppTheme.primaryGreen,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        )
+                      : null,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -70,24 +75,47 @@ class RideCardWidget extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.shade100,
-                              borderRadius: BorderRadius.circular(4),
+                          if (ride.isOwnerVerified)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE8F5E9),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: const Color(0xFFA5D6A7)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.verified_user_rounded, size: 11, color: Color(0xFF2E7D32)),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    s.isHindi
+                                        ? 'आईडी सत्यापित (${ride.ownerIdType?.toUpperCase() ?? "GOVT"})'
+                                        : 'ID Verified (${ride.ownerIdType?.toUpperCase() ?? "GOVT"})',
+                                    style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: Color(0xFF2E7D32)),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: Colors.amber.shade100,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.star_rounded, size: 11, color: Colors.amber),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    s.isHindi ? 'सत्यापित' : 'Verified',
+                                    style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: Colors.brown),
+                                  ),
+                                ],
+                              ),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.star_rounded, size: 11, color: Colors.amber),
-                                const SizedBox(width: 2),
-                                Text(
-                                  s.isHindi ? 'सत्यापित' : 'Verified',
-                                  style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: Colors.brown),
-                                ),
-                              ],
-                            ),
-                          ),
                         ],
                       ),
                       const SizedBox(height: 2),

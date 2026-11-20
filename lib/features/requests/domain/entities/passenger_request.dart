@@ -20,6 +20,9 @@ class PassengerRequest {
   final DateTime createdAt;
   final String? requesterName;
   final String? requesterAvatar;
+  final bool isRequesterVerified;
+  final String? requesterIdType;
+  final String? requesterIdMasked;
 
   const PassengerRequest({
     required this.id,
@@ -43,6 +46,9 @@ class PassengerRequest {
     required this.createdAt,
     this.requesterName,
     this.requesterAvatar,
+    this.isRequesterVerified = false,
+    this.requesterIdType,
+    this.requesterIdMasked,
   });
 
   String get routeDisplay {
@@ -95,6 +101,9 @@ class PassengerRequest {
       createdAt: DateTime.tryParse(map['created_at']?.toString() ?? '') ?? DateTime.now(),
       requesterName: profiles?['display_name'] as String?,
       requesterAvatar: profiles?['avatar_url'] as String?,
+      isRequesterVerified: profiles?['id_verified'] as bool? ?? false,
+      requesterIdType: profiles?['id_type'] as String?,
+      requesterIdMasked: profiles?['id_number_masked'] as String?,
     );
   }
 
