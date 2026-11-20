@@ -1,11 +1,12 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/app_strings.dart';
 import '../../../../core/utils/govt_id_validator.dart';
 import '../services/user_verification_service.dart';
+import 'verification_progress_dialog.dart';
 import 'verification_success_dialog.dart';
 
 class GovtIdVerificationWidget extends ConsumerStatefulWidget {
@@ -147,6 +148,7 @@ class _GovtIdVerificationWidgetState extends ConsumerState<GovtIdVerificationWid
     }
 
     setState(() => _isSubmitting = true);
+    VerificationProgressDialog.show(context, isHindi: s.isHindi);
 
     try {
       final payload = VerificationPayload(
@@ -158,6 +160,8 @@ class _GovtIdVerificationWidgetState extends ConsumerState<GovtIdVerificationWid
         idFrontFilename: _frontDocName ?? 'id_front.jpg',
         idBackBytes: _backDocBytes,
         idBackFilename: _backDocName,
+        profileName: widget.userName,
+        isHindi: s.isHindi,
       );
 
       final res = await UserVerificationService.submitVerification(
@@ -165,6 +169,7 @@ class _GovtIdVerificationWidgetState extends ConsumerState<GovtIdVerificationWid
         payload: payload,
       );
 
+      VerificationProgressDialog.dismiss();
       if (!mounted) return;
 
       // Show Congratulatory Popup with Cross Icon
@@ -184,9 +189,76 @@ class _GovtIdVerificationWidgetState extends ConsumerState<GovtIdVerificationWid
         },
       );
     } catch (e) {
+      VerificationProgressDialog.dismiss();
       if (!mounted) return;
-      setState(() => _validationError = e.toString().replaceFirst('FormatException: ', ''));
+      final cleanMsg = e.toString().replaceFirst('FormatException: ', '');
+      setState(() => _validationError = cleanMsg);
+
+      // Show dedicated mismatch / error dialog with clear BE feedback as an expert
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              const Icon(Icons.error_outline_rounded, color: Colors.red, size: 26),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  s.isHindi ? 'दस्तावेज़ सत्यापन विसंगति' : 'Verification Mismatch Detected',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                cleanMsg,
+                style: const TextStyle(fontSize: 13.5, height: 1.4, color: AppTheme.textDark),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.amber.shade200),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline_rounded, color: Colors.amber, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        s.isHindi
+                            ? 'कृपया दिए गए विवरण की जांच करें और सही दस्तावेज़ पुनः अपलोड करें।'
+                            : 'Please review the details above and re-upload the correct document.',
+                        style: TextStyle(fontSize: 11.5, color: Colors.amber.shade900),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryGreen,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(s.isHindi ? 'ठीक है (OK)' : 'OK'),
+            ),
+          ],
+        ),
+      );
     } finally {
+      VerificationProgressDialog.dismiss();
       if (mounted) {
         setState(() => _isSubmitting = false);
       }
@@ -374,9 +446,14 @@ class _GovtIdVerificationWidgetState extends ConsumerState<GovtIdVerificationWid
             keyboardType: _selectedIdType == GovtIdType.aadhaar
                 ? TextInputType.number
                 : TextInputType.text,
+            inputFormatters: _selectedIdType == GovtIdType.aadhaar
+                ? [FilteringTextInputFormatter.allow(RegExp(r'[0-9\s\-]'))]
+                : (_selectedIdType == GovtIdType.pan
+                    ? [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]'))]
+                    : [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9\s\-]'))]),
             maxLength: _selectedIdType == GovtIdType.aadhaar
-                ? 14
-                : (_selectedIdType == GovtIdType.pan ? 10 : 16),
+                ? 16
+                : (_selectedIdType == GovtIdType.pan ? 10 : 18),
             decoration: InputDecoration(
               counterText: '',
               hintText: _selectedIdType == GovtIdType.aadhaar
