@@ -13,6 +13,7 @@ import '../../../chat/presentation/providers/chat_provider.dart';
 import '../../../notifications/presentation/providers/notifications_provider.dart';
 import '../../../notifications/presentation/widgets/notifications_sheet.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../requests/presentation/providers/passenger_requests_provider.dart';
 import '../../../authentication/presentation/widgets/govt_document_gate_dialog.dart';
 import '../providers/home_provider.dart';
@@ -34,8 +35,15 @@ class _HomePageState extends ConsumerState<HomePage> {
     final unreadMessagesCount = ref.watch(unreadConversationsCountProvider).value ?? 0;
     final unreadNotificationsCount = ref.watch(unreadNotificationsCountProvider).value ?? 0;
 
-    final userDisplayName = ProfilePage.formatUserName(user, isHindi: s.isHindi);
-    final userAvatarUrl = (user?.userMetadata?['avatar_url'] as String?) ?? (user?.userMetadata?['picture'] as String?);
+    final profileAsync = ref.watch(userProfileProvider);
+    final profileData = profileAsync.valueOrNull;
+
+    final userDisplayName = (profileData?['display_name'] as String?)?.isNotEmpty == true
+        ? (profileData!['display_name'] as String)
+        : ProfilePage.formatUserName(user, isHindi: s.isHindi);
+    final userAvatarUrl = (profileData?['avatar_url'] as String?) ??
+        (user?.userMetadata?['avatar_url'] as String?) ??
+        (user?.userMetadata?['picture'] as String?);
 
     final upcomingJourneysAsync = user != null ? ref.watch(homeUpcomingJourneysProvider(user.id)) : null;
     final pendingCountAsync = user != null ? ref.watch(homePendingRequestsCountProvider(user.id)) : null;
@@ -156,9 +164,16 @@ class _HomePageState extends ConsumerState<HomePage> {
                           borderRadius: BorderRadius.circular(24),
                           child: CircleAvatar(
                             radius: 24,
-                            backgroundColor: AppTheme.primaryGreen,
-                            backgroundImage: userAvatarUrl != null ? NetworkImage(userAvatarUrl) : null,
-                            child: userAvatarUrl == null
+                            backgroundColor: (userAvatarUrl != null && userAvatarUrl.isNotEmpty)
+                                ? const Color(0xFFE2E8F0)
+                                : AppTheme.primaryGreen,
+                            backgroundImage: (userAvatarUrl != null && userAvatarUrl.isNotEmpty)
+                                ? NetworkImage(userAvatarUrl)
+                                : null,
+                            onBackgroundImageError: (userAvatarUrl != null && userAvatarUrl.isNotEmpty)
+                                ? (_, __) {}
+                                : null,
+                            child: (userAvatarUrl == null || userAvatarUrl.isEmpty)
                                 ? Text(
                                     userDisplayName.isNotEmpty ? userDisplayName[0].toUpperCase() : 'Y',
                                     style: const TextStyle(
